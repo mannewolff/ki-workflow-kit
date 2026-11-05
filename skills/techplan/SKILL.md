@@ -1,0 +1,204 @@
+---
+name: techplan
+description: Step 2 of the 8-step process: creates an implementation plan, puts it up for discussion, and implements nothing. Use this skill when the user invokes /techplan, wants to create a plan, or starts step 2 of the process.
+user-invocable: true
+---
+<!-- SPDX-License-Identifier: MIT -->
+
+# Plan
+Schritt 2 des 8-Schritt-Prozesses: Die KI erstellt einen Plan. Der Plan wird zur Diskussion gestellt, nicht zur Implementierung.
+
+## Unbeaufsichtigt
+Erkennungsmerkmal ist **gesetztes `KIT_AGENT_MODEL`** und ausdrücklich kein zweites Signal — dieselbe Bedingung wie in `/issue-review`, Abschnitt „Ablauf". Der Runner stellt dem Auftrag zwar einen Satz voran, der die Betriebsart benennt. **Maßgeblich bleibt allein `KIT_AGENT_MODEL`; der Hinweis im Prompt wiederholt es nur** — sein Fehlen ist keine Entwarnung.
+
+Unbeaufsichtigt startet den Skill der Runner mit `node .claude/kit/night.mjs --chain`, je Fachplan mit dem Label `kit:night` eine frische Session mit `/techplan #N` gegen das `[Requirement]`-Issue — erste Stufe der Kette, die Prüfung des Plans und der Schnitt in Arbeitspakete folgen in derselben Kette.
+
+**Unbeaufsichtigt wird nicht gefragt — in keiner Lage.** Das gilt für die Bahn (Schritt 0), für jede Unklarheit in der Anforderung (Schritt 1) und für die Diskussion des Plans (Schritt 4). Eine Session, die auf eine Antwort wartet, ist vom Runner nicht von einem Fehlschlag zu unterscheiden. Diese Regel gilt für **jeden unbeaufsichtigten Lauf**, nicht nur für diesen Runner — auch dann, wenn ein anderer Runner den Skill startet.
+
+**Offene Verträge unbeaufsichtigt.** Trägt der Plan einen offenen Vertrag (Schritt 3), steht die Vertragsfrage über alle offenen Verträge als erste Zeile unter `## Offene Fragen` — daran hält die Kette nach der Prüfung des Plans an, bevor `/issues` Pakete schneidet. Eine andere Stopp-Frage folgt als weiterer Eintrag im selben Abschnitt und wird beim nächsten Halt gestellt: Jeder Halt trägt genau eine Frage. `Entschieden:` schreibt nur, wer die Antwort des Menschen hat — unbeaufsichtigt nie die Sitzung.
+
+Ein Widerspruch zur Vorgeschichte ist kein E-Eintrag und keine Stopp-Frage: Er steht als `- Widerspruch:`-Zeile in `### Vorgeschichte`, hält nichts an, und der Bericht des Laufs nennt ihn.
+
+Unverändert unbeaufsichtigt: kein Code, kein Commit, keine technischen Issues, keine Ready-Bewegung — der Stop-Punkt am Ende gilt auch unbeaufsichtigt. Das Plan-Dokument aus Schritt 5 entsteht unbeaufsichtigt **unmittelbar nach Schritt 3**; die Freigabe erfolgt dann am Board.
+
+## Plan-Modell: wer den Plan geschrieben hat
+Der Plan nennt in seinem Kopf die Zeile:
+```
+Plan-Modell: <Selbstauskunft der Session>
+```
+
+Der Wert entsteht wie beim `Autor-Modell` in `/issues`: `KIT_AGENT_MODEL`, wenn gesetzt — sonst die Selbstauskunft der laufenden Session. **Läuft der Skill als `/techplan #N` gegen ein fachliches Issue, geht die Angabe zusätzlich als Kommentar ans Issue:**
+```bash
+node .claude/kit/board.mjs issue comment <N> --text "Plan erstellt von <modell> am <JJJJ-MM-TT>"
+```
+
+Der Grund ist die Lückenlosigkeit der Kette: Die technischen Issues tragen ihr eigenes `Autor-Modell`, und ohne diesen Kommentar wäre nicht mehr ablesbar, welches Modell den Plan entworfen hat; der Tracker nennt als Autor immer den Inhaber des Tokens.
+
+## Eingang `/techplan #N`: fachliches Issue als Quelle
+Wird der Skill mit einer Issue-Nummer aufgerufen und trägt dieses Issue das Titel-Präfix `[Requirement]` (PO-Schleife, siehe `/requirement`), dann ist **das Issue die Anforderungsquelle, nicht der Chat**.
+
+**Szenarien vor dem Plan.** Zuerst ruft der Skill die Formprüfung des Fachplans auf:
+```bash
+node .claude/kit/board.mjs issue check-form <N>
+```
+
+Trägt die Ausgabe das Feld `wartet`, wartet der Fachplan auf ein Ereignis. Dann nennt der Skill vor allem anderen „Fachplan #N wartet auf ein Ereignis: <Grund>. Der Plan entsteht trotzdem; das Warten bleibt.“ mit dem Grund aus dem Feld und macht weiter, auch unbeaufsichtigt. Das ist ein Hinweis, keine Sperre: Der Skill liest das Warten aus dem Feld, nicht aus dem Body, und ruft `issue hold` nicht auf.
+
+Nennt `verstoesse` das Gate `F12`, fehlen dem pflichtigen Fachplan die Szenarien, und es entsteht kein Plan: Der Skill nennt die `meldung` als Grund und den Weg `/groom #N`, der die Szenarien mit dem PO ergänzt, und endet. Unbeaufsichtigt (gesetztes `KIT_AGENT_MODEL`) gehen Grund und Weg als Kommentar an den Fachplan, nach der Transportregel aus `CLAUDE-workflow.md`, Abschnitt „Lange Texte ans Board“, als `<tmpdir>/<N>-szenarien.md` mit `issue comment <N> --text-file`. Die Szenarien ergänzt der Skill nie selbst — das gehört ins Grooming zum PO. Andere Verstöße halten hier nicht an, und ein Fachplan von vor dem Stichtag meldet kein F12.
+
+1. Das fachliche Issue vollständig lesen — **den kompletten Body**, denn dort steckt die Groom-Historie mit den PO-Entscheidungen. Die Verhandlung findet im Body statt, nicht in Kommentaren: Der Body ist der verhandelte Stand, Kommentare sind Verlauf. `board.mjs issue get` liefert zusätzlich ein `comments`-Array (Verlauf, Abschlussberichte, Review-Befunde) — das ergänzt den Body, ersetzt ihn aber nicht als Quelle der Anforderung.
+2. Den technischen Plan aus Ziel, fachlichen Akzeptanzkriterien und Nicht-Zielen entwickeln; die Nicht-Ziele sind Scope-Grenzen, keine Anregungen.
+3. Das fachliche Issue im Plan ausdrücklich referenzieren („Fachliche Quelle: Issue #N"), damit `/issues` den Rückverweis in die technischen Issues übernimmt.
+4. **Vorlage-Konvention.** Bringt der Mensch eine Vorlage mit — einen Gestaltungsentwurf, ein Mockup, eine Skizze —, trägt jedes Dokument der Kette die Zeile `Vorlage: <Pfad> — verbindlich | Anregung`: `/requirement` im Abschnitt `## Ziel`, `/techplan` im Kopf des Plans, `/issues` im `## Kontext` jedes Pakets, das Aussehen oder Aufbau einer Ansicht berührt. Bei „verbindlich“ entscheidet `/techplan` keine offene Gestaltungsfrage gegen die Vorlage — ein Widerspruch ist eine Stopp-Frage, unbeaufsichtigt `kit:clarify` —, und jedes solche Paket nennt die Stelle der Vorlage und trägt als Akzeptanzkriterium die Abnahme per Bildschirmfoto neben der Vorlage; `issue check-form` weist ein Paket mit verbindlicher Vorlage ohne Bildschirmfoto im Akzeptanzkriterium ab (I5).
+
+## Eingang `/techplan #N`: eine Idee aus `/triage`
+Eine `[Idea]` nimmt der Skill **nur**, wenn ihr Abschnitt `## Geklärter Stand` die Bahn-Zeile `Bahn: 2, technisch` trägt — der Mensch hat beim Durchsprechen über das Ziel entschieden und den direkten Weg zum Plan gewählt. Ohne diese Bahn-Zeile, auch mit einer anderen Bahn, weist er ab und nennt `/triage #N`, und es entsteht nichts. Bei einer angenommenen Idee ist der geklärte Stand der Eingang, neben Body und Kommentaren der Idee; er steht im Plan als `### Geklärter Stand` unter `## Ziel`, eine `Vorlage:`-Zeile daraus wörtlich im Kopf des Plans. Der Plan trägt keine `Fachliche Quelle:`-Zeile, aber `--derived-from <N>` auf die Idee: War eine Idee der Eingang, ist sie der Vorfahr; weder `Fachliche Quelle:` noch `Plan:` zeigt auf sie. Nach dem Anlegen (Schritt 5) hängt der Skill die Spur an die Idee:
+```bash
+node .claude/kit/board.mjs issue comment <N> --text "Fortsetzung: Issue #M"
+```
+
+Liefert `issue create` nur eine `ideaId` mit `pending: true`, lautet der Kommentar `Fortsetzung: Idee <ideaId> (noch nicht eingeplant)`. Folge: Ein solcher Plan kann unbeaufsichtigt laufen (`kit:night` am geprüften Plan) oder interaktiv mit `/issues #M` geschnitten werden; die `pending`-Idee bleibt ohne Nummer erst nach dem Einplanen adressierbar. Form, Vorgeschichte, Formprüfung und Freigabe bleiben wie bei jedem Plan.
+
+**Feste Zeilen.** Überschriften, Marker, Review- und Einarbeitungs-Köpfe und Fundblock-Zeilen, die dieser Skill in Dokumente, Kommentare oder Markerzeilen schreibt, stehen hier deutsch. Vor dem ersten Schreiben `node .claude/kit/board.mjs names` aufrufen: Das Feld `lines` nennt je deutscher Zeile die Fassung der Projektsprache, und der Skill schreibt die ausgegebene Fassung. Eine Zeile mit veränderlichem Rest (`## Einarbeitung, Runde 2`) steht dort mit ihrem festen Anfang, eine Überschrift mit `## ` davor gilt auf jeder Ebene, und was `names` nicht nennt, bleibt, wie es hier steht.
+
+## Ablauf
+### 0. Bahn bestimmen
+**Unbeaufsichtigt** (gesetztes `KIT_AGENT_MODEL`): Es gilt **immer Bahn 2**. Ein Plan-Dokument entsteht auch dann, wenn die Anforderung nach CLAUDE-workflow.md Bahn 1 oder Bahn 3 wäre. Das Urteil wird dabei **nicht verworfen**, sondern steht als erste Zeile in `## Architektonische Entscheidungen` — je nach Bahn eine der beiden Zeilen, wörtlich:
+```
+- Bahn 1 nach CLAUDE-workflow.md; unbeaufsichtigt als Plan festgehalten, Entscheidung beim Menschen.
+- Bahn 3 nach CLAUDE-workflow.md; unbeaufsichtigt als Plan festgehalten, Entscheidung beim Menschen.
+```
+
+Für Bahn 3 kommt ein eigener Grund dazu: Ein `[Task]` entsteht nur nach ausdrücklicher menschlicher Bestätigung des Wegs (siehe `/task`). Unbeaufsichtigt kann keine Bestätigung eingeholt werden, also **kann unbeaufsichtigt kein `[Task]` entstehen** — der Plan ist dann die einzige Form, in der das Urteil den Menschen erreicht.
+
+**Interaktiv:** Nicht jede Anforderung braucht einen Plan. Zwei Bahnen führen an ihm vorbei, und der Skill benennt sie, statt zu planen:
+
+- **Bahn 1** (kleine Änderung nach der Definition in CLAUDE-workflow.md): sag das und biete an, sie **direkt** umzusetzen — kein Plan-Overhead.
+- **Bahn 3**: Gibt es **nichts abzuwägen** — stehen also nicht mehrere vertretbare Wege offen —, sag das, biete `/task` an und **plane nicht**. Der Vorgang wird dann ein einzelnes Arbeitspaket mit dem Titel-Präfix `[Task]`, ohne Fachkonzept und ohne Plan.
+
+**Das Bahn-3-Angebot gilt nur, solange kein `[Requirement]`- und kein `[Plan]`-Dokument als Quelle vorliegt.** Bei `/techplan #N` gegen ein `[Requirement]`-Issue bleibt der begonnene volle Weg erhalten: `/task` lehnt diese Quelle ausdrücklich ab, und auf einen Skill zu verweisen, der die Nummer zurückweist, wäre eine Sackgasse. Bei einer **`[Idea]`** aus `/triage` entfällt die Bahnbestimmung: Die Bahn ist mit `Bahn: 2, technisch` entschieden, der Skill bietet weder Bahn 1 noch Bahn 3 an und plant.
+
+### 1. Anforderung verstehen
+Kläre zuerst: Was soll gebaut werden, welche Bereiche des Codes sind betroffen, gibt es Abhängigkeiten zu anderen Issues oder laufenden Arbeiten?
+
+**Unbeaufsichtigt** (gesetztes `KIT_AGENT_MODEL`): Es wird **nicht nachgefragt**. Jede offene Stelle wird nach `CLAUDE-workflow.md`, Abschnitt „Entscheiden statt fragen", entschieden und als E-Eintrag unter `## Architektonische Entscheidungen` festgehalten, im Format von dort. Nur eine Frage aus der Stopp-Klasse steht in `## Offene Fragen` — dort und nur dort liest der Runner sie —, genau eine je Halt; der Plan bleibt dann als Entwurf stehen und ist kein Eingang für `/issues`. Ein Protokoll außerhalb des Plan-Dokuments zählt nicht: Was nur im Session-Log oder in einem Board-Kommentar steht, sieht der nächste Schritt nicht.
+
+**Interaktiv:** Frage nach, wenn etwas unklar ist. Was der Mensch entscheidet, steht im selben Format unter `## Architektonische Entscheidungen`.
+
+### 2. Relevante Dateien lesen
+Lies die betroffenen Dateien und vorhandene Muster. Nutze einen Explore-Agenten, wenn der Scope unklar ist. Suche aktiv nach wiederverwendbaren Funktionen und Mustern — vermeide neuen Code, wenn eine passende Implementierung bereits existiert.
+
+**Vorgeschichte** (außer `history` ist `false`, Regel in `CLAUDE-workflow.md`, Abschnitt „Vorgeschichte“): Steht fest, welche Dateien betroffen sind, ruft der Skill das Kommando mit Begriffen aus Titel und Ziel, je Datei aus `## Betroffene Bereiche` ein `--files` und mit `--without` für die Fachliche Quelle:
+```bash
+node .claude/kit/board.mjs issue history --terms <begriff> --files <pfad> --without <N>
+```
+
+**Verträge mit dem anderen Repo** (nur wenn `contractRepos` in der Config ein Partnerrepo nennt, Gate P14 in `CLAUDE-Plan.md`): Legt der Plan etwas fest, das das andere Repo liest oder schreibt — einen Namen, ein Kennzeichen, ein Format —, holt der Skill je Festlegung den gebauten Stand und sucht die Fundstelle im Klon unter `path` mit Grep und Read:
+```bash
+node .claude/kit/board.mjs code contract-repo <name>
+```
+
+Maßgeblich ist dieser Stand auf dem Hauptzweig, nicht der Plan des anderen Repos und nicht die installierte Kit-Fassung. Meldet das Kommando `ok: false`, lautet `Gebauter Stand:` `nicht prüfbar: <reason>` und der Abgleich `nicht prüfbar`.
+
+### 3. Plan erstellen
+Der Plan hat ein **verbindliches Format** — wie das Vier-Abschnitt-Format der Arbeitspakete in `/issues`, nicht als Anregung. Jeder Plan enthält die folgenden sechs `##`-Überschriften **genau einmal und in dieser Reihenfolge**. Dazwischen dürfen Unterüberschriften ab Ebene `###` stehen, aber keine weiteren Überschriften der Ebene `##`:
+```markdown
+## Ziel
+## Betroffene Bereiche
+## Architektonische Entscheidungen
+## Geplante Änderungen
+## Offene Fragen
+## Verifizierung
+```
+
+Die Überschriften sind der Anker, an dem die Plan-Prüfung und `/issues` arbeiten — **sinngemäß umformuliert wirken sie nicht**. Sie werden wörtlich übernommen: nicht umbenannt, nicht zusammengefasst, nicht umsortiert. **Die Reihenfolge ist begründet:** `## Offene Fragen` steht **vor** `## Verifizierung`. Offene Fragen sollen nicht am Ende vergraben werden — als letzter Abschnitt des Dokuments wären sie genau das. Was in die Abschnitte gehört:
+
+- `## Ziel` — was gebaut wird und welche Wirkung es für den Nutzer hat.
+- `## Betroffene Bereiche` — Dateien, Module, Schichten. Außer `history` ist `false`, endet der Abschnitt mit dem Unterabschnitt `### Vorgeschichte`: die Zeilen `Suchbegriffe:` und `Dateien:`, die Fundstellen und Vermerke nach `CLAUDE-workflow.md`, Abschnitt „Vorgeschichte“, und die `- Widerspruch:`-Zeilen aus `## Vorgeschichte` der Fachlichen Quelle wörtlich übernommen, neben den eigenen.
+- `## Architektonische Entscheidungen` — die getroffenen Entscheidungen, jede mit Begründung:
+
+  > Jede architektonische Entscheidung muss eine Begründung tragen, damit ihre Annahmen und Abwägungen im Review geprüft und angegriffen werden können.
+
+  Dazu die E-Einträge aus „Entscheiden statt fragen": jede beim Planen entschiedene Frage, im Format aus `CLAUDE-workflow.md`, fortlaufend nummeriert.
+
+- `## Geplante Änderungen` — je Datei, was sich ändert.
+- `## Offene Fragen` — **Stopp-Fragen**: Fragen aus der Stopp-Klasse in `CLAUDE-workflow.md`, Abschnitt „Entscheiden statt fragen". Nachträglich entscheidbare Fragen gehören nicht hierher, sie werden entschieden und stehen als E-Eintrag unter `## Architektonische Entscheidungen`. **Fehlerpfad:** Enthält der Abschnitt mindestens eine offene Stopp-Frage, darf der Plan nicht in Arbeitspakete überführt werden. Erst nach Beantwortung und Einarbeitung wird er erneut zur Freigabe gestellt.
+- `## Verifizierung` — **beschreibt die auszuführenden Prüfungen, nicht deren vorweggenommenes Ergebnis.** Trägt die Fachliche Quelle Szenarien, nennt der Abschnitt je Szenario den Test, der den Titel des Szenarios im Namen trägt.
+
+**Neue Namen und kopierte Strukturen (Gate P13 in `CLAUDE-Plan.md`).** Führt der Plan Namen ein, die ein Mensch tippt — Skills, Kommandos, Optionen, Labels, Titel-Präfixe —, nennt er unter `## Architektonische Entscheidungen`, dass sie mit keinem eingebauten Kommando von Claude Code kollidieren. Erzeugt er gleich gebaute Kopien in mehreren Dateien, nennt er ihre Wirkung auf die Duplikatsmessung des Projekts und wie er sie auffängt.
+
+**Verträge (Gate P14 in `CLAUDE-Plan.md`).** Nennt `contractRepos` ein Partnerrepo, steht am Ende von `## Architektonische Entscheidungen` der Unterabschnitt `### Verträge`: je Festlegung zum anderen Repo ein Eintrag `- V<n>:` mit `Gebauter Stand:` und `Abgleich:` aus Schritt 2, ohne Festlegung die Leerform. Die festen Wörter — Zeilenanfänge, Abgleich-Werte, Richtungen, Leerform — schreibt der Skill in der Fassung aus `names` (Feld `contract`, Tabelle `VERTRAG`). Ein offener Vertrag (`weicht ab`, `fehlt`, `nicht prüfbar` ohne `Entschieden:`) braucht die Vertragsfrage unter `## Offene Fragen` (Schritt 4).
+
+**Leere Pflichtabschnitte gibt es nicht.** Alle sechs bleiben erhalten, auch wenn es für einen nichts zu sagen gibt; in `## Architektonische Entscheidungen` und `## Offene Fragen` steht dann `- Keine.` **Die Metadaten zählen nicht mit.** Die Kopfzeilen `Plan-Modell: …` und, falls anwendbar, `Fachliche Quelle: Issue #N` stehen **vor** `## Ziel`. Sie sind keine Überschrift und damit kein siebter Abschnitt des Formats.
+
+### 4. Plan zur Diskussion stellen
+**Unbeaufsichtigt** (gesetztes `KIT_AGENT_MODEL`): Die Diskussion **entfällt**, Schritt 5 folgt unmittelbar. Ohne diese Ausnahme entsteht unbeaufsichtigt überhaupt kein Artefakt: Der Skill wartete auf ein Feedback, das niemand gibt, und der Runner sähe einen Fehlschlag. Die Freigabe ist damit nicht übergangen, sondern verschoben — sie erfolgt am Board.
+
+**Interaktiv:** Präsentiere den Plan und warte auf Feedback. Implementiere **nicht**, bevor der Plan freigegeben wurde. Plan-Akzeptanz ist kein GO — das GO kommt separat (Schritt 4).
+
+**Offene Verträge (interaktiv):** Trägt der Entwurf einen offenen Vertrag, stellt der Skill vor dem Anlegen in Schritt 5 eine ausdrückliche Frage, die alle offenen Verträge mit V-Nummer aufzählt — eine Frage, nicht eine je Vertrag. Die Antwort des Menschen steht als `Entschieden:` im V-Eintrag (`Plan angepasst`, `anderes Repo zieht nach` oder `Abweichung angenommen`); bleibt sie aus, steht die Frage unter `## Offene Fragen`, und der Plan ist kein Eingang für `/issues`.
+
+**Testhinweise vor dem Präsentieren (Bahn 2, interaktiv):** Den Planentwurf mit Kopfzeilen in `<tmpdir>/plandokument.md` schreiben (wie in Schritt 5) und `issue check-form --art plan --body-file <tmpdir>/plandokument.md --title "<Titel>"` fahren. Meldet das Ergebnis `hinweise` — eigene Tests geführter Bausteine, die der Plan nicht nennt —, stehen sie in **derselben Antwort** wie der Plan, Baustein und Test beim Namen. Der Autor nimmt den Test in `## Geplante Änderungen` auf, als geändert oder als „bleibt grün", immer mit Namen, oder lässt den Hinweis bewusst stehen. Ein Hinweis ist kein Verstoß und hält die Diskussion nicht auf.
+
+### 5. Plan-Dokument anlegen (nur Bahn 2 — interaktiv nach der Freigabe, unbeaufsichtigt unmittelbar nach Schritt 3)
+Steht der Plan — interaktiv also nach der Freigabe, unbeaufsichtigt nach Schritt 3 —, hält der Skill ihn als eigenes Issue fest: das **Plan-Dokument**. Ohne es ist der Plan das einzige Artefakt der Kette ohne Ort: Er entsteht im Gespräch, wird einmal überflogen und verschwindet. Die technischen Issues verweisen später auf die fachliche Quelle, aber was **dazwischen** entschieden wurde — Architektur, Schnitt, Abwägungen — wäre nach der Sitzung nicht mehr rekonstruierbar.
+
+**Bei Bahn 1 entsteht kein Plan-Dokument.** Dort gibt es keinen Plan; ein leeres `[Plan]`-Ticket je Kleinigkeit wäre Lärm.
+
+**Titel:** `<Titel des Vorhabens>` ohne Präfix — `--art plan` an `issue check-form` und `issue create` stellt das Präfix der Projektsprache voran (`[Plan]` im deutschen Projekt). Das Präfix ist die verbindliche Konvention, an der die übrigen Skills und der Runner Plan-Dokumente erkennen und von Arbeitspaketen unterscheiden — dieselbe Mechanik wie `[Requirement]` und `[Idea]`. Bei `/techplan #N` entsteht der Titel aus dem Titel des Quell-Issues **ohne dessen `[Requirement]`- bzw. `[Idea]`-Präfix**; sonst aus einer knappen Bezeichnung des `## Ziel`-Abschnitts.
+
+**Body:** der freigegebene Plan im verbindlichen Format aus Schritt 3 — alle sechs Abschnitte, unverändert übernommen. Darüber, vor `## Ziel`, die Kopfzeilen:
+
+- `Plan-Modell: <wert>` — **immer**.
+- `Fachliche Quelle: Issue #N` — **nur**, wenn der Plan aus `/techplan #N` gegen ein `[Requirement]`-Issue entstand. Bei einem Plan aus dem Chat oder aus einer `[Idea]` fehlt diese Zeile; sie zu erfinden behauptete eine Quelle, die es nicht gibt.
+
+Vor dem Anlegen prüft ein Kommando die Form; erst bei `ok: true` folgt `issue create`, Verstöße werden in der Datei behoben und erneut geprüft:
+```bash
+node .claude/kit/board.mjs issue check-form --art plan --body-file <tmpdir>/plandokument.md --title "<Titel>"
+```
+
+Die Testhinweise stehen im Ergebnis neben `ok` (`json.hinweise ?? []`); sie berühren weder `ok` noch den Exit-Code. **Hinweise halten nie an.** Interaktiv hat der Mensch sie in Schritt 4 gesehen: Was danach noch steht, hält nicht erneut an und steht in der Abschlussantwort. Unbeaufsichtigt entscheidet die Sitzung ohne Rückfrage — den Test aufnehmen oder den Hinweis stehen lassen — und legt den Plan an. Den Kommentar `## Testhinweise der Formpruefung` mit dem, was stehen bleibt, schreibt danach der Runner an den Plan, nicht die Sitzung.
+
+**Angelegt über:**
+```bash
+node .claude/kit/board.mjs issue create \
+  --art plan \
+  --title "<Titel>" \
+  --author-model "<Wert aus Plan-Modell>" \
+  --derived-from <N> \
+  --body-file <tmpdir>/plandokument.md
+```
+
+Der Plantext entsteht davor stueckweise, jedes Stueck in einem **eigenen** Werkzeugaufruf, und der Pfad steht woertlich — die Grenze von 6.000 Zeichen gilt je Aufruf, und eine Variable im Redirect-Ziel wird unbeaufsichtigt abgewiesen. Warum, steht in `CLAUDE-workflow.md`, Abschnitt „Lange Texte ans Board". **Scheitert ein Dateischritt**, wird die unvollstaendige Datei nicht uebertragen; scheitert der Board-Aufruf, meldet der Skill den Fehler mit dem Pfad der Datei und endet ohne weitere Mutation — der bestehende Fehlerfall („weder eine Nummer noch einen erfolgreichen Abschluss“) bleibt unveraendert:
+```bash
+printenv TMPDIR
+```
+
+Bleibt die Ausgabe von `printenv TMPDIR` leer (Linux und WSL2 ohne Sandbox), gilt `/tmp` als `<tmpdir>`.
+
+```bash
+cat  > <tmpdir>/plandokument.md <<'TEIL1'
+Plan-Modell: <wert>
+Fachliche Quelle: Issue #N
+
+## Ziel
+…
+TEIL1
+```
+
+```bash
+cat >> <tmpdir>/plandokument.md <<'TEIL2'
+… weitere Stuecke, je hoechstens 6.000 Zeichen …
+TEIL2
+```
+
+**`--derived-from <N>` genau dann, wenn der Plan aus `/techplan #N` gegen ein `[Requirement]`-Issue oder gegen eine angenommene `[Idea]` entstand**. Die Option trägt die Kartennummer des nächsten Vorfahren als Feld ans Board, damit es die Kette Fachplan → Plan → Arbeitspaket als Daten kennt und nicht nur als Zeichen im Beschreibungstext. Bei der Idee steht nur das Feld, die `Fachliche Quelle`-Zeile entfällt. Bei einem Plan aus dem Chat **entfällt sie** — genauso, wie dort die `Fachliche Quelle`-Zeile entfällt; eine Nummer zu erfinden behauptete eine Quelle, die es nicht gibt.
+
+**`--author-model` ist Pflicht.** Der Adapter lehnt jeden Body ohne `Autor-Modell:`-Zeile ab, sofern weder das Flag noch `KIT_AGENT_MODEL` gesetzt ist (`kit/board.mjs`). Ein Plan-Body trägt aber `Plan-Modell:`, nicht `Autor-Modell:` — ohne das Flag scheitert das Anlegen bei jedem interaktiven Durchlauf zur Laufzeit, während jeder Texttest grün bleibt.
+
+**Sonderfall Toolbox-/kanban-kit-Tracker (Ideen-Pool):** Liefert `issue create` statt einer Nummer `{ ideaId, pending: true }`, liegt das Plan-Dokument als board-lose Idee im Projekt-Ideen-Pool. Der Skill meldet dann die `ideaId` und weist darauf hin, dass der Mensch es erst einplanen muss — vorher existiert keine Nummer, unter der es adressierbar wäre.
+
+**Fehlerfall:** Schlägt das Anlegen fehl, meldet der Skill **weder eine Nummer noch einen erfolgreichen Abschluss**. Ein Plan, der nirgends steht, ist kein festgehaltener Plan.
+
+## Stop-Punkt
+Dieser Skill endet mit einem Plan-Dokument zur menschlichen Freigabe. Kein Code, kein Commit, keine **technischen** Issues, keine Ready-Bewegung — erst nach explizitem GO. Das `[Plan]`-Dokument ist die einzige Ausnahme: Es entsteht bei Bahn 2 interaktiv nach der Freigabe, unbeaufsichtigt unmittelbar nach Schritt 3 — die Freigabe erfolgt dann am Board —, weil es den erreichten Stand festhält und nicht dessen Umsetzung vorwegnimmt. Ausnahme von der Ready-Bewegung, ausschliesslich in der Umsetzungsstufe der Kette unter Variante B: Dort zieht der Runner die entstandenen Arbeitspakete selbst nach Ready. Die Ausnahme gilt dem Runner, nicht diesem Skill — keine Ready-Bewegung durch diesen Skill.

@@ -1,0 +1,127 @@
+// SPDX-License-Identifier: MIT
+/**
+ * texte/night-tag.mjs — die Texttabelle von night/tag.mjs (Issue #1525). Eigener Teil, damit
+ * `sonar.cpd.exclusions` die gleich gebauten Haelften de und en ausnehmen kann, ohne die
+ * Logik des Moduls aus der Duplikatsmessung zu nehmen. Das Modul importiert die Tabelle und
+ * exportiert sie unter demselben Namen weiter.
+ */
+
+// --- Texte an den Menschen (Issue #1486, Plan #1420 E13/E14) ---
+
+// Die Zeilen, die kanban-kit aus dem Textprotokoll liest, nehmen englisch die Form der Vorlage
+// am Plan #1420 (`WARNING:`, der Grund `Time budget` eines Zeitbudget-Abbruchs). Vertrag bleibt
+// (E14): die Ausgaenge (`geprueft`, `klaeren`, `unvollstaendig`, `uebersprungen`,
+// `liegengeblieben`), die erreichten Schritte (`gestartet`, `befunde`, `eingearbeitet`), die
+// Zustaende des Laufstands und die Anker, die der Teil aus den Kommentaren der Session liest.
+export const TEXTE = Object.freeze({
+  de: Object.freeze({
+    praefixFehlt: "board/dokumente.mjs fehlt neben night.mjs ({pfad}) — das Praefix {praefix} ist nicht erkennbar.",
+    nichtAngebunden: "{haken} ist nicht angebunden — der Einstieg kit/night.mjs setzt es beim Laden.",
+    hakenUnbekannt: "tagAnbinden kennt keinen Haken '{name}'",
+    abhaengigkeitUnbekannt: "laufePrueflauf kennt keine Abhaengigkeit '{name}'",
+    budgetName: "des Prueflaufs",
+    nichtFachlich: "der Prueflauf gilt allein fachlichen Anforderungen und Plandokumenten (Nicht-Ziel 'Arbeitspakete')",
+    ohneKennzeichen: "traegt das Kennzeichen {label} nicht",
+    ohneFachlich: "traegt weder [Requirement] noch [Plan]",
+    artGrund: "{art} — {hinweis}",
+    klaeren: "traegt {label} — eine Entscheidung wartet auf einen Menschen, eine zweite Pruefung beantwortet sie nicht",
+    standKopf: "Pruefung beendet: {ausgang} um {zeit}",
+    standFrage: "{kopf}\n\nWartende Entscheidung: {frage}",
+    standSchritt: ", erreichter Schritt: {schritt}",
+    standGrund: "{kopf}{erreicht}\n\n{grund}",
+    ohneGrund: "ohne Grund",
+    letzterKommentar: "siehe den letzten Kommentar an #{id}",
+    restAnker: "## Pruefung unvollstaendig",
+    ohneStempel: "ohne Stempel",
+    restGelaufen: "Prueflauf {stempel}: Die Pruefung ist gelaufen, ihre Befunde stehen als Kommentar an dieser Karte.",
+    restUnvollstaendig: "Sie ist unvollstaendig geblieben — der Lauf endete davor ({grund}) —, zuletzt erreichter Schritt: "
+      + "{schritt}. Der Body traegt deshalb keinen Review-Marker, obwohl geprueft wurde.",
+    restWeg: "Weg nach vorn: /issue-review #{id} von Hand fahren.",
+    restGeschrieben: "  Pruefung #{id} abgebrochen ({schritt}) — Vermerk '{anker}' an #{id} geschrieben.",
+    nichtGestartet: "Pruefung nicht gestartet: {grund}",
+    nichtGestartetGeschrieben: "  #{id}: Kommentar 'Pruefung nicht gestartet' geschrieben, Kennzeichen bleibt.",
+    nichtGestartetFehler: "  #{id}: Kommentar 'Pruefung nicht gestartet' nicht geschrieben ({antwort}).",
+    zeitbudget: "Zeitbudget: die Session wurde nach {minuten} min am Limit beendet",
+    technischerFehler: "technischer Fehler: die Session endete mit {exit}",
+    nichtLesbar: "die Karte ist nicht lesbar — es lief keine Session, das Kennzeichen bleibt",
+    karteUebersprungen: "Pruefung {nummer}/{gesamt}: Issue #{id} uebersprungen ({grund}).",
+    karteBeginnt: "Pruefung {nummer}/{gesamt}: Issue #{id} — {titel} (Fassung {fassung})",
+    kennzeichenEntfernt: "  Label '{label}' entfernt — jedes Setzen autorisiert genau eine Pruefung.",
+    reviewFertigEntfernt: "  Label '{label}' aus einem Vorlauf entfernt — nur diese Session darf es neu setzen.",
+    karteErgebnis: "  Pruefung #{id}: {ausgang}{zusatz} ({kosten} $).",
+    ohneMarker: "die Session endete, ohne den Review-Marker ihrer Stufe (Fachplan-Review oder Plan-Review) zu setzen",
+    zeileFassung: ", Fassung {fassung}",
+    zeileGeprueft: "  #{id} {titel}: geprueft{fassung}",
+    zeileKlaeren: "  #{id} {titel}: wartende Entscheidung{fassung}, Frage: {frage}",
+    zeileUnvollstaendig: "  #{id} {titel}: unvollstaendig{fassung}, erreichter Schritt: {schritt}",
+    ueberMax: "ueber --max {max}, bleibt liegen",
+    keinLabelWarnung: "WARNUNG: keine Karte traegt das Label '{label}' — es wird nichts geprueft.",
+    boardVon: "  Board von: {repo} ({host})",
+    vorhandeneLabels: "  Vorhandene Labels: {labels}",
+    keineLabels: "keine",
+    kandidat: "  #{id} {titel} -> Pruefung {nummer}/{gesamt} (Fassung {fassung})",
+    worktree: "Worktree des Laufs: {pfad}",
+    kostenbudget: "Kostenbudget: {summe} $ von {deckel} $ nach Pruefung {nummer}",
+    worktreeEntfernt: "Liegengebliebenen Worktree entfernt: {pfad}",
+    ergebnisliste: "Ergebnisliste des Prueflaufs:",
+    beendet: "Prueflauf beendet: {geprueft} geprueft, {klaeren} mit wartender Entscheidung, {unvollstaendig} unvollstaendig, "
+      + "{uebersprungen} uebersprungen, {liegengeblieben} liegengeblieben.",
+    danach: "Danach: Eine geprueft hinterlassene Karte erfuellt die Aufnahmevoraussetzung der Kette — das GO bleibt deins. "
+      + "Eine Karte mit '{label}' wartet auf deine Antwort; das Label nimmt nur ein Mensch ab. Protokoll: {protokoll}",
+  }),
+  en: Object.freeze({
+    praefixFehlt: "board/dokumente.mjs is missing next to night.mjs ({pfad}) — the prefix {praefix} cannot be recognized.",
+    nichtAngebunden: "{haken} is not connected — the entry point kit/night.mjs sets it when loading.",
+    hakenUnbekannt: "tagAnbinden knows no hook '{name}'",
+    abhaengigkeitUnbekannt: "laufePrueflauf knows no dependency '{name}'",
+    budgetName: "of the check run",
+    nichtFachlich: "the check run applies only to requirements and plan documents (non-goal 'work packages')",
+    ohneKennzeichen: "does not carry the marker {label}",
+    ohneFachlich: "carries neither [Requirement] nor [Plan]",
+    artGrund: "{art} — {hinweis}",
+    klaeren: "carries {label} — a decision is waiting for a human, a second check does not answer it",
+    standKopf: "Check finished: {ausgang} at {zeit}",
+    standFrage: "{kopf}\n\nPending decision: {frage}",
+    standSchritt: ", step reached: {schritt}",
+    standGrund: "{kopf}{erreicht}\n\n{grund}",
+    ohneGrund: "no reason",
+    letzterKommentar: "see the last comment on #{id}",
+    restAnker: "## Check incomplete",
+    ohneStempel: "without stamp",
+    restGelaufen: "Check run {stempel}: The check ran, its findings are a comment on this card.",
+    restUnvollstaendig: "It remained incomplete — the run ended before ({grund}) —, step reached: "
+      + "{schritt}. That is why the body carries no review marker, although it was checked.",
+    restWeg: "Way forward: run /issue-review #{id} by hand.",
+    restGeschrieben: "  Check #{id} aborted ({schritt}) — note '{anker}' written on #{id}.",
+    nichtGestartet: "Check not started: {grund}",
+    nichtGestartetGeschrieben: "  #{id}: comment 'Check not started' written, marker stays.",
+    nichtGestartetFehler: "  #{id}: comment 'Check not started' not written ({antwort}).",
+    zeitbudget: "Time budget: the session was ended at the limit after {minuten} min",
+    technischerFehler: "technical error: the session ended with {exit}",
+    nichtLesbar: "the card is not readable — no session ran, the marker stays",
+    karteUebersprungen: "Check {nummer}/{gesamt}: issue #{id} skipped ({grund}).",
+    karteBeginnt: "Check {nummer}/{gesamt}: issue #{id} — {titel} (revision {fassung})",
+    kennzeichenEntfernt: "  Label '{label}' removed — each setting authorizes exactly one check.",
+    reviewFertigEntfernt: "  Label '{label}' from an earlier run removed — only this session may set it again.",
+    karteErgebnis: "  Check #{id}: {ausgang}{zusatz} ({kosten} $).",
+    ohneMarker: "the session ended without setting the review marker of its stage (requirement review or plan review)",
+    zeileFassung: ", revision {fassung}",
+    zeileGeprueft: "  #{id} {titel}: checked{fassung}",
+    zeileKlaeren: "  #{id} {titel}: pending decision{fassung}, question: {frage}",
+    zeileUnvollstaendig: "  #{id} {titel}: incomplete{fassung}, step reached: {schritt}",
+    ueberMax: "over --max {max}, remains pending",
+    keinLabelWarnung: "WARNING: no card carries the label '{label}' — nothing will be checked.",
+    boardVon: "  Board of: {repo} ({host})",
+    vorhandeneLabels: "  Labels present: {labels}",
+    keineLabels: "none",
+    kandidat: "  #{id} {titel} -> check {nummer}/{gesamt} (revision {fassung})",
+    worktree: "Worktree of the run: {pfad}",
+    kostenbudget: "Cost budget: {summe} $ of {deckel} $ after check {nummer}",
+    worktreeEntfernt: "Leftover worktree removed: {pfad}",
+    ergebnisliste: "Result list of the check run:",
+    beendet: "Check run finished: {geprueft} checked, {klaeren} with pending decision, {unvollstaendig} incomplete, "
+      + "{uebersprungen} skipped, {liegengeblieben} left pending.",
+    danach: "Next: a card left checked meets the entry condition of the chain — the GO stays yours. "
+      + "A card with '{label}' waits for your answer; only a human removes that label. Log: {protokoll}",
+  }),
+});

@@ -1,0 +1,129 @@
+{
+  "language": "en",
+  "codeHost": "github",
+  "issueTracker": "github",
+  "buildChecks": [
+    "mvn verify",
+    {
+      "cmd": "npm --prefix frontend run build",
+      "areas": [
+        "frontend"
+      ]
+    }
+  ],
+  "checkAreas": {
+    "frontend": [
+      "frontend/**"
+    ]
+  },
+  "mutationCommand": "mvn org.pitest:pitest-maven:mutationCoverage",
+  "formatFixCommand": "",
+  "mainBranch": "main",
+  "productionBranch": "production",
+  "pushCheck": "local",
+  "reviewScope": "diff",
+  "reviewModel": "claude-opus-5",
+  "triggers": {
+    "go": "GO",
+    "push": "push main",
+    "merge": "merge production"
+  },
+  "local": {
+    "issuesDir": "issues"
+  },
+  "columns": {
+    "backlog": "Backlog",
+    "ready": "Ready",
+    "in_progress": "In progress",
+    "in_review": "In review",
+    "done": "Done"
+  },
+  "github": {
+    "projectNumber": 1
+  },
+  "night": {
+    "chain": {
+      "label": "kit:night",
+      "variantBLabel": "kit:carry-through",
+      "planMin": 20,
+      "packagesMin": 15,
+      "reviewMin": 15,
+      "coverageMin": 10,
+      "implementationMin": 120,
+      "costUsd": 50,
+      "costUsdB": 150,
+      "correctionRounds": 2
+    },
+    "goalImplementationMin": 10,
+    "stuckAfter": 3,
+    "models": [
+      "claude-opus-5",
+      "claude-sonnet-5"
+    ]
+  },
+  "checkRun": {
+    "label": "kit:check",
+    "checkMin": 25,
+    "costUsd": 25
+  },
+  "issueReview": {
+    "requiredBeforeReady": false,
+    "reviewers": [
+      {
+        "name": "opus",
+        "kind": "claude",
+        "model": "claude-opus-5"
+      },
+      {
+        "name": "sonnet",
+        "kind": "claude",
+        "model": "claude-sonnet-5"
+      },
+      {
+        "name": "fable",
+        "kind": "claude",
+        "model": "claude-fable-5"
+      }
+    ],
+    "pairs": {
+      "opus": [
+        "sonnet",
+        "fable"
+      ],
+      "sonnet": [
+        "opus",
+        "fable"
+      ],
+      "fable": [
+        "opus",
+        "sonnet"
+      ],
+      "haiku": [
+        "sonnet",
+        "opus"
+      ]
+    }
+  },
+  "reviewStages": {
+    "requirement": {
+      "reviewer": 2,
+      "roles": [
+        "form-beobachtbarkeit",
+        "abgrenzung"
+      ]
+    },
+    "plan": {
+      "reviewer": 2,
+      "roles": [
+        "architektur-bestand",
+        "schnitt-abhaengigkeiten"
+      ]
+    },
+    "issue": {
+      "reviewer": 1,
+      "roles": [
+        "pruefbarkeit"
+      ]
+    }
+  }
+}

@@ -1,0 +1,658 @@
+// SPDX-License-Identifier: MIT
+/**
+ * board/geschuetzt.mjs — Geschuetzte Pfade im Board-Werkzeug (Issue #1219, Plan #1199, E17):
+ * die Erkennung, ob ein Paket eine Datei nennt, die nur ein Mensch schreiben darf, der
+ * Halt-Kommentar samt Freigabe und die Formgates der Stufen, an denen I7 bis I9 haengen.
+ *
+ * Ein Teil von kit/board.mjs. Der Einstieg laedt ihn erst nach der Auskunft ueber
+ * --version und --help und exportiert seine Namen unveraendert weiter. Dieser Teil
+ * importiert nie aus dem Einstieg: Der Einstieg laedt die Teile, ein Rueckimport waere
+ * ein Zyklus. Der Unterabschnitt der Testhinweise bleibt bis zu seinem eigenen Teil im
+ * Einstieg; `escapeRegex`, das beide brauchen, steht darum hier.
+ *
+ * Bewusst ohne eigene KIT_VERSION (Plan #1199, E19): Die Teile kommen im selben
+ * Verzeichnis-Blob wie der Einstieg und werden nie einzeln verteilt.
+ *
+ * QUELLE DER WAHRHEIT: Diese Datei wird im Kit-Repo (claude-workflow-kit) gepflegt.
+ * Aenderungen ausschliesslich hier vornehmen, danach `node tools/sync-blobs.mjs`.
+ */
+
+import { readFileSync } from "node:fs";
+import path, { join } from "node:path";
+import { homedir } from "node:os";
+
+import { istMensch, zerlegeAbschnitte, abschnittsTitel, CHECK_FORM_ABSCHNITTE } from "./dokumente.mjs";
+import { SPRACHEN, erkenneLabel, labelName, erkenneMarker, leseMarker, markerName, ueberschriftZeile, UEBERSCHRIFTEN,
+  normUeberschrift, ueberschriftName, prozessSprache, text } from "./namen.mjs";
+import { szenarienVerstossIn } from "./szenarien.mjs";
+import { pruefeVertraege } from "./vertraege.mjs";
+
+// Die Texte an den Menschen liegen unter kit/texte/board-geschuetzt.mjs (Issue #1526).
+import { TEXTE } from "../texte/board-geschuetzt.mjs";
+
+export { TEXTE };
+
+/** Ein Text dieses Teils in der Projektsprache (Issue #1482, E13). */
+const t = (schluessel, werte) => text(TEXTE, schluessel, werte);
+
+// Die Formatueberschriften nach ihrem deutschen Namen, wie die Gates sie vergleichen.
+const UEBERSCHRIFT_SACHE = new Map(Object.entries(UEBERSCHRIFTEN).map(([sache, { de }]) => [normUeberschrift(de), sache]));
+
+/**
+ * Der Abschnittsname einer Meldung: deutsch der verglichene Titel wie bisher, englisch der
+ * englische Name einer Formatueberschrift; ein fremder Titel bleibt, wie er steht.
+ */
+function abschnittName(titel) {
+  const sache = UEBERSCHRIFT_SACHE.get(titel);
+  return prozessSprache() === "en" && sache ? ueberschriftName(sache, "en") : titel;
+}
+
+// ============================================================
+// Geschuetzte Pfade (Issue #1041, Plan #987, fachliche Quelle #868)
+// ============================================================
+//
+// Zwei automatische Laeufe endeten hart, weil ein Paket eine Datei aendern sollte, die nur ein Mensch
+// schreiben darf: Claude Code weist den Schreibzugriff ab, die Session darf den Schutz
+// nicht umgehen und laesst ihre Arbeit liegen. Hier und nur hier wird entschieden, ob ein
+// Paket einen solchen Pfad beim Namen nennt — Formgates, `issue check-geschuetzt` und das
+// Gate des Runners rufen diese Funktionen, statt die Regel ein zweites Mal zu schreiben.
+//
+// Die Vorgabeliste traegt die Sperre, die Claude Code ueberall fuehrt und die sich nicht
+// auslesen laesst: die Team- und die lokalen Einstellungen und das Hook-Verzeichnis (E2).
+// Was ein Projekt zusaetzlich sperrt, kommt aus `permissions.deny` dieser beiden Dateien.
+// Die Pruefeinstellungen des Kits (`workflow.config.json`) stehen bewusst NICHT darin: Sie
+// sind versioniert und unter `permissions.allow` ausdruecklich freigegeben — eine Session
+// darf sie schreiben, und ein Gate darauf waere ein Fehlalarm.
+
+const EINSTELLUNGS_DATEIEN = Object.freeze([".claude/settings.json", ".claude/settings.local.json"]);
+
+export const GESCHUETZTE_PFADE = Object.freeze([...EINSTELLUNGS_DATEIEN, ".claude/hooks/"]);
+
+// Die installierte Kopie des Kits (E7): Sie wird nie von Hand geaendert, gemeint ist im Kit
+// die Quelle, in einem installierten Projekt ein Kit-Update. Dieselbe Trefferregel (E16);
+// das Gate dazu (I9) liest sie, nicht die Erkennung geschuetzter Pfade.
+export const KOPIE_PFADE = Object.freeze([".claude/kit/", ".claude/skills/", ".claude/CLAUDE-*.md"]);
+
+// `Edit(…)`/`Write(…)` aus `permissions.deny` — andere Werkzeuge sperren kein Schreiben.
+const SCHREIB_REGEL = /^(?:Edit|Write)\(([^()]+)\)$/;
+
+/**
+ * Ein Claude-Code-Muster auf die Projektwurzel normalisiert (E16): `//` absolut, `~/` im
+ * Home, sonst relativ zur Wurzel — ein fuehrendes `./` oder `/` faellt dabei weg.
+ */
+function normalisiereSchreibMuster(muster) {
+  if (muster.startsWith("//")) return muster.slice(1);
+  if (muster.startsWith("~/")) return join(homedir(), muster.slice(2));
+  if (muster.startsWith("./")) return muster.slice(2);
+  return muster.startsWith("/") ? muster.slice(1) : muster;
+}
+
+/** Die Schreibsperren einer Einstellungsdatei; fehlt oder bricht sie, sind es keine. */
+function schreibSperren(datei) {
+  let einstellungen;
+  try {
+    einstellungen = JSON.parse(readFileSync(datei, "utf8"));
+  } catch {
+    return [];
+  }
+  const deny = einstellungen?.permissions?.deny;
+  if (!Array.isArray(deny)) return [];
+  return deny.flatMap((regel) => {
+    const m = SCHREIB_REGEL.exec(typeof regel === "string" ? regel.trim() : "");
+    return m ? [normalisiereSchreibMuster(m[1].trim())] : [];
+  });
+}
+
+/**
+ * Die Schreibsperren aus `permissions.deny` der Team- und lokalen Einstellungen unter `wurzel`,
+ * ohne die Vorgabeliste und ohne Doppel. Der Hook `write-check` (Issue #1740) weist nur ab, was
+ * das Projekt selbst sperrt: Die Vorgabeliste fragt Claude Code beim Menschen nach, statt sie
+ * abzuweisen.
+ */
+export function schreibSperrenPfade(wurzel) {
+  return [...new Set(EINSTELLUNGS_DATEIEN.flatMap((datei) => schreibSperren(join(wurzel, datei))))];
+}
+
+/**
+ * Die geschuetzten Pfade unter `wurzel`: die Vorgabeliste, dahinter die Schreibsperren aus
+ * Team- und lokalen Einstellungen, ohne Doppel. Eine fehlende oder unlesbare Datei liefert
+ * nur die Vorgabeliste und haelt nichts auf.
+ */
+export function geschuetztePfade(wurzel) {
+  return [...new Set([...GESCHUETZTE_PFADE, ...schreibSperrenPfade(wurzel)])];
+}
+
+const GLOB_ZEICHEN = /[*?]/;
+const GLOB_TEIL = /\*\*\/|\*\*|\*|\?/g;
+
+/**
+ * Ein Glob als verankerter Ausdruck: `*` und `?` bleiben im Segment, `**` geht ueber
+ * Segmentgrenzen, und `**` samt folgendem Trenner darf ganz verschwinden. Ein Muster ohne
+ * Schraegstrich gilt wie bei `.gitignore`, nach dessen Regeln Claude Code liest, in jeder Tiefe.
+ */
+function globAlsAusdruck(muster) {
+  const teile = { "**/": "(?:.*/)?", "**": ".*", "*": "[^/]*", "?": "[^/]" };
+  let quelle = "";
+  let letzte = 0;
+  for (const m of muster.matchAll(GLOB_TEIL)) {
+    quelle += escapeRegex(muster.slice(letzte, m.index)) + teile[m[0]];
+    letzte = m.index + m[0].length;
+  }
+  quelle += escapeRegex(muster.slice(letzte));
+  return new RegExp(`^${muster.includes("/") ? "" : "(?:.*/)?"}${quelle}$`);
+}
+
+/**
+ * Trifft ein Pfad-Token einen Eintrag der Liste (E16)? Bei Gleichheit; bei einem Eintrag mit
+ * Endung `/` auch das Verzeichnis selbst und alles darunter; bei einem Glob nach dessen Regeln.
+ * Ein fuehrendes `./` am Token zaehlt nicht.
+ */
+export function trifftGeschuetzt(token, eintrag) {
+  const pfad = String(token).startsWith("./") ? String(token).slice(2) : String(token);
+  const verzeichnis = eintrag.endsWith("/");
+  if (GLOB_ZEICHEN.test(eintrag)) return globAlsAusdruck(verzeichnis ? `${eintrag}**` : eintrag).test(pfad);
+  if (!verzeichnis) return pfad === eintrag;
+  return pfad === eintrag.slice(0, -1) || pfad.startsWith(eintrag);
+}
+
+const BACKTICK_LAUF = /`+/g;
+
+// Die Kennzeichnung einer blossen Erwaehnung (Issue #1179): unmittelbar hinter dem Span.
+const NUR_GENANNT = " (nur genannt)";
+
+/**
+ * Die Pfad-Token der Zeilen (E3): der Inhalt jedes Backtick-Spans ohne Leerraum, je mit der
+ * Zeile, in der er steht. Gepaart wird wie in Markdown — ein Span endet am naechsten Lauf
+ * gleicher Laenge, ein Lauf ohne Partner ist Text. Codebloecke gibt es hier nicht mehr: Die
+ * Zeilen kommen aus `zerlegeAbschnitte`, `fenceLauf` bleibt die einzige Fence-Auslegung.
+ * `genannt` ist gesetzt, wenn unmittelbar hinter dem Span ` (nur genannt)` steht: Der Autor
+ * erwaehnt den Pfad, das Paket schreibt ihn nicht (Issue #1179).
+ */
+export function pfadTokens(zeilen) {
+  const tokens = [];
+  for (const zeile of zeilen) {
+    const laeufe = [...zeile.matchAll(BACKTICK_LAUF)];
+    let i = 0;
+    while (i < laeufe.length) {
+      const auf = laeufe[i];
+      const zu = laeufe.findIndex((l, j) => j > i && l[0].length === auf[0].length);
+      if (zu === -1) {
+        i += 1;
+        continue;
+      }
+      const inhalt = zeile.slice(auf.index + auf[0].length, laeufe[zu].index);
+      const genannt = zeile.slice(laeufe[zu].index + laeufe[zu][0].length).startsWith(NUR_GENANNT);
+      if (inhalt !== "" && !/\s/.test(inhalt)) tokens.push({ token: inhalt, zeile, genannt });
+      i = zu + 1;
+    }
+  }
+  return tokens;
+}
+
+/**
+ * Das Token, wie es steht, absolut und — liegt es unter der Wurzel — relativ zu ihr, mit `/`
+ * geschrieben wie die Sperrliste. Die relative Form entsteht ueber `relative` des Pfadmoduls
+ * (Issue #1124) statt ueber einen Vergleich auf `${basis}/`, der vom Trennzeichen des
+ * Pfadmoduls abhinge. `pfad` ist fuer Tests austauschbar.
+ */
+export function tokenFormen(token, wurzel, pfad = path) {
+  const basis = pfad.resolve(wurzel);
+  const absolut = token.startsWith("~/") ? pfad.join(homedir(), token.slice(2)) : pfad.resolve(basis, token);
+  const formen = [token, absolut];
+  const rel = pfad.relative(basis, absolut);
+  if (rel && !rel.startsWith("..") && !pfad.isAbsolute(rel)) formen.push(rel.split(pfad.sep).join("/"));
+  return formen;
+}
+
+// Gebaut wird, was in der Aufgabe steht; geprueft, was im Kriterium steht (E4). Der Kontext
+// erzaehlt die Vorgeschichte und zitiert Pfade, die das Paket gerade nicht aendert.
+const GESCHUETZT_ABSCHNITTE = new Set(abschnittsTitel("aufgabe", "akzeptanzkriterium"));
+
+/**
+ * Die geschuetzten Pfade, die ein Paket in `## Aufgabe` und `## Akzeptanzkriterium` beim
+ * Namen nennt, gegen `geschuetztePfade(wurzel)`. Je Treffer der Pfad und die woertliche Zeile
+ * (E17); derselbe Pfad in derselben Zeile zaehlt einmal. Ein absolut genanntes Token unter
+ * der Wurzel wird auch relativ verglichen und umgekehrt, damit relative wie absolute Sperren
+ * greifen. Ein als ` (nur genannt)` gekennzeichneter Pfad zaehlt an dieser Stelle nicht
+ * (Issue #1179). Ein `[Mensch]`-Titel liefert immer eine leere Liste (E8): Seine Aufgabe liegt
+ * ausserhalb des Repositories und ist genau die Handlung, die der Mensch vornehmen soll.
+ */
+export function geschuetzteTreffer(body, title, wurzel) {
+  if (istMensch(title)) return [];
+  const zeilen = zerlegeAbschnitte(body).abschnitte
+    .filter((a) => GESCHUETZT_ABSCHNITTE.has(a.titel))
+    .flatMap((a) => a.zeilen);
+  return listenTreffer(zeilen, geschuetztePfade(wurzel), wurzel, { ohneGenannt: true });
+}
+
+// Halt-Kommentar und Freigabe (Issue #1045, Plan #987, E5, E11, E17). Der Text ist
+// Schreib- und Leseformat zugleich: Das Gate liest beim naechsten Anlauf aus genau diesem
+// Kommentar zurueck, welche Pfade der Mensch freigegeben hat. Darum baut ihn nur
+// `geschuetztKommentar`, und `kit/night.mjs` prueft seine eigenen Konstanten gegen diese.
+
+export const GESCHUETZT_ANKER = "## Geschuetzte Datei";
+
+// Die Labels mit Freigaberecht kommen aus dem Register (Issue #1424, Plan #1420 E3, E8).
+// Geschrieben wird seit Issue #1552 (Plan #1548 E2) der englische Name, in jedem Projekt;
+// erkannt wird jeder Name derselben Sache — sonst gaebe ein Mensch unter dem deutschen Namen
+// etwas frei, das das Kit nicht sieht, oder das Kit uebersaehe einen Halt.
+export const GESCHUETZT_LABEL = labelName("geschuetzt");
+export const KLAEREN_LABEL = labelName("klaeren");
+export const GESCHUETZT_LABEL_GESETZT = freigabeZeile(GESCHUETZT_LABEL, true);
+export const GESCHUETZT_LABEL_NICHT_GESETZT = freigabeZeile(GESCHUETZT_LABEL, false);
+
+/** Die Label-Zeile des Halt-Kommentars, die den Ausgang von `label add` vermerkt (E11). */
+function freigabeZeile(label, gesetzt) {
+  return `Label ${label} ${gesetzt ? "gesetzt" : "nicht gesetzt"}`;
+}
+
+// Die Label-Zeilen unter jedem Namen von `kit:geschuetzt`, zum Zuruecklesen.
+const ZEILEN_GESETZT = SPRACHEN.map((s) => freigabeZeile(labelName("geschuetzt", s), true));
+const ZEILEN_NICHT_GESETZT = SPRACHEN.map((s) => freigabeZeile(labelName("geschuetzt", s), false));
+
+/** Traegt die Liste ein Label der Sache aus dem Register, gleich unter welchem Namen? */
+export function traegtLabel(labels, sache) {
+  return (labels || []).some((name) => erkenneLabel(name) === sache);
+}
+// Die zitierte Zeile eines Pfads, den der Schutz beim Schreiben abwies (Issue #1053, E13):
+// Die Aufgabe nennt ihn gerade nicht, es gibt keine Zeile aus dem Paket zu zitieren.
+export const GESCHUETZT_ABGEWIESEN = "beim Schreiben abgewiesen";
+
+/**
+ * Die beim Schreiben abgewiesenen Pfade, die geschuetzt sind, als Treffer mit der Zeile
+ * `GESCHUETZT_ABGEWIESEN` — fuer den Halt-Kommentar des Rueckfalls, wenn die Aufgabe den
+ * Pfad nicht nennt. Ein fremder Pfad ist kein Treffer.
+ */
+export function abgewieseneTreffer(pfade, wurzel) {
+  const liste = geschuetztePfade(wurzel);
+  return [...new Set(pfade)]
+    .filter((pfad) => liste.some((eintrag) => tokenFormen(pfad, wurzel).some((f) => trifftGeschuetzt(f, eintrag))))
+    .map((pfad) => ({ pfad, zeile: GESCHUETZT_ABGEWIESEN }));
+}
+
+/**
+ * Der Pfad einer Listenzeile `- <lauf><pfad><lauf>` mit genau einem Backtick-Pfad, sonst
+ * null. Die zitierten Zeilen darunter beginnen mit `>` und zaehlen darum nie als genannt,
+ * auch wenn sie selbst Pfade tragen.
+ */
+function listenPfad(zeile) {
+  if (!zeile.startsWith("- `")) return null;
+  const rest = zeile.slice(2);
+  const lauf = /^`+/.exec(rest)[0];
+  const ende = rest.length - lauf.length;
+  if (ende <= lauf.length || !rest.endsWith(lauf) || rest[ende - 1] === "`") return null;
+  return rest.slice(lauf.length, ende);
+}
+
+/** Ein Pfad in einem Backtick-Lauf, der laenger ist als jeder Lauf im Pfad selbst. */
+function inBackticks(pfad) {
+  const laengster = Math.max(0, ...[...pfad.matchAll(BACKTICK_LAUF)].map((m) => m[0].length));
+  const lauf = "`".repeat(laengster + 1);
+  return `${lauf}${pfad}${lauf}`;
+}
+
+/**
+ * Der Halt-Kommentar nach E17 ohne die Label-Zeile aus E11: unter dem Anker je getroffenem
+ * Pfad eine Listenzeile mit genau einem Backtick-Pfad, darunter die Zeilen aus Aufgabe und
+ * Akzeptanzkriterium, in denen er steht, woertlich als Zitat.
+ */
+export function geschuetztKommentar(treffer) {
+  const jePfad = new Map();
+  for (const { pfad, zeile } of treffer) {
+    if (!jePfad.has(pfad)) jePfad.set(pfad, []);
+    jePfad.get(pfad).push(zeile);
+  }
+  const liste = [...jePfad].flatMap(([pfad, zeilen]) => [`- ${inBackticks(pfad)}`, ...zeilen.map((z) => `  > ${z}`)]);
+  return [
+    GESCHUETZT_ANKER,
+    "",
+    t("haltErklaerung", { label: GESCHUETZT_LABEL }),
+    "",
+    ...liste,
+  ].join("\n");
+}
+
+/** Die Zeile ist der Anker allein, unter beiden Namen (Issue #1443). */
+function istAnkerZeile(zeile) {
+  const m = zeile === zeile.trimStart() ? leseMarker(zeile) : null;
+  return m?.sache === "geschuetzteDatei" && m.rest === "";
+}
+
+/** Die Pfade der Listenzeilen eines Halt-Kommentars, oder null, wenn er nicht freigeben kann. */
+function freigegebenePfade(body) {
+  const zeilen = String(body ?? "").replaceAll("\r", "").split("\n").map((z) => z.trimEnd());
+  if (!zeilen.some(istAnkerZeile)|| !ZEILEN_GESETZT.some((z) => zeilen.includes(z))) return null;
+  if (ZEILEN_NICHT_GESETZT.some((z) => zeilen.includes(z))) return null;
+  return new Set(zeilen.map(listenPfad).filter((p) => p !== null));
+}
+
+/**
+ * Ist das Paket nach E5 freigegeben? Nur wenn das Label nicht (mehr) haengt und ein Kommentar
+ * mit dem Anker die Zeile `Label kit:geschuetzt gesetzt` traegt und jeden aktuellen Treffer
+ * in seiner Backtick-Liste nennt — unter jedem Namen des Labels, Zeile wie Label (Issue
+ * #1424). `Label kit:geschuetzt nicht gesetzt` gibt nie frei — dort
+ * fehlt das Label, weil das Setzen scheiterte, nicht weil ein Mensch es abnahm. Ohne Treffer
+ * gibt es nichts freizugeben: `false`.
+ */
+export function geschuetztFreigabe(treffer, kommentare, labels) {
+  if (treffer.length === 0 || traegtLabel(labels, "geschuetzt")) return false;
+  return kommentare.some((k) => {
+    const pfade = freigegebenePfade(k.body);
+    return pfade !== null && treffer.every((t) => pfade.has(t.pfad));
+  });
+}
+
+/**
+ * Die Pfad-Token der Zeilen, die einen Eintrag der Liste treffen, je Pfad und Zeile einmal.
+ * Mit `ohneGenannt` zaehlt ein als ` (nur genannt)` gekennzeichnetes Token nicht.
+ */
+function listenTreffer(zeilen, liste, wurzel, { ohneGenannt = false } = {}) {
+  const treffer = [];
+  const gesehen = new Set();
+  for (const { token, zeile, genannt } of pfadTokens(zeilen)) {
+    if (ohneGenannt && genannt) continue;
+    const formen = tokenFormen(token, wurzel);
+    if (!liste.some((eintrag) => formen.some((f) => trifftGeschuetzt(f, eintrag)))) continue;
+    const schluessel = `${token}\n${zeile}`;
+    if (gesehen.has(schluessel)) continue;
+    gesehen.add(schluessel);
+    treffer.push({ pfad: token, zeile });
+  }
+  return treffer;
+}
+
+function ersteNichtLeere(zeilen) {
+  return zeilen.map((z) => z.trim()).find((z) => z !== "") ?? null;
+}
+
+function istLeer(zeilen) {
+  return ersteNichtLeere(zeilen) === null;
+}
+
+/**
+ * Eine Kennzeichnungszeile (`autorModell`, `planModell`) mit nicht leerem Wert, unter beiden
+ * Namen des Markers (Issue #1443).
+ */
+function hatKennzeichnung(zeilen, sache) {
+  return zeilen.some((z) => {
+    const m = leseMarker(z.trim());
+    return m?.sache === sache && m.rest.trim() !== "";
+  });
+}
+
+/**
+ * Pflichtabschnitte je genau einmal und in dieser Reihenfolge. Liefert die
+ * Meldungen; leer heisst erfuellt. Andere Abschnitte werden hier nicht bewertet.
+ */
+function pruefeReihenfolge(abschnitte, erwartet) {
+  const meldungen = [];
+  let letzte = -1;
+  for (const name of erwartet) {
+    const stellen = abschnitte.map((a, i) => (a.titel === name ? i : -1)).filter((i) => i >= 0);
+    const anzeige = abschnittName(name);
+    if (stellen.length === 0) { meldungen.push(t("abschnittFehlt", { name: anzeige })); continue; }
+    if (stellen.length > 1) meldungen.push(t("abschnittMehrfach", { name: anzeige, anzahl: stellen.length }));
+    if (stellen[0] < letzte) meldungen.push(t("abschnittReihenfolge", { name: anzeige }));
+    letzte = Math.max(letzte, stellen[0]);
+  }
+  return meldungen;
+}
+
+/** Zeilen ausserhalb von Codebloecken, die mit einem der Marker beginnen, unter beiden Namen (Issue #1443). */
+function zeilenMitMarker(zeilen, ...sachen) {
+  return zeilen.filter((z) => sachen.includes(erkenneMarker(z.trim())));
+}
+
+/**
+ * Meldungen fuer die Marker-Zeile, die auf dieser Stufe nicht stehen darf (F11, P12); der
+ * richtige Marker im Namen der Projektsprache.
+ */
+function markerVerstoesse(zeilen, gate, richtigerMarker) {
+  const marker = markerName(richtigerMarker, prozessSprache());
+  return zeilenMitMarker(zeilen, "issueReview").map((z) => ({ gate, meldung: t("markerFalsch", { zeile: z.trim(), marker }) }));
+}
+
+/**
+ * Die Gates des Fachplans. F12 (Issue #1590, Plan #1588 A3, A4) prueft nur, wenn `szenarien`
+ * `true` ist: Der Abschnitt Szenarien steht zwischen Kriterien und Nicht-Zielen und traegt
+ * mindestens ein vollstaendiges Szenario. Ob die Pflicht gilt, entscheidet der Aufrufer — eine
+ * Datei immer, eine Karte am Board erst ab dem Stichtag. F1 bleibt bei vier Abschnitten (A1).
+ */
+export function pruefeFachlich(abschnitte, alleZeilen, { szenarien = false } = {}) {
+  const erwartet = CHECK_FORM_ABSCHNITTE.fachlich;
+  const finde = (name) => abschnitte.find((a) => a.titel === name);
+  const verstoesse = pruefeReihenfolge(abschnitte, erwartet).map((meldung) => ({ gate: "F1", meldung }));
+  const ziel = finde("ziel");
+  if (!ziel || !hatKennzeichnung(ziel.zeilen, "autorModell")) {
+    verstoesse.push({ gate: "F2", meldung: t("f2AutorModell") });
+  }
+  for (const name of ["ziel", "fachliche akzeptanzkriterien", "nicht-ziele"]) {
+    const a = finde(name);
+    if (a && istLeer(a.zeilen)) verstoesse.push({ gate: "F6", meldung: t("abschnittLeer", { name: abschnittName(name) }) });
+  }
+  if (!finde("offene fragen an den po")) {
+    verstoesse.push({ gate: "F7", meldung: t("f7PoFragen") });
+  }
+  for (const z of zeilenMitMarker(alleZeilen, "fachlicheQuelle", "plan")) {
+    verstoesse.push({ gate: "F9", meldung: t("f9Herkunft", { zeile: z.trim() }) });
+  }
+  verstoesse.push(...markerVerstoesse(alleZeilen, "F11", "fachplanReview"));
+  const szenarienMeldung = szenarien === true ? szenarienVerstossIn(abschnitte) : null;
+  if (szenarienMeldung) verstoesse.push({ gate: "F12", meldung: szenarienMeldung });
+  return verstoesse;
+}
+
+/** P6 fuer einen Abschnitt: nicht leer; `- Keine.` nur wo erlaubt und nur als erste Zeile. */
+function pruefeP6(name, zeilen) {
+  const inhalt = zeilen.map((z) => z.trim()).filter((z) => z !== "");
+  if (inhalt.length === 0) return t("abschnittLeer", { name: abschnittName(name) });
+  const keineErlaubt = name === "architektonische entscheidungen" || name === "offene fragen";
+  const hatKeine = inhalt.some((z) => z.startsWith("- Keine."));
+  if (!hatKeine) return null;
+  if (!keineErlaubt) return t("p6KeineVerboten", { name: abschnittName(name) });
+  const nurKeine = inhalt.every((z, i) => (i === 0 ? z.startsWith("- Keine.") : !z.startsWith("- Keine.")));
+  return nurKeine ? null : t("p6KeineErste", { name: abschnittName(name) });
+}
+
+/**
+ * Die Gates des Plans. P14 (Issue #1612, Plan #1611 E4, E14) prueft nur, wenn `vertragsRepos`
+ * ein Partnerrepo nennt: Verträge mit dem anderen Repo stehen in fester Form und sind abgeglichen
+ * oder unter `## Offene Fragen` gefragt.
+ */
+export function pruefePlan(kopf, abschnitte, alleZeilen, { vertragsRepos } = {}) {
+  const erwartet = CHECK_FORM_ABSCHNITTE.plan;
+  const verstoesse = pruefeReihenfolge(abschnitte, erwartet).map((meldung) => ({ gate: "P1", meldung }));
+  for (const a of abschnitte) {
+    if (!erwartet.includes(a.titel)) {
+      verstoesse.push({ gate: "P2", meldung: t("p2Zusatz", { name: abschnittName(a.titel) }) });
+    }
+  }
+  if (!hatKennzeichnung(kopf, "planModell")) {
+    verstoesse.push({ gate: "P3", meldung: t("p3PlanModell") });
+  }
+  for (const a of abschnitte.filter((x) => erwartet.includes(x.titel))) {
+    const meldung = pruefeP6(a.titel, a.zeilen);
+    if (meldung) verstoesse.push({ gate: "P6", meldung });
+  }
+  return [...verstoesse, ...markerVerstoesse(alleZeilen, "P12", "planReview"), ...pruefeVertraege(abschnitte, { vertragsRepos })];
+}
+
+/** I1 ueber die Reihenfolge hinaus: Abhaengigkeiten zuletzt. */
+function pruefeI1Lage(abschnitte) {
+  const meldungen = [];
+  const abh = abschnitte.findIndex((a) => a.titel === "abhaengigkeiten");
+  if (abh >= 0 && abh !== abschnitte.length - 1) meldungen.push(t("i1Letzter"));
+  return meldungen;
+}
+
+/** I3 und I4 am Abhaengigkeiten-Abschnitt. */
+function pruefeAbhaengigkeiten(zeilen) {
+  const verstoesse = [];
+  const erste = ersteNichtLeere(zeilen);
+  if (erste === null) {
+    verstoesse.push({ gate: "I3", meldung: t("i3Leer") });
+  } else if (!erste.startsWith("Keine.") && !zeilen.some((z) => /#\d+/.test(z))) {
+    verstoesse.push({ gate: "I3", meldung: t("i3OhneReferenz") });
+  }
+  for (const z of zeilenMitMarker(zeilen, "fachlicheQuelle", "plan")) {
+    verstoesse.push({ gate: "I4", meldung: t("i4Herkunft", { zeile: z.trim() }) });
+  }
+  return verstoesse;
+}
+
+// Die Vorlage-Zeile im Kontext (Issue #683): `Vorlage: <Pfad> — verbindlich | Anregung`. Der
+// Marker unter beiden Namen (Issue #1443), hier der Rest dahinter.
+const VORLAGE_VERBINDLICH = /^[^\S\n]*\S.*[—–-][^\S\n]*verbindlich[^\S\n]*$/i;
+const istVerbindlicheVorlage = (zeile) => {
+  const m = leseMarker(zeile.trim());
+  return m?.sache === "vorlage" && VORLAGE_VERBINDLICH.test(m.rest);
+};
+
+/**
+ * I5: Eine verbindliche Vorlage verlangt die Abnahme per Bildschirmfoto im Akzeptanzkriterium
+ * (Issue #683). Ohne Pruefung verdunstet die Vorlage zwischen Plan und Paket — alle Checks
+ * gruen, und die Ansicht sieht aus wie vorher. Der Block unter dem Kriterium zaehlt mit.
+ */
+function pruefeVorlage(kontext, akzeptanz) {
+  if (!kontext?.zeilen.some(istVerbindlicheVorlage)) return [];
+  if (akzeptanz?.zeilen.some((z) => /bildschirmfoto/i.test(z))) return [];
+  return [{ gate: "I5", meldung: t("i5Vorlage") }];
+}
+
+// Ein Dateipfad unter den Pfad-Token (E7): mit Schraegstrich oder mit Dateiendung. Ein Label
+// wie `kit:klaeren` oder eine Konstante wie `KOPIE_PFADE` nennt keine Datei.
+const DATEIPFAD = /(?:\/)|(?:\.[a-z0-9]+$)/;
+
+/**
+ * I7 bis I9 (Issue #1044, Plan #987, E7): Ein Paket, das eine geschuetzte Datei aendern muss,
+ * faellt beim Schneiden auf, nicht erst im Lauf an der abgewiesenen Schreibanfrage.
+ *
+ * I7 — `## Aufgabe` nennt mindestens einen Dateipfad als Backtick-Token; ohne ihn findet die
+ * Erkennung nichts. I8 — ein Token aus Aufgabe oder Akzeptanzkriterium ist geschuetzt
+ * (`geschuetzteTreffer`); die Aenderung gehoert als `[Mensch]`-Karte heraus. Ein als
+ * ` (nur genannt)` gekennzeichnetes Token zaehlt fuer I7 und I8 nicht (Issue #1179). I9 — ein Token
+ * nur aus `## Aufgabe` liegt in der installierten Kopie: Das Kriterium darf sie aufrufen
+ * (`node .claude/kit/checks.mjs run`), bauen soll das Paket an der Quelle.
+ *
+ * Ein `[Mensch]`-Paket besteht alle drei (E8): Seine Aufgabe liegt ausserhalb des
+ * Repositories, und es ist genau die Karte, die I8 verlangt.
+ */
+function pruefeGeschuetzt(abschnitte, title, wurzel) {
+  if (istMensch(title)) return [];
+  const verstoesse = [];
+  const aufgabe = abschnitte.find((a) => a.titel === "aufgabe")?.zeilen ?? [];
+  if (!pfadTokens(aufgabe).some(({ token, genannt }) => !genannt && DATEIPFAD.test(token))) {
+    verstoesse.push({ gate: "I7", meldung: t("i7OhneDatei") });
+  }
+  const zeilen = abschnitte.filter((a) => GESCHUETZT_ABSCHNITTE.has(a.titel)).flatMap((a) => a.zeilen);
+  for (const { pfad, zeile } of listenTreffer(zeilen, geschuetztePfade(wurzel), wurzel, { ohneGenannt: true })) {
+    verstoesse.push({ gate: "I8", meldung: t("i8Geschuetzt", { pfad, zeile: zeile.trim() }) });
+  }
+  for (const { pfad, zeile } of listenTreffer(aufgabe, KOPIE_PFADE, wurzel)) {
+    verstoesse.push({ gate: "I9", meldung: t("i9Kopie", { pfad, zeile: zeile.trim() }) });
+  }
+  return verstoesse;
+}
+
+/**
+ * Die Kommandos, die eine Guetemessung starten: `mutationCommand`, das `cmd` des
+ * `buildChecks`-Eintrags mit `guete`-Block und die Liste `guetekommandos`, alle drei
+ * aus der Konfiguration des Projekts.
+ *
+ * Bewusst keine eingebaute Namensliste (`stryker`, `pitest`, …): Die veraltet und trifft
+ * fremde Werkzeuge nicht, die Konfiguration weiss es genau. Ein Projekt ohne alle drei
+ * Felder liefert eine leere Liste — dort weist I6 nichts ab.
+ *
+ * `guetekommandos` ist der Weg fuer einen Treiber, den die Config noch nicht als Pruefung
+ * fuehren kann, weil ihn erst ein kommendes Paket baut (Issue #942): Das Projekt nennt sein
+ * Kommando-Praefix, und I6 greift schon, bevor der Treiber existiert.
+ */
+function guetekommandos(config) {
+  const checks = Array.isArray(config?.buildChecks) ? config.buildChecks : [];
+  const ausChecks = checks.filter((c) => c && typeof c === "object" && c.guete).map((c) => c.cmd);
+  const benannt = Array.isArray(config?.guetekommandos) ? config.guetekommandos : [];
+  return [config?.mutationCommand, ...ausChecks, ...benannt]
+    .map((cmd) => (typeof cmd === "string" ? cmd.trim().replaceAll(/\s+/g, " ") : ""))
+    .filter((cmd) => cmd !== "");
+}
+
+// Der Anker des Blocks, der den Session-Abschluss nicht blockiert (Issue #215).
+// `###` ist keine Abschnittsgrenze, der Block steht also in den Zeilen des
+// Akzeptanzkriteriums — I6 liest nur, was davor steht. Unter beiden Namen (Issue #1460):
+// `### Manuelle Pruefung …` oder `### Manual check …`, mit beliebigem Zusatz.
+const MANUELLE_PRUEFUNG_ZEILE = ueberschriftZeile("manuellePruefung", 3, { anfang: true });
+
+// Eine Entscheidungszeile im Kontext, die die Guetemess-Konvention aufhebt: Sie handelt
+// von einem Vollauf oder einer Guetemessung und beantwortet das mit `Gewaehlt: ja`.
+const GUETE_BEZUG = /vollauf|g(ü|ue)temessung|mutationspruefung|mutationspr(ü|ue)fung/i;
+
+// Die Antwort ist das erste Wort nach dem **ersten** `Gewaehlt:` der Zeile — nicht irgendein
+// `Gewaehlt: ja` im Text. Ein Paket, das diese Regel selbst baut, zitiert den Wortlaut naemlich
+// in seinem eigenen Kontext, und die Regel wies sich prompt selbst ab.
+const GEWAEHLT_ANTWORT = /gew(ä|ae)hlt:[ \t]*(\S+)/i;
+
+/** Beantwortet die Entscheidungszeile ihre Frage mit `ja`? */
+function mitJaEntschieden(zeile) {
+  const treffer = GEWAEHLT_ANTWORT.exec(zeile);
+  return treffer !== null && /^ja\b/i.test(treffer[2]);
+}
+
+/** Die Zeilen des Akzeptanzkriteriums bis zum Block `### Manuelle Pruefung`. */
+function maschinelleKriterien(zeilen) {
+  const ab = zeilen.findIndex((z) => MANUELLE_PRUEFUNG_ZEILE.test(z.trim()));
+  return ab === -1 ? zeilen : zeilen.slice(0, ab);
+}
+
+/**
+ * I6: Das Akzeptanzkriterium ruft keine Guetemessung auf (Issue #901), und keine
+ * Entscheidung im Kontext hebt diese Konvention auf (Issue #942).
+ *
+ * Eine Mutationspruefung laeuft einmal je Veroeffentlichung an ihrer Stufe, nicht einmal
+ * je Paket. Als Zeile in der Karte kostet sie die Zeit, die dem Paket fehlt: Ein Vollauf
+ * hat eine Runde des Laufs exakt ins Rundenzeitlimit gefahren, samt verlorener Schlussmeldung.
+ *
+ * Die zweite Haelfte faengt den Fall, in dem der Planer die Regel selbst aushebelt — in
+ * kanban-kit #1215 stand die Ausnahme als `Entscheidung:`-Zeile im Kontext, und der Code
+ * des Pakets war fertig, als die Runde an den drei Vollaeufen starb.
+ *
+ * Der Block `### Manuelle Pruefung` zaehlt nicht mit: Dort gehoert der Nachweis hin, dass
+ * ein neuer Treiber wirklich durchlaeuft, denn er blockiert den Abschluss nicht.
+ */
+function pruefeGuetemessung(akzeptanz, kontext, config) {
+  const verstoesse = [];
+  if (akzeptanz) {
+    const text = maschinelleKriterien(akzeptanz.zeilen).join(" ").replaceAll(/\s+/g, " ");
+    for (const cmd of guetekommandos(config).filter((c) => text.includes(c))) {
+      verstoesse.push({ gate: "I6", meldung: t("i6Kriterium", { cmd }) });
+    }
+  }
+  for (const zeile of zeilenMitMarker(kontext?.zeilen ?? [], "entscheidung")) {
+    const z = zeile.trim();
+    if (!GUETE_BEZUG.test(z) || !mitJaEntschieden(z)) continue;
+    verstoesse.push({ gate: "I6", meldung: t("i6Entscheidung", { zeile: z }) });
+  }
+  return verstoesse;
+}
+
+export function pruefeIssue(abschnitte, config, title, wurzel) {
+  const finde = (name) => abschnitte.find((a) => a.titel === name);
+  const verstoesse = [...pruefeReihenfolge(abschnitte, CHECK_FORM_ABSCHNITTE.issue), ...pruefeI1Lage(abschnitte)]
+    .map((meldung) => ({ gate: "I1", meldung }));
+  const kontext = finde("kontext");
+  if (!kontext || !hatKennzeichnung(kontext.zeilen, "autorModell")) {
+    verstoesse.push({ gate: "I2", meldung: t("i2AutorModell") });
+  }
+  verstoesse.push(
+    ...pruefeVorlage(kontext, finde("akzeptanzkriterium")),
+    ...pruefeGuetemessung(finde("akzeptanzkriterium"), kontext, config),
+    ...pruefeGeschuetzt(abschnitte, title, wurzel),
+  );
+  const abh = finde("abhaengigkeiten");
+  return abh ? [...verstoesse, ...pruefeAbhaengigkeiten(abh.zeilen)] : verstoesse;
+}
+
+
+/** Ein Text woertlich als Teil eines regulaeren Ausdrucks. */
+export function escapeRegex(text) {
+  return String(text).replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
+}

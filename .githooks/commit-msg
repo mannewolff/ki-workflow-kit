@@ -1,0 +1,54 @@
+#!/bin/sh
+# SPDX-License-Identifier: MIT
+# claude-workflow-kit commit-msg (Issue #2109, Plan #2102 A11)
+#
+# Prueft einen Commit, der die Config aendert, auf eine Absenkung der Strenge. Eigener Hook
+# neben pre-commit, weil erst hier die Commit-Nachricht vorliegt: Ohne KIT_AGENT_MODEL laesst
+# das Gate eine Absenkung nur mit der Zeile `Strenge: <alt> -> <neu> (<Urheber>)` durch.
+# Die Logik liegt in gate.mjs wie bei pre-commit.
+#
+# Faellt node aus oder fehlt gate.mjs, endet der Hook mit Exit ungleich 0: Ein
+# nicht lauffaehiges Gate laesst nicht durch.
+#
+# Immer das Gate neben diesem Hook, nie das eines festen Kit-Stands (KIT_STAND_PFAD), anders als
+# pre-commit: Ein Stand von vor Issue #2109 kennt `commit-msg` nicht und wiese jeden Commit ab.
+# Der Vergleich der Strenge haengt nicht am Format der Pruef-Zusammenfassung.
+#
+# Meldungen in der Projektsprache (Issue #1458, Plan #1420 E13): je Meldung ein Wert
+# de_<schluessel> und en_<schluessel>, Werte per printf %s. Die Sprache liest der Hook ohne
+# node aus .claude/workflow.config.json — eine der Meldungen gilt gerade dem fehlenden node:
+# "language", sonst "sprache", sonst de; ein unbekannter Wert gilt als de.
+# SYNC: dieselbe Regel wie projektSprache in .githooks/gate.mjs und kit/board/namen.mjs.
+de_gate_fehlt='commit-msg: %s fehlt — Commit abgewiesen.'
+en_gate_fehlt='commit-msg: %s is missing — commit rejected.'
+de_node_fehlt='commit-msg: node nicht im PATH — Commit abgewiesen.'
+en_node_fehlt='commit-msg: node not in PATH — commit rejected.'
+
+feldwert() {
+  sed -n "s/.*\"$1\"[[:space:]]*:[[:space:]]*\"\([^\"]*\)\".*/\1/p" .claude/workflow.config.json 2>/dev/null | head -n 1
+}
+sprache=de
+if [ -f .claude/workflow.config.json ]; then
+  wert="$(feldwert language)"
+  [ -n "$wert" ] || wert="$(feldwert sprache)"
+  [ "$wert" = en ] && sprache=en
+fi
+
+# melde <schluessel> [wert…]: die Meldung in der Projektsprache nach stderr.
+melde() {
+  eval "vorlage=\$${sprache}_$1"
+  shift
+  # shellcheck disable=SC2059 # die Vorlage ist das Format
+  printf "$vorlage\n" "$@" >&2
+}
+
+gate="$(dirname "$0")/gate.mjs"
+if [ ! -f "$gate" ]; then
+  melde gate_fehlt "$gate"
+  exit 1
+fi
+if ! command -v node >/dev/null 2>&1; then
+  melde node_fehlt
+  exit 1
+fi
+exec node "$gate" commit-msg "$1"

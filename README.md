@@ -1,0 +1,88 @@
+<!-- SPDX-License-Identifier: MIT -->
+# claude-workflow-kit
+
+Eine Bibliothek aus Claude-Code-Skills, die den 8-Schritt-Prozess zur KI-gestuetzten Softwareentwicklung ausfuehrbar macht. Claude plant, schreibt Issues, implementiert und bereitet das Review vor — drei Schritte bleiben bewusst menschlich: das GO, der Push und der Merge.
+
+GitHub, GitLab und ein vollstaendig lokaler Modus werden unterstuetzt — lokal liegen die Issues als Markdown-Dateien im Repo.
+
+## Installation
+
+Voraussetzungen: macOS, Linux oder Windows über WSL2, [Claude Code](https://claude.ai/code), Node.js 18+, `gh` CLI (GitHub) oder `glab` CLI (GitLab).
+
+> **Unter Windows: WSL2.** Wie du es einrichtest, steht in der Anleitung [Windows über WSL2](docs/wsl2.md).
+
+Im Projektordner:
+
+```bash
+curl -O https://docs.mwolff.org/install.mjs
+node install.mjs
+```
+
+Schritt für Schritt bis zur ersten umgesetzten Karte führt [Die erste Stunde](https://docs.mwolff.org/quickstart).
+
+## Ausgaben und Lizenz
+
+Ab 6.0.0 gibt es das Kit in zwei Ausgaben:
+
+- **Community** steht unter MIT (`LICENSE`) und ist öffentlich zu beziehen.
+- **Pro** steht unter FSL-1.1-MIT (`LICENSE-PRO`) und ist für Lizenznehmer; eine Pro-Installation enthält Community in derselben Version.
+
+Die bis v5.4.0 veröffentlichten Stände bleiben unter GPL v3.
+
+## An diesem Repo mitarbeiten
+
+Nach einem frischen Klon fehlen `.claude/skills/` und die `CLAUDE*.md`-Dateien — sie stehen bewusst nicht im Repo. Alles, was `install.mjs` schreibt, ist Generat: Der Installer ueberschreibt es beim naechsten Lauf ohnehin, und wer klont, soll selbst entscheiden, ob er installiert.
+
+Der erste Schritt nach dem Klonen ist deshalb:
+
+```bash
+node install.mjs
+```
+
+Erst danach stehen `/session-start`, `/techplan`, `/issues` und die uebrigen Skills in Claude Code zur Verfuegung.
+
+Zum Entwickeln kommt ein zweiter Schritt dazu:
+
+```bash
+npm ci
+```
+
+Damit steht ESLint bereit — einer der Pflicht-Checks aus `buildChecks` ist
+`npx eslint kit tools test install.mjs`, und ohne `node_modules` liefe er aus dem
+falschen Grund rot. **Die ausgelieferten Werkzeuge selbst bleiben
+abhaengigkeitsfrei:** `install.mjs`, `kit/` und `tools/` laufen mit blossem Node,
+die Abhaengigkeiten sind reine `devDependencies` (Issue #399).
+
+Gepflegt wird immer die **Quelle**, nie die Kopie unter `.claude/`:
+
+| Quelle im Repo | Kopie beim Nutzer |
+|---|---|
+| `skills/<name>/SKILL.md` | `.claude/skills/<name>/SKILL.md` |
+| `templates/CLAUDE-workflow.md` | `.claude/CLAUDE-workflow.md` |
+| `templates/CLAUDE-Fachplan.md` | `.claude/CLAUDE-Fachplan.md` |
+| `templates/CLAUDE-Plan.md` | `.claude/CLAUDE-Plan.md` |
+| `kit/board.mjs`, `kit/night.mjs` | `.claude/kit/` |
+
+Nach jeder Aenderung an einer Quelle muessen die eingebetteten Blobs in `install.mjs` neu gebacken werden:
+
+```bash
+node tools/sync-blobs.mjs
+```
+
+`node tools/sync-blobs.mjs --check` ist ein Pflicht-Check und geht rot, wenn das jemand vergisst.
+
+Zwei Dateien unter `.claude/` liegen trotzdem im Repo, beide aus einem eigenen Grund: `workflow.config.json` wird vom Installer **gemergt** statt ueberschrieben und ist Team-Einstellung; `launch.json` legt er gar nicht erst an.
+
+## Bereichsbezogene Pruefungen
+
+Ein `buildChecks`-Eintrag kann sagen, fuer welche Bereiche des Projekts er zustaendig ist (`areas`), und der Block `checkAreas` ordnet diesen Bereichen Pfadmuster zu. Dann laeuft eine Pruefung nur, wenn ihr Bereich beruehrt wurde; im Zweifel laeuft alles, und ohne `checkAreas` aendert sich nichts. Die Formen, die beiden Pruef-Anker und die Zweifelsregel stehen im Kapitel „Bereichsbezogene Pruefungen" in [`docs/einrichtung.md`](docs/einrichtung.md) — hier bewusst kein zweiter vollstaendiger Text, zwei Orte fuer dieselbe Aussage driften auseinander.
+
+## Commit-Gate
+
+Ein projektlokal installiertes Kit kann einen `pre-commit`-Hook einhaengen, der jeden Commit abweist, dem kein gruener `node .claude/kit/checks.mjs run` auf demselben Stand vorausging — geprueft wird Datei fuer Datei gegen den Index. Hook und Logik liegen versioniert unter `.githooks/` und wandern mit dem Klon; die Aktivierung ist lokale git-Config und wandert nicht. Zwei Grenzen gehoeren dazu: `--no-verify` umgeht das Gate, und ein frischer Klon hat es erst nach einem Installer-Lauf. Prueflogik, Geltungsbereich und die uebrigen Grenzen stehen im Kapitel „Das Commit-Gate" in [`docs/einrichtung.md`](docs/einrichtung.md) — hier bewusst kein zweiter vollstaendiger Text.
+
+## Dokumentation
+
+Ausfuehrliche Anleitung, Konfigurationsreferenz und den vollstaendigen 8-Schritt-Prozess findest du hier:
+
+**[docs.mwolff.org](https://docs.mwolff.org)**

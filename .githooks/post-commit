@@ -1,0 +1,48 @@
+#!/bin/sh
+# SPDX-License-Identifier: MIT
+# claude-workflow-kit post-commit (Issue #2156, Plan #2145 E1)
+#
+# Startet nach jedem Commit die Pruefung je fertiger Karte (`night.mjs --card-check --detach`).
+# Das Commit-Gate verlangt vor jedem Commit einen gruenen Prueflauf; ein Commit auf dem
+# Hauptzweig ist darum fertig, auch ohne Kartenabschluss. Ob gestartet wird — Hauptzweig,
+# Hauptkopie, kein Rebase, Pro, origin/<mainBranch> —, entscheidet gate.mjs.
+#
+# Anders als pre-commit haelt dieser Hook nie etwas auf: Der Commit steht schon. Fehlen node
+# oder gate.mjs, meldet er eine Zeile und endet mit 0.
+#
+# Meldungen in der Projektsprache wie in pre-commit (Issue #1458, Plan #1420 E13).
+# SYNC: dieselbe Regel wie projektSprache in .githooks/gate.mjs und kit/board/namen.mjs.
+de_gate_fehlt='post-commit: %s fehlt — Kartenpruefung nicht gestartet.'
+en_gate_fehlt='post-commit: %s is missing — card check not started.'
+de_node_fehlt='post-commit: node nicht im PATH — Kartenpruefung nicht gestartet.'
+en_node_fehlt='post-commit: node not in PATH — card check not started.'
+
+feldwert() {
+  sed -n "s/.*\"$1\"[[:space:]]*:[[:space:]]*\"\([^\"]*\)\".*/\1/p" .claude/workflow.config.json 2>/dev/null | head -n 1
+}
+sprache=de
+if [ -f .claude/workflow.config.json ]; then
+  wert="$(feldwert language)"
+  [ -n "$wert" ] || wert="$(feldwert sprache)"
+  [ "$wert" = en ] && sprache=en
+fi
+
+# melde <schluessel> [wert…]: die Meldung in der Projektsprache nach stderr.
+melde() {
+  eval "vorlage=\$${sprache}_$1"
+  shift
+  # shellcheck disable=SC2059 # die Vorlage ist das Format
+  printf "$vorlage\n" "$@" >&2
+}
+
+gate="$(dirname "$0")/gate.mjs"
+if [ ! -f "$gate" ]; then
+  melde gate_fehlt "$gate"
+  exit 0
+fi
+if ! command -v node >/dev/null 2>&1; then
+  melde node_fehlt
+  exit 0
+fi
+node "$gate" post-commit
+exit 0

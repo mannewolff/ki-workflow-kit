@@ -1,0 +1,484 @@
+<!-- SPDX-License-Identifier: MIT -->
+# CLAUDE-workflow.md — claude-workflow-kit-Prozess
+
+Was nicht als Pro gekennzeichnet ist, gehört zu Community.
+
+Verbindlicher Prozess fuer KI-gestuetzte Softwareentwicklung in diesem Projekt. Basiert auf dem 8-Schritt-Prozess (Whitepaper "Ein Prozess zur KI-gestuetzten Softwareentwicklung", Manne Wolff, 2026).
+
+---
+
+## Die acht Schritte
+
+| Schritt | Aktor | Was passiert | Skill |
+|---------|-------|-------------|-------|
+| 1. Anforderung | Mensch | Formuliert oder diktiert die Anforderung | — |
+| 2. Plan | KI | Erstellt Plan, stellt zur Diskussion, implementiert nichts | `/techplan` |
+| 3. Plan zu Issues | KI | Uebertraegt Plan in Issues (Vier-Abschnitt-Format) | `/issues` |
+| 4. GO | Mensch | Zieht Issues nach Ready — das ist das GO | — |
+| 5. Implementierung | KI | Arbeitet Ready-Issues sequenziell ab, committet lokal | `/implement-ready` |
+| 6. Code-Review | KI | Startet ein fremdes Modell aus `reviewCommand` bzw. `reviewModel` in frischer Session | `/kit-review` |
+| 7. Push | Mensch | Tippt `push main` — Claude pusht den Batch | `/push-main` |
+| 8. Merge | Mensch | Tippt `merge production` — Claude erstellt PR | `/merge-production` |
+| Hotfix (Pro, ersetzt 7 und 8 für einen Fix) | Mensch | Tippt `hotfix production #N` — Claude setzt die Karte auf dem Produktionsstand um und liefert sie verkürzt geprüft aus | `/hotfix-production` |
+| Zurückkehren (Pro) | Mensch | Tippt `rollback production` — Claude nennt die Vorversion, fragt einmal nach und startet sie | `/rollback-production` |
+
+---
+
+## Werkzeuge neben dem Prozess
+
+Die acht Schritte oben sind der Prozess aus dem Whitepaper. Was hier steht, ist Werkzeug des Kits: hilfreich, oft benutzt — aber **ohne diese Skills laeuft der Prozess auch**. Sie tragen deshalb keine Nummer; eine Nummer wuerde eine Reihenfolge und eine Pflicht behaupten, die es nicht gibt.
+
+**Ergaenzen den Prozess**
+
+| Skill | Wofuer |
+|-------|--------|
+| `/session-start` | Session-Start: Memory-Vault laden, Projektstand holen |
+| `/triage` | Idee mit dem Menschen durchsprechen und auf die gewaehlte Bahn bringen |
+| `/requirement` | Anforderung als fachliches Issue zum Groomen mit dem PO |
+| `/issue-review` | fachliche Anforderung, Plandokument **oder** Arbeitspaket pruefen lassen — ein Kommando, drei Stufen |
+| `/groom` | offene Fragen eines geprüften Fachplans mit dem PO entscheiden: alle auf einmal mit Empfehlung, der Mensch widerspricht nur, wo nötig |
+| `/retro` | KI-Retrospektive, Memory konsolidieren |
+| `/document` | Session-Ende: Tageslog und Projektnotiz schreiben |
+
+**Ersetzt Schritt 2 und 3**
+
+| Skill | Wofuer |
+|-------|--------|
+| `/task` | Anforderung ohne Abwaegungsbedarf als einzelnes Arbeitspaket `[Task]` |
+
+**Ersetzen Schritt 5 durch eine feinere Gangart**
+
+| Skill | Wofuer |
+|-------|--------|
+| `/implement-next` | genau ein Ready-Issue statt der ganzen Spalte |
+| `/implement-test` | nur die roten Tests, Stopp vor der Implementierung |
+| `/implement-done` | Implementierung gegen die vorbereiteten roten Tests |
+
+---
+
+## Die drei Stop-Punkte (nie automatisiert)
+
+1. **GO (Schritt 4):** Issue nach Ready ziehen. Claude wartet. Ausnahme, ausschliesslich in der Umsetzungsstufe der Kette unter Variante B: Dort zieht der Runner die Arbeitspakete der gekennzeichneten Karte selbst nach Ready und beginnt ihre Umsetzung ohne Freigabe je Paket. Das GO hat der Mensch an der gekennzeichneten Karte gegeben — an der fachlichen Anforderung oder am Plandokument —, als er sie fuer Variante B kennzeichnete. Ausserhalb dieser Stufe gilt der Satz davor ohne Einschraenkung — auch fuer Pakete einer Karte, die frueher unter Variante B lief. Eine zweite Ausnahme gilt in Pro-Projekten: Eine Reparaturkarte mit dem Label `kit:repair`, die der Reparatur-Kreislauf aus einem roten Ergebnis der Pruefung je Karte angelegt hat, zieht der Runner selbst nach Ready und setzt sie ohne GO um, auch wenn gerade niemand einen Lauf gestartet hat; sie behebt nur einen Fund dieser Pruefung, jede andere Karte desselben Plans bleibt gesperrt, und nach gruener Nachpruefung steht sie in In review (Kreislauf: „Unbeaufsichtigter Betrieb (optional)“, Absatz zur Pruefung je Karte). Das GO an der gekennzeichneten Karte geben `kit:carry-through` oder ein Ziel ab `umsetzung` (`goal:implementation`, `goal:push-prepared`); beide wirken nur zusammen mit `kit:night`. Der naechste Push (Schritt 7) nimmt die Entscheidungen des Laufs mit an.
+2. **Push (Schritt 7):** Trigger-Phrase `push main`. Claude pusht nicht autonom.
+3. **Merge (Schritt 8):** Trigger-Phrase `merge production`. Claude merged nicht.
+
+**Pro.** **Hotfix und Zurückkehren.** Neben `push main` und `merge production` gibt es zwei weitere getippte Phrasen für einen Fehler in Produktion: `hotfix production` für genau eine freigegebene Karte und `rollback production` ohne Karte. Die Hotfix-Phrase ersetzt für genau einen Fix beide Stop-Punkte, die Veröffentlichung (Schritt 7) und die Freigabe zur Auslieferung (Schritt 8); sie führt in einem Zug von der Umsetzung der Karte bis zum markierten Stand auf `productionBranch`. Für jeden anderen Stand gelten Schritt 7 und 8 unverändert. `rollback production` bringt die Vorversion wieder in Betrieb, nach einmaligem Nachfragen. Beide gibt es nur interaktiv; der Runner startet keine von beiden (siehe W1).
+
+Geprueft werden die fachliche Anforderung und das Plandokument: `/issue-review` laesst sie von Modellen lesen, die sie nicht geschrieben haben; wie viele das sind, sagt `reviewStages`. Ein Arbeitspaket wird nicht standardmaessig geprueft — wer es will, ruft `/issue-review #N`. Der Schalter `issueReview.requiredBeforeReady` bleibt fuer Projekte, die das Gate wollen; ausgeschaltet ist der Regelfall. Bei gesetztem `issueReview.requiredBeforeReady` stellt der Runner ungepruefte Ready-Issues zurueck.
+
+**Der Aufruf ist immer derselbe: `/issue-review #N`.** Welche Stufe greift — fachliche Anforderung, Plandokument oder Arbeitspaket —, liest der Skill am Titel-Praefix ab; es gibt bewusst kein eigenes Kommando je Stufe. Das gilt interaktiv genauso wie unbeaufsichtigt: Ein Plandokument laesst sich jederzeit interaktiv pruefen. Der Marker, den die Pruefung hinterlaesst, ist eine Spur und keine Freigabe. Daneben setzt die Pruefung das Label `review:done` als sichtbare Spur am Board; es muss je Board einmal angelegt sein (GitHub und GitLab als Repo-Label, kanban-kit ueber `POST /api/boards/{boardId}/labels`).
+Das Label bleibt eine Spur der Pruefung und gibt den Inhalt nicht frei; die Kette verlangt diese Spur aber als Voraussetzung — eine gekennzeichnete Karte ohne `review:done` wird uebersprungen, auch wenn sie das Kettenlabel traegt; das gilt fuer die fachliche Anforderung wie fuer das Plandokument. Daneben zeigt das Label `kit:clarified` am Board, dass an einer fachlichen Anforderung keine Frage an den PO offen ist; `/issue-review` und `/groom` setzen es, sobald die erste Zeile unter `## Offene Fragen an den PO` mit `Keine` beginnt. Es ist eine Hilfe, kein Kriterium: Die Kette prueft weiter den Vermerk, nicht das Label. Abnehmen tut es nur der Mensch. Eine fachliche Anforderung kann ausserdem auf ein aeusseres Ereignis warten, etwa bis ein Tarif waehlbar ist. Massgeblich ist die Zeile `Wartet auf Ereignis: <Grund>` im Abschnitt `## Ziel`; das Label `kit:on-hold` zeigt das Warten am Board und ist eine Hilfe, kein Kriterium. `node .claude/kit/board.mjs issue hold <N> --reason "<Grund>"` setzt Zeile und Label, `issue hold <N> --lift` hebt beides auf. Aufheben tut nur der Mensch, das Kit nie. Solange die Zeile steht, ueberspringt die Kette die Anforderung und jeden Plan zu ihr und nennt den Grund im Bericht; `kit:night` bleibt an der Karte und gilt nach dem Aufheben wieder. Das Warten ist keine offene Frage: Es fehlt keine Antwort, sondern ein Ereignis. `kit:clarify` und `## Offene Fragen an den PO` bleiben davon getrennt, `--lift` fasst keines von beiden an. Der Prueflauf laeuft weiter, und nach dem Aufheben braucht es keine neue Pruefung.
+
+---
+
+## Entscheiden statt fragen
+
+Eine Session, die ein Dokument schreibt oder unbeaufsichtigt laeuft, entscheidet jede Unklarheit ausserhalb der Stopp-Klasse selbst und protokolliert die Entscheidung. Interaktiv darf gefragt werden; was der Mensch entscheidet, wird im selben Format festgehalten.
+
+**Das Entscheidungsformat**, je Eintrag, die Nummern laufen je Dokument fortlaufend:
+
+```
+- E1: <Frage in einem Satz>
+  Gewählt: <Weg>. Verworfen: <Alternative>. Grund: <ein Satz, Bezug auf Fachplan, Bestand oder Prioritätenordnung>. Rückbau: <trivial | eine Datei | Migration>.
+```
+
+| Wo | Ort der Eintraege |
+|----|-------------------|
+| Plandokument | `## Architektonische Entscheidungen` |
+| Arbeitspaket | `## Kontext`, je Eintrag eine Zeile beginnend mit `Entscheidung:` |
+| Implementierung | Abschlussbericht, Unterabschnitt `### Entscheidungen` |
+
+**Die Stopp-Klasse.** Nur diese Fragen halten an:
+
+1. Datenverlust oder eine Migration ohne Rueckweg.
+2. Sicherheit: Rechte, Authentifizierung, Geheimnisse, Netzzugriff.
+3. Verträge nach außen: eine Schnittstelle, die jemand anderes nutzt, etwa ein Name, ein Kennzeichen oder ein Format, das Kit und kanban-kit beide lesen oder schreiben (Form in `CLAUDE-Plan.md`, P14).
+4. Ein Widerspruch im Fachplan selbst, etwa zwei Akzeptanzkriterien, die sich ausschliessen.
+5. Eine Aenderung an Gates, Stop-Punkten oder am Prozess (W1 bis W4).
+6. Eine Abweichung vom fachlichen Anlass: Ein Plan oder eine Umsetzung weicht von einer vorgelegten Vorlage oder vom Ziel des Fachplans ab, oder beantwortet eine im Fachplan offen gelassene Frage zu Aussehen, Ort einer Ansicht oder einer fachlichen Grenze selbst.
+
+Nur eine Frage aus dieser Klasse haelt an, und jeder Halt traegt genau eine Frage. Alles andere — ausdruecklich auch Randfaelle, Namensfragen (ausser Namen, die ein solcher Vertrag festlegt), Fehlerpfade, Reihenfolgen und die Frage, welcher Test gemeint ist — wird entschieden. Schiedsrichter ist die Ordnung aus „Prioritaeten bei Zielkonflikten"; im Zweifel gewinnt der kleinste rueckbaubare Eingriff. **Eine geschuetzte Datei ist keine Frage, sondern eine Handlung.** Muss ein Paket eine Datei aendern, die nur ein Mensch schreiben darf (die Einstellungen unter `.claude/`), haelt es mit dem Label `kit:protected` statt `kit:clarify`: Bei `kit:clarify` wartet eine Entscheidung, bei `kit:protected` eine Handlung. Das Label ist wie das Spur-Label der Pruefung je Board einmal anzulegen; abnehmen darf es nur der Mensch, nachdem er die Aenderung selbst vorgenommen hat. Der Halt-Kommentar beginnt mit `## Geschuetzte Datei`, nennt jede Datei mit der zitierten Zeile und vermerkt als letzte Zeile `Label kit:protected gesetzt` oder, wenn das Label am Board fehlt, `Label kit:protected nicht gesetzt` — frei wird die Karte erst nach einem Halt mit gesetztem Label, den der Mensch durch Abnehmen des Labels beantwortet. Erkannt wird der Fall vor dem Start (Gate im Runner, `issue brief`, `issue check-form` I8) und, wenn erst das Schreiben scheitert, im Rueckfall der Session oder im Auffang des Runners.
+
+**Reviews sind Zuarbeit.** Ein Modell-Review eines Fachplans, Plans oder Arbeitspakets liefert Befunde an den Autor der Stufe; jeder Fund kommt dabei mit den drei zusaetzlichen Angaben aus „Befunde der Modell-Pruefungen" — Gegenprobe, ihr Stand und die Mangel-Art —, und der Autor liest sie mit, bevor er uebernimmt oder mit einem Satz ablehnt. Ob eine Stufe fertig ist, sagt ein Kommando oder ein Mensch, nie ein Modell-Marker.
+
+---
+
+## Regel im Text oder Regel im Werkzeug
+
+Jede Regel einer mitgelieferten Anweisung ist von einer von zwei Arten. Die Art entscheidet, wo sie hingehoert.
+
+**Bedienvorgabe.** Sie sagt, wie ein Werkzeug zu bedienen ist. Ihre Befolgung ist an Ausgabe oder Ergebnis ablesbar, und ein Werkzeug koennte sie an der Stelle des Lesers ausfuehren. Beispiel: den echten Rueckgabewert des Pruefkommandos lesen, nicht den einer Kette, die der Leser um den Aufruf baut. Eine Bedienvorgabe gehoert ins Werkzeug — im Text ist sie eine Bitte, die jede Session neu befolgen muss.
+
+**Urteilsregel.** Sie verlangt eine Entscheidung oder Haltung im Einzelfall. Beispiel: liegt der Coverage-Report unter dem vereinbarten Ziel, das als Signal ausweisen statt es still durchzuwinken. Eine Urteilsregel bleibt im Text — ein Werkzeug koennte sie nur erraten.
+
+**Gemischte Regeln werden zerlegt, nicht gerundet.** Die Zeitrahmen-Regel fuer lange Pruefkommandos traegt beides: „ein Abbruch an der Uhr erscheint als Fehlschlag" ist eine Bedienvorgabe und erzwingbar — das Werkzeug hinterlaesst dann eine unabgeschlossene, ungruene Zusammenfassung. „Setze einen grosszuegigen Zeitrahmen" ist eine Urteilsregel und bleibt im Text, weil ein Werkzeug sich nicht mehr Zeit geben kann, als sein Aufrufer einraeumt.
+
+**Die Art sagt nichts ueber die Ueberfuehrbarkeit.** Eine Bedienvorgabe wird nicht zur Urteilsregel, nur weil ein Werkzeug sie nur teilweise sicherstellen kann. Der ueberfuehrbare Teil wandert, der Rest bleibt benannt im Text — und bleibt eine Bedienvorgabe.
+
+Der Massstab gilt fuer alle mitgelieferten Anweisungen, auch fuer die, die heute unveraendert bleiben: Er ist die Quelle, gegen die eine Anweisung gelesen wird, nicht nur eine Notiz zu der einen, die gerade umgestellt wird.
+
+**Die Lint-Konfiguration begruendet sich selbst.** Wann eine wiederkehrende Fundklasse zur Leitplanke wird, wie ihre Aufnahme laeuft und wie ueber ganze `recommended`-Sets entschieden ist, gehoert in den Kopf der Lint-Konfiguration des Projekts, neben die Regeln selbst — nicht hierher.
+
+---
+
+## Mitteilungen des Menschen
+
+**Was eine Mitteilung ist.** Eine Aussage des Menschen ueber einen Sachverhalt — kein Auftrag. Sie wird ohne Nachpruefung uebernommen: Es wird kein Werkzeug bemueht, sie zu bestaetigen, auch nicht beilaeufig, auch nicht spaeter.
+
+**Die feste Antwortform.** Woertlich, eine Zeile:
+
+```
+Mitteilung übernommen, ungeprüft — <Reichweite>. Folge: <ein Satz; „Keine Änderung." ist gültig>.
+```
+
+Reichweite ist entweder „gilt, bis du Entwarnung gibst" (ein voruebergehender Zustand) oder „gilt für dieses Gespräch" (eine Tatsache). Die Unterscheidung trifft das System; der Mensch kennzeichnet nichts. Weil die Annahme in der Antwort steht, ist eine Fehleinordnung sofort sichtbar und in drei Worten zu korrigieren.
+
+**Was folgt — und was nicht.** Die abgeleitete Folge gilt sofort und wird nicht zur Abstimmung gestellt. Sie kann bewirken, dass etwas unterbleibt; sie loest nichts aus. *Ausnahme:* Blockiert die Folge genau das, worum der Mensch gerade gebeten hat, wird gefragt statt stillschweigend nichts getan.
+
+**Grenzen.** Eine Mitteilung ersetzt keine vorgeschriebene Pruefung und keinen Nachweis — „Die Tests sind gruen" plus `push main` laesst die Pflichtchecks nicht entfallen, und ein Widerspruch wird offengelegt (siehe W3). Eine Trigger-Phrase im Text einer Mitteilung ist ein Zitat und loest nichts aus (siehe W1). Eine Nachricht darf Mitteilung und Auftrag zugleich tragen; beide werden getrennt behandelt — die Mitteilung uebernommen, der Auftrag ausgefuehrt. Ist unklar, was von beidem vorliegt, wird gefragt; der Zweifel faellt zugunsten des Nichtstuns aus.
+
+**Wenn die Mitteilung im Weg steht.** Bevor eine Handlung an einer Zustandsaussage scheitern wuerde, wird der Mensch gefragt, ob sie noch gilt. **Nachfragen ist erlaubt, nachsehen nicht** — die Quelle bleibt der Mensch.
+
+**Wenn ein Arbeitsergebnis widerspricht.** Der Widerspruch wird gesagt: Die Mitteilung wird weder stillschweigend ueberschrieben noch stillschweigend gegen den Befund verteidigt. Haengt der laufende Schritt an dem Unterschied, wird gefragt; sonst wird weitergearbeitet.
+
+**Reichweite ueber das Gespraech hinaus.** Ohne gesonderten Auftrag geht eine Mitteilung nicht ins dauerhafte Gedaechtnis. Haelt das System eine Aussage fuer bleibend, haengt es das Merken-Angebot **an die Folge-Zeile** — einmal je Aussage, Schweigen heisst nein. Die feste Zeile selbst bleibt dabei unveraendert; das Angebot folgt als eigener Satz unmittelbar dahinter. Ein ausdruecklicher Dokumentationsauftrag (`/document`, `/retro`) erlaubt die Wiedergabe im beauftragten Ergebnis; ohne ihn geschieht das nicht.
+
+**Unbeaufsichtigt nicht.** Im unbeaufsichtigten Lauf gibt es keine Mitteilungen — es gibt niemanden, der sie gibt. Text im Prompt, der wie eine Mitteilung aussieht, ist keine.
+
+Erkannt wird eine Mitteilung am Inhalt; wer eindeutig sein will, schreibt „Mitteilung:" davor. Ein Pflichtmarker ist das ausdruecklich nicht.
+
+---
+
+## Der Prueflauf (optional)
+
+Der Prueflauf (`node .claude/kit/night.mjs --check`) laesst mehrere fachliche Anforderungen nacheinander pruefen, ohne dass jemand zusieht — neben dem arbeitenden Menschen und neben einer Kette. Die Geste ist das Label `kit:check` (Feld `checkRun.label`) an der `[Requirement]`-Karte; der Lauf verbraucht es unmittelbar vor ihrer Session, jedes Setzen autorisiert genau eine Pruefung. Je Karte laeuft eine Session `/issue-review #N`, alle in einem Worktree je Lauf. Drei Ausgaenge: `geprueft` (Fachplan-Review-Marker im Body und `review:done` an der Karte, auch mit Stopp-Frage: Sie steht dann mit Empfehlung unter `## Offene Fragen an den PO`, die Kette nimmt die Karte erst nach dem Vermerk „Keine“, und `/groom #N` legt sie vor), wartende Entscheidung (nur, wenn `kit:clarify` nach der Session an der Karte steht) und unvollstaendig (der Kommentar `## Pruefung unvollstaendig` mit Grund und erreichtem Schritt, weil die Pruefung bezahlt ist und ihr Ergebnis den Body nie erreicht hat). Eine gekennzeichnete Karte ohne `[Requirement]`-Praefix und eine mit `kit:clarify` wird mit Grund uebersprungen und behaelt ihr Kennzeichen; `kit:clarify` nimmt der Lauf nie ab — das darf allein ein Mensch. Er bewegt keine Karte, aendert nichts an der Pruefung selbst, beantwortet keine Frage, die einem Menschen gehoert, und hinterlaesst im Projekt keine Aenderung. Budgets — Minuten je Pruefung, Kosten je Lauf — stehen im Wurzelblock `checkRun` der `workflow.config.json`, nicht unter `night`. Verhaeltnis zur Kette: Er stellt deren Voraussetzung her, indem er die Karte geprueft zuruecklaesst; das Kettenlabel bleibt die Geste des Menschen. Details: Kapitel „Der Prueflauf" in der Kit-Dokumentation. **Der Lauf arbeitet mit einem festen Kit-Stand.** Jeder unbeaufsichtigte Lauf bindet sich wie Lauf und Kette beim Start an den Commit, auf den `origin/<mainBranch>` zeigt — den letzten Push, gelesen ohne `git fetch`. Fest sind damit die Werkzeuge einschliesslich der Pruefung vor jedem Commit, die Skills und die Regeltexte; was ein Paket desselben Laufs daran aendert, wirkt erst nach `push main`. Pruefgegenstand bleiben die Konfiguration des Projekts und seine Tests, sie kommen aus dem Stand des jeweiligen Pakets. Der Stand steht als Zeile `Kit-Stand: <commit> (origin/<mainBranch> vom <Zeit>)` im Laufbericht (`kitStand` in `.claude/night-run-*.json`), im Bericht und an jedem Kommentar des Laufs. Nach einem Lauf in der Hauptkopie bleibt deren installierte Kopie auf dem Stand, bis `node tools/sync-blobs.mjs` sie auf die Arbeitskopie bringt; `sync-blobs --check` nennt sie bis dahin als veraltet.
+
+---
+
+## Unbeaufsichtigter Betrieb (optional)
+
+Der Runner (`node .claude/kit/night.mjs`) arbeitet die Ready-Spalte unbeaufsichtigt ab: pro Issue mit dem Routing-Label `kit:nightrun` eine frische Headless-Session mit `/implement-next #N`. Erfolg wird am Board gemessen (Issue in In review); Fehlschlaege wandern kommentiert ins Backlog, bei unsauberem Working Tree stoppt der Lauf hart. Unbeaufsichtigt wird committet, nie gepusht — Review, Test und `push main` macht der Mensch, wenn der Lauf geendet hat.
+
+Die zweite Betriebsart ist die Kette (`node .claude/kit/night.mjs --chain`). Die Geste ist das Label `kit:night` an der Karte, die den Auftrag traegt; der Runner verbraucht es beim Start, jedes Setzen autorisiert genau eine Kette. Die Kette kennt **zwei Auftragsarten**. Am gegroomten `[Requirement]`-Issue im Backlog entsteht in einem eigenen Worktree ein Plan (`/techplan`), der geprueft wird (`/issue-review`), daraus die Arbeitspakete (`/issues`) und eine Abdeckung gegen die fachliche Anforderung, beim Plan ohne Anforderung gegen den Plan. Am geprueften `[Plan]`-Dokument im Backlog laeuft derselbe Weg als **Plan-Auftrag** ohne die Stufe `plan` und beginnt bei `pakete`; die Stufe `review` laeuft davor nur, wenn der Pruefstand am Plan meldet, dass er sich seit seiner Pruefung ueber die eingetragene Antwort hinaus geaendert hat. Der Plan bleibt erhalten, seine Nummer wandert unveraendert in Pakete und Bericht, es entsteht kein zweites Plandokument, und kein aelteres wird als ueberholt vermerkt. Bedingung ist in beiden Faellen die Spalte Backlog, ein `review:done` und kein `kit:clarify`. Ein Plan ohne Zeile `Fachliche Quelle:` laeuft als sein eigener Bezugspunkt, abgeglichen wird dann gegen den Plan; nennt er eine Zeile, die keine Karte trifft, bleibt er liegen. Gebaut wird nichts, die Pakete bleiben im Backlog, das GO nach Ready bleibt beim Menschen. Die Kette kennt zwei Varianten: Variante A (Standard) belaesst die Arbeitspakete im Backlog und wartet auf das GO des Menschen; Variante B setzt zusaetzlich das Label `kit:carry-through` (Feld `night.chain.variantBLabel`) an der gekennzeichneten Karte. Ausnahme, ausschliesslich in der Umsetzungsstufe der Kette unter Variante B: Dort zieht der Runner die Arbeitspakete der gekennzeichneten Karte selbst nach Ready und beginnt ihre Umsetzung ohne Freigabe je Paket. Das GO hat der Mensch an der gekennzeichneten Karte gegeben — an der fachlichen Anforderung oder am Plandokument —, als er sie fuer Variante B kennzeichnete. Ausserhalb dieser Stufe gilt der Satz davor ohne Einschraenkung — auch fuer Pakete einer Karte, die frueher unter Variante B lief. Fehlt das Label oder wird es wieder entfernt, faellt die Kette auf Variante A zurueck. Drei Ausgaenge: `fertig`, `angehalten` (eine Stopp-Frage wartet als Kommentar `## Kette angehalten` samt `kit:clarify` an der gekennzeichneten Karte; eine offene Frage im Plan haelt die Kette erst nach der Stufe `review`, also nach der Pruefung des Plans und vor dem Schnitt in Pakete — auch eine Frage, die erst die Pruefung als offene Frage in den Plan aufgenommen hat; der Kommentar zaehlt den Weg nach vorn auf: Antwort als Eintrag unter `## Architektonische Entscheidungen` des Plans — nicht unter `## Offene Fragen`, dort gilt sie als weitere offene Frage —, `## Offene Fragen` wieder auf `- Keine.`, `kit:clarify` abnehmen, `kit:night` an den Plan, den die naechste Kette dann als Plan-Auftrag von der Stufe `pakete` an weiterfaehrt; hat die Antwort den Plan ueber ihr Eintragen hinaus geaendert, prueft die Kette ihn vorher selbst erneut — eine Pruefung von Hand ist nicht Teil des Wegs) und `abgebrochen` (mit Grund). Bei jedem Ausgang steht ein Bericht des Laufs als Kommentar an der gekennzeichneten Karte; er ist Verlauf, verbindlich wird eine Entscheidung erst als Satz im Fachplan. Der Bericht jeder Kette unter Variante B nennt den Stand der Ursprungsdokumente: welche nach In review gewandert sind oder, wenn der Plan nicht durch ist, warum nicht und welche Pakete fehlen. Budgets — Minuten je Stufe, Kosten je Kette, Korrekturrunden — stehen in `night.chain` der `workflow.config.json`. Kette, Umsetzungslauf und Prueflauf laufen nebeneinander, auch mehrere Ketten und Prueflaeufe zugleich und auf zwei Rechnern am selben Board. Je fachlicher Wurzel bearbeitet genau ein Runner (ein Plan ohne Anforderung ist seine eigene Wurzel): Er beansprucht sie bei der Auswahl mit dem Laufstand `laeuft`, dessen Zeile `Lauf-ID: <host>/<pid>/<stempel>` ihn ausweist, und laesst eine Wurzel mit lebender Lauf-ID aus (Grund im Protokoll: bereits von einem laufenden Runner beansprucht). Geraeumt wird beim Start nur, was einem toten Prozess gehoert — Arbeitskopie und Kit-Stand eines lebenden Runners bleiben stehen. Ist der beanspruchende Runner abgestuerzt (gleicher Rechner: Prozess beendet; anderer Rechner: `Stand:` aelter als die Budget-Obergrenze bis zu seiner Position), uebernimmt ein spaeterer Start die Wurzel und nennt die Uebernahme im Protokoll; neu kennzeichnen muss niemand. Unter Variante B nehmen Kette und Umsetzungslauf den Lock `.claude/night-umsetzung.lock`; ist er belegt, wartet die Kette im Rahmen ihres Umsetzungsbudgets (`night.chain.implementationMin`) auf die Umsetzung und endet sonst als unvollstaendig. Details: Kapitel „Runner" in der Kit-Dokumentation. **Der Lauf arbeitet mit einem festen Kit-Stand.** Jeder unbeaufsichtigte Lauf bindet sich beim Start an den Commit, auf den `origin/<mainBranch>` zeigt — den letzten Push, gelesen ohne `git fetch`. Fest sind damit die Werkzeuge einschliesslich der Pruefung vor jedem Commit, die Skills und die Regeltexte; was ein Paket desselben Laufs daran aendert, wirkt erst nach `push main`. Pruefgegenstand bleiben die Konfiguration des Projekts und seine Tests, sie kommen aus dem Stand des jeweiligen Pakets. Der Stand steht als Zeile `Kit-Stand: <commit> (origin/<mainBranch> vom <Zeit>)` im Laufbericht (`kitStand` in `.claude/night-run-*.json`), im Bericht und an jedem Kommentar des Laufs. Nach einem Lauf in der Hauptkopie bleibt deren installierte Kopie auf dem Stand, bis `node tools/sync-blobs.mjs` sie auf die Arbeitskopie bringt; `sync-blobs --check` nennt sie bis dahin als veraltet. Braucht ein Paket das geaenderte Werkzeug, den Skill oder den Regeltext eines anderen Pakets als Werkzeug, traegt seine Verweiszeile den Zusatz `Issue #N (wartet auf Push)`; die Kette zieht es auch unter Variante B nicht nach Ready, es bleibt wartend im Backlog und steht im Bericht des Laufs als nicht begonnen.
+
+**Keine Session endet mit laufender eigener Arbeit.** Eine Sitzung, beaufsichtigt oder nicht, beendet ihre Arbeit nicht, solange eine von ihr angestossene lange Arbeit laeuft — sie wartet auf das Ergebnis oder bricht die lange Arbeit ab und meldet den Abbruch als Fehlschlag. Hintergrundarbeit bleibt dabei interaktiv ausdruecklich erlaubt; unzulaessig ist allein das Aufhoeren, waehrend sie noch laeuft. Wer wartet, prueft zweierlei: ob das Ergebnis da ist und ob der Lauf **noch existiert**. Eine Warteschleife, die nur die Ausgabe abfragt, wartet im Fehlerfall ihre volle Laenge ab — und der haeufigste Fehlerfall ist, dass der Lauf nie begonnen hat. Ein Lauf, den es nicht mehr gibt, ist ein Fehlschlag und wird als solcher gemeldet, nicht als Zeitablauf (Issue #983). Ohne Aufsicht (gesetztes `KIT_AGENT_MODEL`) gibt es keine Hintergrundarbeit: Der Hook `bash-check` weist einen Bash-Aufruf mit `run_in_background` ab (Issue #1081) — den Befehl im Vordergrund aufrufen und auf ihn warten. Endet eine unbeaufsichtigte Sitzung dennoch mit laufender Arbeit, benennt der Runner den Fall mit eigenem Grund, zaehlt ihn als eigene Groesse und haengt einen Vermerk `## Nachtlauf: wartende Sitzung` an das Arbeitspaket; erledigt ist das Paket damit nicht.
+
+**Ein Zeitabbruch ist gekennzeichnet und behauptet keine Ursache.** Endet eine Sitzung an der Sitzungszeitgrenze (`--timeout-min`, Vorgabe 60 Minuten — ausdruecklich nicht am Stufenbudget `night.chain.implementationMin`, das nur zwischen zwei Sessions greift), haengt der Runner einen Vermerk `## Nachtlauf: Zeitgrenze erreicht` an das Arbeitspaket und die Einheit im Ergebnisstand traegt `zeitlimitBeendet`. Der Vermerk nennt die Grenze, den zuletzt gemeldeten Stand und eine Empfehlung an den Menschen — keine Vorgabe. Das ist kein inhaltlicher Fehlschlag: Die Sitzung wurde an der Uhr abgebrochen, nicht an ihrer Arbeit, und woran die Zeit ausging, folgt aus dem Abbruch nicht. **Eine festgefahrene Pruefung bremst die Sitzung vor der Zeitgrenze.** `checks.mjs run` zaehlt je Pruefung, wie oft sie hintereinander auf dieselbe Weise gescheitert ist — dieselben gescheiterten Tests, sonst dieselbe erste Fehlermeldung; gezaehlt werden nur echte Laeufe, Teillaeufe eingeschlossen, keine uebernommenen Ergebnisse. Gruene Ergebnisse anderer Pruefungen unterbrechen die Folge nicht; sie endet erst, wenn genau diese Pruefung gruen wird oder anders scheitert. Erreicht die Folge die Grenze `night.stuckAfter` (Vorgabe 3), faehrt unbeaufsichtigt (gesetztes `KIT_AGENT_MODEL`) der naechste Aufruf nichts mehr, auch nicht mit `--fresh`: Er gibt `Pruefung festgefahren: <Kommando> — <Fehler>` aus und endet mit Exitcode 3. Die Sitzung endet dann ohne weitere Aenderung. Der Runner beendet die Runde, sichert die Reste ohne Rettungsversuch im Stash `nachtrest #<id> <lauf>` (misslingt das, harter Stopp), haengt den Vermerk `## Nachtlauf: an einer Pruefung festgefahren` mit Pruefung, Fehler, Versuchen, Laufzeit und Zeitgrenze an das Paket, setzt `run:aborted` und zieht es nach Backlog; die uebrigen Pakete laufen weiter. Im Bericht des Laufs ist es ein eigener Ausgang `festgefahren`, getrennt von Zeitgrenze und wartender Sitzung. Interaktiv bricht nichts ab: Der Lauf gibt nur `Hinweis: festgefahren an <Kommando> — <n>-mal gleich gescheitert (<Fehler>)` aus, Ergebnis und Exitcode bleiben, der Mensch entscheidet.
+
+**Der Stand eines Laufs steht am Board, nicht im Prozess.** Jede Karte einer Kette oder eines Umsetzungslaufs traegt hoechstens eines der drei Labels `run:running`, `run:aborted` und `run:waiting` und genau einen Kommentar `## Laufstand`, der bei jedem Wechsel ersetzt wird. Er ist Tafel, nicht Verlauf; der Bericht des Laufs bleibt Verlauf. Abbruch und Halt sind ohne Deutung zu unterscheiden: `run:aborted` heisst, Wiederholen genuegt; `run:waiting` sagt im Laufstand woertlich, worauf es wartet — `wartet: Übergang <x> im Projekt nicht freigegeben — weiter mit kit:night`, `wartet: Karte ohne Freigabe zur Umsetzung` oder, bei einem inhaltlichen Halt, „Halt: Frage wartet auf den Menschen — siehe `## Kette angehalten`“. Der Weg fuer inhaltliche Halte ueber `kit:clarify` bleibt, wie er ist. Wiederholt wird mit derselben Geste: `kit:night` an der Karte startet die Kette bei der ersten Stufe ohne Ergebnis, und was schon vorliegt, entsteht nicht doppelt. Ein vorhandener Plan zaehlt dabei als Ergebnis; ein frischer Plan entsteht erst, wenn der alte in Done steht. Welche Uebergaenge der Kette automatisch folgen, legt das Projekt in `night.chain.transitions` fest (`planReview`, `reviewPackages`, `packagesCoverage`, `coverageImplementation`); `coverageImplementation` wirkt nur zusammen mit `kit:carry-through` an der Karte, das GO bleibt an der einzelnen Karte; fehlt der Eintrag, setzt eine Kette mit `kit:carry-through` nach der Abdeckung um wie vor der Einstellung, und erst ein gesetztes `false` haelt sie an. Einen automatischen Versuch gibt es nur bei Umgebungsfehlern, solange der Lauf lebt — Board nicht erreichbar, keine Sitzung zustande gekommen —, genau einen, nach einer Pause, mit dem Vermerk „2. Versuch“ im Laufstand. Eine Sitzung, die zustande kam und ohne Ergebnis endete, ist ein Paketfehler. Ein gestorbener Lauf wird nicht wiederholt: Seine Karten zeigen nach der Frist „nicht beendet“, und weiter geht es nur mit der Geste des Menschen. **Wie weit eine Kette laeuft, sagt das Ziel an der Karte.** Neben `kit:night` traegt die gekennzeichnete Karte hoechstens eines der vier Ziel-Labels `goal:plan` (endet nach der Stufe `review`), `goal:packages` (nach `abdeckung`), `goal:implementation` (nach `umsetzung`) oder `goal:push-prepared` (nach `vorbereitung`). Die Reihenfolge der Stufen ist fest, das Ziel bestimmt nur, wo die Kette endet. Ein Ziel ab `umsetzung` ist zugleich das GO fuer die Pakete dieser Karte; `kit:carry-through` zaehlt als `umsetzung`, und tragen beide, gilt das weiter reichende. An der fachlichen Anforderung legt `planreview:1` oder `planreview:2` fest, wie viele Modelle den Plan pruefen; ohne Angabe gilt die Einstellung des Projekts. Ein Ziel ohne `kit:night` startet nichts. Beim Start verbraucht der Runner `kit:night`, das Ziel und `planreview:*` zusammen, jedes Setzen gilt fuer genau einen Lauf; ihr Wert steht danach im Laufstand. Eine neu gestartete Kette liest nur ein neu gesetztes Ziel, ohne Ziel verhaelt sie sich wie heute. Was an der Karte nicht passt — mehr als ein Ziel, beide `planreview:*`, `goal:plan` oder `planreview:*` an einem Plandokument, `planreview:*` an einer Anforderung, deren Plan schon einen `Plan-Review:`-Marker traegt —, lehnt die Auswahl mit dem Kommentar `## Kette nicht gestartet: unpassende Einstellung` ab, und die Karte behaelt ihre Labels. **Ende am Ziel und Projektgrenze.** Endet eine Kette an ihrem Ziel, traegt der Laufstand den Kopf `fertig bis <Ziel>` und die Zeile `Als Nächstes:` mit dem Schritt, der jetzt dem Menschen gehoert. Das Projekt bleibt Obergrenze: Sperrt `night.chain.transitions` einen Uebergang vor dem Ziel, endet die Kette dort mit der wartet-Form des gesperrten Uebergangs, der Laufstand nennt die letzte erreichbare Stufe in der Zeile `Grenze:`, und der Bericht des Laufs sagt unter `### Ausgang`, dass sie an der Projektgrenze stehen blieb und nicht am Ziel. Der Uebergang in die Vorbereitung heisst `implementationPreparation` und hat die Vorgabe `true`; nur ein ausdrueckliches `false` haelt die Kette davor an. **Die Stufe `vorbereitung` bereitet die Veroeffentlichung vor; ihre Session pusht nicht.** Die Stufe gehoert zu Community: In Pro wirkt das Ziel `push-vorbereitet` wie `umsetzung`, mit einer Zeile im Laufstand, und an die Stelle der Vorbereitung tritt die Pruefung je Karte (unten). Erreicht eine Kette das Ziel `push-vorbereitet`, folgt nach allen Ketten des Laufs einmal die Stufe `vorbereitung` fuer den ganzen Stand. Sie wartet, bis nichts mehr baut — die Umsetzungssperre ist frei und kein anderer Lauf dieses Projekts baut noch —, hoechstens `night.chain.preparationMin` Minuten (Vorgabe 120); laeuft die Frist ab, heisst das Ergebnis `nicht-vorbereitet` mit Grund. Dann laeuft in der Stufe `vorbereitung` die Session `/push-main prepare` in einem eigenen Worktree: Versionsvermerk, Aenderungsnotiz, der Prueflauf der Push-Stufe und ein lokaler Commit; die Session pusht dabei nicht — weder auf `mainBranch` noch auf einen Pruefzweig oder Vorab-Zweig. Was einen Menschen oder einen Push braucht, wird nicht gestartet, sondern steht als offen in der Meldung; das Ergebnis heisst dann `gruen-offen` statt `gruen`. Faehrt das Projekt den vollen Lauf mit `pushCheck` im Build-Dienst, faehrt die Vorbereitung statt seiner nur den Nachweislauf der Paketstufe ueber die Release-Dateien, und der erste offene Punkt lautet `voller Lauf im Build-Dienst (Prüfzweig <zweig>)`. **Die einzige Ausnahme vom Push-Verbot ist der Pruefzweig:** Die Pruefung je Karte bringt den geprueften Stand auf den eigenen Pruefzweig dieses Rechners — nie auf `mainBranch`, nie auf `productionBranch`, nie mit `--force` —, und `push main` gibt ihn nach dem Push wieder frei; das gehoert zu Pro. Die Vorbereitung selbst bringt nichts auf einen Pruefzweig; den vollen Lauf im Build-Dienst faehrt danach der naechste `push main` ueber den Pruefzweig. Das Ergebnis (`gruen`, `gruen-offen`, `rot` oder `nicht-vorbereitet`) steht in einem eigenen Bericht des Laufs an jeder Karte, die die Vorbereitung ausgeloest hat, und an der festen Stelle `.claude/push-vorbereitung.json`. Hat sich der Stand bis zum `push main` nicht geaendert, uebernimmt er den vorbereiteten Commit ohne zweiten Prueflauf; sonst prueft er vollstaendig. **In Pro tritt an die Stelle der Vorbereitung die Pruefung je Karte.** Jeder Commit im Hauptzweig — der Abschluss einer Karte, interaktiv wie im Runner, auch einer Reparaturkarte — loest ueber die Git-Hooks `post-commit` und `post-merge` die Pruefung je Karte aus (`node .claude/kit/night.mjs --card-check`); niemand wartet auf sie, die Arbeit an der naechsten Karte geht weiter. Laeuft schon eine, prueft sie danach den dann juengsten Stand. Sie fuehrt in einem frisch ausgecheckten Stand auf `origin/<mainBranch>` die fertigen Karten dieses Rechners mit den schon uebertragenen des anderen zusammen, schreibt Version und Aenderungsprotokoll ueber `release.commands` fort und prueft im Umfang der Push-Stufe: mit Build-Dienst auf dem eigenen Pruefzweig, ohne ihn mit `installCommand` und `checks.mjs run --stage push` im Worktree auf diesem Rechner, dazu die Sicherheitspruefung auf diesem Rechner. Das Ergebnis — gruen, rot, laeuft, nicht geprueft oder Konflikt — steht als Kommentar `## Kartenprüfung` an den Karten, die seit dem letzten gruenen Urteil dazukamen, und in `.claude/kartenpruefung.json`. **Fristen:** Findet sich 5 Minuten nach dem Uebertragen kein Lauf im Build-Dienst oder liegt nach 120 Minuten kein Ergebnis vor, gilt der Stand als nicht geprueft, nie unbegrenzt als laufend; eine erneute Pruefung desselben Stands loest der Mensch mit `node .claude/kit/night.mjs --card-check --again` aus. **Kreislauf:** Ein rotes Ergebnis legt je Ursache eine Reparaturkarte mit `kit:repair` an, die der Runner ohne GO in einem eigenen Worktree umsetzt, getrennt von der Arbeitskopie des Menschen; danach wird erneut geprueft, je Ursache hoechstens dreimal, dann haelt nur diese Reparatur an, und eine `[Human]`-Karte nennt die offenen Funde. **Mit Build-Dienst entfaellt der Integrationslauf am Laufende** — die Pruefung je Karte deckt den vollen Umfang —, und `/integration-test` bleibt auf Wunsch. **`push main` prueft dann nichts mehr selbst:** Es liest `node .claude/kit/worktree.mjs publish-state` und schiebt genau den gruen geprueften Commit, oder es nennt den Grund und endet, ohne etwas freizugeben.
+
+---
+
+## Aufwand des Prozesses
+
+Jeder unbeaufsichtigte Lauf schreibt seine Auswertung nach `.claude/aufwand.md`; sie liegt dort vollstaendig, auch wenn nichts auffaellt. Ein Befund erscheint unaufgefordert an genau zwei Stellen: im Abschlussblock des Laufprotokolls `.claude/night-run-<datum>.log` und zu Beginn von `/push-main`. Der Befund haelt nirgends etwas auf und ist kein Gate. Zu Beginn jedes Laufs loescht der Runner die Tagesprotokolle `.claude/night-run-<datum>.log` und die Laufordner unter `.claude/protokolle/`, die aelter sind als `night.logRetentionDays` Tage (Vorgabe 14); `night-run-*.json` und die `.tsv`-Dateien mit den Kennzahlen bleiben.
+
+Drei Begriffe tragen die Auswertung: **Nachdenken** ist die Zeit, in der das Modell arbeitet; **Werkzeugarbeit** ist die Zeit, in der etwas anderes fuer den Lauf arbeitet; eine **Pruefung** ist ein Eintrag aus `buildChecks`, mehrfache Ausfuehrungen desselben Eintrags werden zusammengefasst. Zeit, die sich keiner Seite zuordnen laesst, ist ein dritter, eigener Posten.
+
+Ein eigener Block weist die **Zielmarke der Umsetzung** aus: wie viele Umsetzungen ueber der Marke des jeweiligen Laufs liegen und um wie viel, gemittelt ueber die Ueberschreitungen. Zeitabbrueche stehen darin getrennt und gehen in kein Mittel ein — ihre Fertigstellungsdauer ist unbekannt.
+
+Laufzahl und Schwellen stehen optional im Config-Block `workload`; fehlt er, gelten die eingebauten Vorgaben.
+
+---
+
+## Wirksamkeit der Pruefungen
+
+Was die Pflichtpruefungen einbringen, steht in `.claude/wirksamkeit.md` fuer Menschen und in `.claude/wirksamkeit.json` fuer die Ausgabestellen; beide liegen dort vollstaendig, auch wenn nichts auffaellt. Je Pruefung steht dort, wie oft sie lief, wie oft sie beanstandete und wie viel Zeit sie kostete, dazu die Ruecklaeuferquote aus „In review". Ein Befund erscheint unaufgefordert an denselben zwei Stellen wie der Aufwands-Befund: im Abschlussblock des Laufprotokolls und zu Beginn von `/push-main`. Der Befund haelt nirgends etwas auf und ist kein Gate.
+
+Vier Begriffe tragen die Auswertung: eine **Ausfuehrung** ist ein Lauf einer Pruefung fuer ein Arbeitspaket — eine Zeile im Ausfuehrungsprotokoll; ein **Lauf** ist ein unbeaufsichtigter Lauf; **beanstandet** heisst, dass eine Ausfuehrung nicht gruen endete — eine Pruefung, die gar nicht erst startete, ist keine Ausfuehrung; ein **Ruecklaeufer** ist jede Bewegung aus „In review" zurueck, gleich wer sie ausloest. Daraus folgt der Unterschied, auf den es ankommt: „nie beanstandet" ist ein Ergebnis vieler Ausfuehrungen, „nicht gelaufen" ist gar keines — nur das erste sagt etwas ueber die Pruefung. Ein **Wackler** ist eine Pruefung, die bei der einmaligen Wiederholung erst rot und dann gruen war: Ein solches Paar zaehlt als ein Wackler und nicht als Beanstandung; Rot, das bei der Wiederholung rot blieb, zaehlt als eine Beanstandung, Rot ohne Wiederholung wie bisher, und uebernommene Ergebnisse erzeugen keine Faelle. Ab drei Wacklern im Zeitfenster ist eine Pruefung als **Reparaturkandidat** gekennzeichnet — eine Auskunft, kein Gate.
+
+Was die Verkleinerung des Abschlussumfangs einbringt, steht dort als eigener Kennzahlblock: die **mittlere Pruefzeit je Karte** — gerechnet ueber die **Abschlusslaeufe** dieser Karte —, daneben der Vergleichswert, den dieselben Laeufe ohne die Auslassungen des Abschlusses gekostet haetten, und je ausgelassener Pruefung, was sie beim Veroeffentlichen kostete. Bezugsgroesse ist die Karte, nicht der Lauf; ein Mittel je Lauf waere eine andere Zahl. Gezaehlt werden allein Abschlusslaeufe — Pruefzeiten waehrend der Arbeit und beim Veroeffentlichen bleiben draussen. Fehlt die Grundlage, steht dort „nicht gemessen" und keine 0. Wie der uebrige Bericht ist der Block eine Auskunft und kein Gate.
+
+Fenster, Quote und Mindestmengen stehen optional im Config-Block `effectiveness`; fehlt er, gelten die eingebauten Vorgaben.
+
+Zwei Messgrenzen gehoeren zum Bild: Die Nachpruefung des Runners laeuft an `checks.mjs` vorbei und zaehlt darum nicht mit; die Salvage-Vorpruefung faehrt dagegen `checks.mjs` und zaehlt mit (seit Issue #919). Und eine Karte, die das Kit nie bewegt hat, steht nicht im Nenner der Ruecklaeuferquote — was ohne den Prozess entstand, misst er auch nicht.
+
+---
+
+## Befunde der Modell-Pruefungen
+
+**Aufbau eines Funds.** Jeder Fund einer vom Kit vorgesehenen Modell-Pruefung — fachliche Anforderung, Plan, Arbeitspaket, Code — traegt neben Schweregrad, Fundstelle und Vorschlag drei weitere Angaben: die Beobachtung, die ihn widerlegen wuerde; den Stand dieser Gegenprobe, `geprueft, bestaetigt` oder `nicht geprueft`; und seine Mangel-Art. Ein Fund, den die eigene Gegenprobe widerlegt hat, wird nicht gemeldet.
+
+**Die Artenliste hat genau einen Wortlaut:** `node .claude/kit/findings.mjs kinds`. Dieser Abschnitt zaehlt die Arten nicht selbst auf, sondern verweist auf das Kommando — zwei Orte driften auseinander, sobald eine Art hinzukommt oder ihren Namen wechselt. Ein Projekt ergaenzt keine eigenen Arten.
+
+**Aus dieser Form wird kein Gate.** Ein Fund ohne Gegenprobe oder mit fehlender Angabe haelt nichts auf. Fehlt eine Angabe, wird sie beim liefernden Reviewer genau einmal nachgefordert; bleibt sie aus, traegt der Fundblock `Angaben: unvollstaendig` und wird trotzdem eingearbeitet.
+
+Vier Begriffe tragen die Auswertung: ein **Fund** ist eine gemeldete Beanstandung einer Modell-Pruefung; die **Gegenprobe** ist die Beobachtung, die den Fund widerlegen wuerde, samt ihrem Stand; die **Art** ist die Einordnung aus der festen Liste; ein **Vorkommen** ist ein uebernommener Fund mit bestaetigter Gegenprobe — nicht gepruefte, unvollstaendige und abgelehnte Funde sind keine Vorkommen.
+
+Zwei Messgrenzen gehoeren auch hier zum Bild: Vor der Einfuehrung dieser Form geschriebene Funde zaehlen nicht und werden nicht nachtraeglich eingeordnet. Und Buchungen, die im Worktree eines abgestuerzten Laufs entstanden sind, gehen verloren — `worktreesAufraeumen` in `kit/night.mjs` raeumt liegengebliebene Worktrees beim naechsten Start weg, samt allem, was darin noch ungesichert wartet.
+
+---
+
+## Drei Bahnen
+
+**Bahn 1 — Kleine Änderung** (direkt; kein Plan/Issue/GO): genau eine Datei / ein Asset / eine Config; keine Flyway-Migration; kein neuer/geänderter Endpoint; kein Datenmodell; ≤ 1 Modul; keine sicherheitsrelevante Logik → direkt umsetzen, ein Commit, kein Push ohne Trigger. **Auch dieser Commit setzt einen grünen `node .claude/kit/checks.mjs run` auf dem zu committenden Stand voraus** — das Commit-Gate ist mechanisch und kennt keine Bahn. Dasselbe gilt für jeden Commit von Hand. Was das Gate nicht leistet — `--no-verify` und der frische Klon ohne Installer-Lauf — steht unter „Git-Workflow (strikt bindend)“.
+
+**Bahn 2 — Feature** (voller 8-Schritt): ausserhalb von Bahn 1, sobald es etwas abzuwaegen gibt — oder unklar ist, ob es etwas abzuwaegen gibt → `/techplan` → `/issues` → GO → `/implement-ready`. Typisch: ein Datenmodell mit mehreren vertretbaren Schnitten, ein Endpoint, dessen Vertrag noch offen ist, eine Migration mit Rueckweg-Frage.
+
+**Bahn 3 — `[Task]`** (ersetzt Schritt 2 und 3): oberhalb der Kleinigkeit, aber ohne Abwaegungsbedarf. Kein `[Requirement]`, kein `[Plan]`, keine Zerlegung — ein Arbeitspaket mit dem Titel-Praefix `[Task]`, angelegt mit `/task` nach menschlicher Bestaetigung des Wegs, danach freigegeben wie jedes Arbeitspaket. Typisch: eine Umbenennung ueber mehrere Dateien, ein abgelehnter Werkzeug-Befund, eine mechanische Nachzieharbeit.
+
+**Die Auswahlregel, in dieser Reihenfolge:**
+
+1. Trifft die zaehlende Bahn-1-Regel zu **und gibt es nichts abzuwaegen**, gilt Bahn 1.
+2. Sonst entscheidet der Abwaegungsbedarf: Abzuwaegen gibt es etwas, wenn **mehrere vertretbare Wege** offenstehen. Eine Feststellung mit genau einem richtigen Ausgang ist keine Abwaegung. Mit Abwaegungsbedarf gilt Bahn 2, ohne ihn Bahn 3.
+3. Ist **unklar**, ob es etwas abzuwaegen gibt, gilt Bahn 2.
+
+Der Umfang allein entscheidet also nicht mehr: Eine Aenderung an zwoelf Dateien ohne Abwaegung ist Bahn 3, eine Architekturaenderung an einer einzigen Datei mit mehreren vertretbaren Schnitten ist Bahn 2.
+
+**Meta-Regel:** Vor Beginn jeder neuen Aufgabe die Bahn laut benennen ("Das ist Bahn 1/2/3, ich …"); im Zweifel Bahn 2 — das deckt auch den unklaren Abwaegungsbedarf.
+
+| Beispiel | Bahn |
+|----------|------|
+| Icon-/Favicon-Tausch | 1 |
+| Textkorrektur | 1 |
+| Config-Default | 1 |
+| Umbenennung ueber mehrere Dateien ohne Abwaegung | 3 |
+| Architekturaenderung an einer einzigen Datei (mehrere vertretbare Schnitte) | 2 |
+| Neue Tabelle | 2 |
+| Neuer Endpoint | 2 |
+| Neues UI-Feature | 2 |
+
+---
+
+## Vorgeschichte
+
+Gilt, außer `.claude/workflow.config.json` setzt `history` auf `false`; dann entsteht das Dokument ohne Abschnitt und ohne Vermerk. Sonst liest der Autor eines Fachplans (`/requirement`) und eines Plans (`/techplan`) vor dem Schreiben die frueheren Fachplaene zum selben Gegenstand, archivierte eingeschlossen. Eine fruehere Entscheidung sperrt dabei nichts, sie wird nur sichtbar.
+
+**Suchen.** Ein Kommando sucht, nicht der Autor:
+```bash
+node .claude/kit/board.mjs issue history --terms <begriff> [--terms <begriff>]... [--files <pfad>]... [--without <N>]...
+```
+
+Die Suchbegriffe waehlt der Autor aus Titel und Ziel der neuen Anforderung, je Begriff ein `--terms`. Der Plan gibt zusaetzlich je Datei aus `## Betroffene Bereiche` ein `--files` mit und nimmt seine Fachliche Quelle mit `--without <N>` aus den Treffern — sie ist die Anforderung selbst, keine Vorgeschichte. Das Dokument nennt, wonach gesucht wurde, in der Zeile `Suchbegriffe: <a>; <b>; …`, der Plan zusaetzlich in der Zeile `Dateien: <pfad>; …`. Aus diesen Zeilen wiederholt der Pruefauftrag von `/issue-review` dieselbe Suche und legt den Pruefern die gefundenen Fachplaene vollstaendig bei.
+
+**Ort.** Beim Fachplan steht der Abschnitt `## Vorgeschichte` zwischen `## Nicht-Ziele` und `## Offene Fragen an den PO`. Beim Plan steht der Unterabschnitt `### Vorgeschichte` am Ende von `## Betroffene Bereiche` — ein siebter `##`-Abschnitt waere ein Formverstoss.
+
+**Inhalt.** Hoechstens fuenf Fundstellen, je mit Nummer, Titel und einem Satz, der fuer die neue Anforderung zaehlt: eine PO-Antwort, ein Nicht-Ziel oder eine verworfene Moeglichkeit. Steht die neue Anforderung im Widerspruch zu einer frueheren PO-Antwort oder einem frueheren Nicht-Ziel, steht jeder Widerspruch vollstaendig als eigene Zeile `- Widerspruch: #N „<Zitat>“ — <Fundstelle>; <warum>`; Widersprueche zaehlen nicht in die fuenf. Dazu genau einer der drei festen Vermerke, wo er zutrifft:
+
+- `Nichts Einschlägiges gefunden.` — gesucht, aber kein Treffer zaehlt.
+- `Keine Vorgeschichte gelesen: <Grund>` — das Kommando meldet `ok: false` (etwa ohne Netz oder ohne erreichbares Archiv); das Dokument entsteht trotzdem.
+- `Weitere Treffer: <Zahl>` — es gab mehr Treffer, als das Dokument nennt. Die Zahl = (Treffer des Kommandos − im Dokument genannte Fundstellen) + `weitere`, wobei `weitere` das gleichnamige Feld der Ausgabe ist.
+
+Die Vermerke, `Suchbegriffe:`, `Dateien:` und `- Widerspruch:` sind feste Anfaenge, an denen der Bericht des Laufs und die Pruefer sie lesen; sie bleiben in jeder Projektsprache deutsch.
+
+**Ein Widerspruch haelt nichts an.** Kein Halt, auch unbeaufsichtigt nicht, keine Frage an den PO aus einem Widerspruch und kein Eintrag unter `## Offene Fragen an den PO` oder `## Offene Fragen` — der Widerspruch steht im Abschnitt zur Vorgeschichte, der Bericht des Laufs nennt ihn, und der Mensch sieht ihn beim naechsten Blick aufs Board. Der Plan uebernimmt die `- Widerspruch:`-Zeilen aus `## Vorgeschichte` seiner Fachlichen Quelle woertlich in `### Vorgeschichte`; nur so erreicht ein im Fachplan vermerkter Widerspruch den Bericht des Laufs. Fehlt der Abschnitt, obwohl `history` nicht `false` ist, meldet `issue check-form` das als Hinweis, nicht als Verstoss.
+
+---
+
+## Kanban-Board (5 Spalten)
+
+| Spalte | Bedeutung | Wer bewegt |
+|--------|-----------|-----------|
+| Backlog | Idee oder Issue mit offenen Fragen | Beide |
+| Ready | Freigegeben, gilt als GO | Nur Mensch (Ausnahmen: Umsetzungsstufe der Kette unter Variante B; Reparaturkarten mit `kit:repair` in Pro) |
+| In progress | Aktuelle Arbeit, ein Issue zur Zeit | KI beim Start |
+| In review | Lokal fertig, nicht gepusht | KI beim Abschluss; Ursprungsdokumente: Kit, wenn der Plan durch ist |
+| Done | Mensch hat getestet, Push erfolgt | Nur Mensch |
+
+---
+
+## Git-Workflow (strikt bindend)
+
+1. Claude committet lokal, pusht NICHT automatisch. Jeder Commit — auch Bahn 1, auch von Hand, auch aus einem GUI-Client — setzt einen grünen `node .claude/kit/checks.mjs run` auf dem zu committenden Stand voraus; ein Werkzeug ohne `node` im PATH wird abgewiesen, nicht durchgelassen.
+2. Mensch testet lokal (Dev-Server starten, Golden Path durchklicken).
+3. Mensch tippt `push main` — Claude pusht auf `mainBranch`.
+4. Mensch testet auf Testserver.
+5. Mensch tippt `merge production` — Claude erstellt PR `mainBranch -> productionBranch`.
+6. Mensch merget den PR.
+
+Absolut bindend:
+- Kein Force-Push auf `mainBranch` oder `productionBranch` ohne explizite Einzelanweisung.
+- Hooks (Pre-Commit / Pre-Push) werden nicht ohne explizite Einzelanweisung mit `--no-verify` umgangen; unbeaufsichtigt gibt es keine Einzelanweisung.
+- `productionBranch` wird nie direkt gepusht.
+
+**Was das Commit-Gate nicht leistet.** `--no-verify` umgeht es (die Zeile darüber verbietet das ohne explizite Einzelanweisung, mechanisch verhindert es nichts), und ein frischer Klon hat es erst nach einem Installer-Lauf oder `git config core.hooksPath .githooks` — die Dateien wandern mit, die Aktivierung ist lokale git-Config. In beiden Fällen greift **unbeaufsichtigt** die Wertung des Runners, die einen fehlenden oder roten Nachweis zum Fehlschlag macht — **interaktiv greift niemand**. Dort bleibt die Zeile oben die einzige Regel.
+
+**Schritt 7 und 8 laufen in einem eigenen Worktree.** `/push-main` und `/merge-production` erzeugen ihre Release-Dateien, fahren ihren Prueflauf und committen nicht im Haupt-Working-Tree, sondern in einem frischen Worktree ausserhalb des Repos (`node .claude/kit/worktree.mjs create --prefix release`, derselbe Weg wie beim Worktree der Kette); danach pushen sie von dort und bauen ihn wieder ab, auch nach einem roten Lauf. Der Grund ist die Gleichzeitigkeit: Im Haupt-Tree kann unter Variante B die Umsetzungsstufe des Runners bauen, und zwei Laeufe in einem Baum vermischen ihre Dateien — der Release-Prueflauf saehe fremde, halbfertige Arbeit, und der Runner fand die Release-Dateien als unkommittierte Reste und stoppte hart. `/merge-production` setzt dabei auf `origin/<mainBranch>` auf, denn veroeffentlicht wird, was gepusht ist; `/push-main` auf dem lokalen `<mainBranch>`, im Worktree auf `origin/<mainBranch>` rebased. Das lokale `<mainBranch>` zieht der Skill danach nur nach, wenn keine Sperre des Runners liegt und der Haupt-Tree sauber ist — sonst gibt er das Kommando aus.
+
+---
+
+## Config (.claude/workflow.config.json)
+
+Die Datei ist die einzige projektlokale Stelle, aus der die Skills lesen. Felder: `codeHost` (github | gitlab | local) und `issueTracker` (github | gitlab | local | toolbox); `buildChecks` mit optionalem `checkAreas` fuer bereichsbezogene Pruefungen, optionaler Stufenangabe `stage`, optionaler Guetemessung `quality` und optionalem `notAtCompletion` fuer Pruefungen, die der Abschluss eines einzelnen Arbeitspakets nicht tragen muss; `mutationCommand` (oder leer); `strictness` (`light` | `normal` | `strict`, Vorgabe `normal`) mit `strictnessOverrides` und `mutationQuality`, siehe „Strenge (strictness)"; `mainBranch` und `productionBranch`; `reviewScope` (`diff` oder `all`) und genau eines von `reviewCommand` (fremde CLI) oder `reviewModel`; `triggers` fuer GO, Push und Merge, dazu `triggers.hotfix` (Vorgabe `hotfix production`) und `triggers.rollback` (Vorgabe `rollback production`); `local.issuesDir`; **Pro:** `hotfixMinutes` (Zielmarke des Hotfix in Minuten, Vorgabe 20), `runsInstance` (`false` fuer ein Projekt ohne laufende Instanz, dann entfallen Rueckkehrpunkt-Halt und Zurueckkehren; Vorgabe `true`) und je `buildChecks`-Eintrag `deferOnHotfix` (die Pruefung laeuft beim Hotfix erst nach der Auslieferung; Vorgabe `false`); optional `issueReview` mit `reviewers`, `pairs` und `reviewStages`. Persoenliche Abweichungen gehoeren in `.claude/workflow.config.local.json`. Ein Beispiel je Stack und die Feldbeschreibung stehen in der Kit-Dokumentation, Abschnitt „Die Config-Datei". Eine Datei, die noch die deutschen Feldnamen traegt, wirkt weiter; das Kit schreibt nur die englischen.
+
+---
+
+## Pflichtchecks vor Push
+
+Alle **betroffenen** `buildChecks` aus der Config laufen gruen; unberuehrte Bereiche werden mit Nachweis ausgelassen. Rote Checks blockieren den Push weiterhin mechanisch. Bei UI-Aenderungen: Dev-Server starten, Golden Path und mindestens einen Edge Case manuell pruefen. Wenn ein Check nicht lokal ausfuehrbar ist: im Abschlussbericht vermerken, nicht verschweigen. **Die Pruefungen laufen gestaffelt:** Jede traegt eine Stufe — `paket` beim Abschluss eines Arbeitspakets, `push` vor dem Veroeffentlichen, `merge` vor der Freigabe; ohne Angabe gilt `paket`. Eine spaetere Stufe laeuft an der frueheren **nicht mit** (eine Pruefung der Stufe `push` bleibt beim Abschluss eines Arbeitspakets aus), und `push` faehrt die **Vorgaengerstufe** mit (`push` fuehrt `paket` und `push` aus). `merge` prueft nur, was `push main` nicht geprueft hat, denn es gibt nie ein `merge production` ohne vorheriges `push main`: die Stufe `merge` immer, die Paketstufe nach Bereichen ueber die Release-Dateien, die Stufe `push` nicht. **Keine Pflichtpruefung entfaellt damit aus dem Gesamtprozess**; sie laeuft nur zu dem Zeitpunkt, an dem ihr Ergebnis zaehlt, und nicht zweimal fuer denselben Stand. Welche Pruefung in welche Stufe gehoert, entscheidet das Projekt. Die Stufe einer Pflichtpruefung (`stage`) ist dabei etwas anderes als die Pruefstufen des Reviews (`reviewStages`) und als die Stufen der Kette: Sie sagt, *wann* geprueft wird, nicht wie gruendlich gelesen und nicht welcher Abschnitt eines unbeaufsichtigten Laufs dran ist. **Eine** seiner Pruefungen darf ein Projekt ausserdem als **Guetemessung** benennen (`quality` mit `pattern` und `marker`): Sie misst, wie viele absichtlich eingebauten Fehler die Tests bemerken. Liegt der gemessene Anteil unter der Marke, ist das **derselbe Halt wie eine rote Pflichtpruefung** — kein neuer Stop-Punkt, keine Ausnahme, keine persoenliche Marke (die Marke gilt teamweit, eine Abweichung in `workflow.config.local.json` bleibt unwirksam). Der Halt kostet keine Arbeit: Er ist ein roter Lauf **vor Commit und Push**, die bereits fertigen Pakete bleiben lokal committet, und der Versionsbump von `/push-main` bleibt idempotent stehen — nach der Nachbesserung laeuft derselbe Batch weiter. **Ohne Benennung gibt es weder Messung noch Marke noch Halt.**
+
+**Der Abschluss eines Arbeitspakets prueft die eigene Arbeit des Pakets, der Integrationslauf den vollen Umfang.** `checks.mjs run --finish <kartennummer>` faehrt beim Abschluss die neuen und geaenderten Tests, die Tests, die eine geaenderte Datei selbst laden oder nennen, Format und Stil ueber die geaenderten Dateien, Bauen, Typpruefung und Analyse wie bisher und jede Pruefung mit `always`; was nur ueber gemeinsame Grundlagen mit dem Paket verbunden ist, wartet. Ein Testkommando, das nur einen Teil seiner Tests faehrt, steht im Bericht als `teilweise`, eine wartende Pruefung als Auslassung mit Grund. Kann ein Projekt seine Tests den geaenderten Dateien nicht zuordnen, behaelt der Abschluss den bisherigen Umfang. `checks.mjs run --integration` faehrt am Ende einer Umsetzung jede Pruefung der Stufe `paket` ohne Bereichsfilter, auch die mit `notAtCompletion`; Pruefungen der Stufen `push` und `merge` behalten ihren Zeitpunkt. Unbeaufsichtigt faehrt der Runner den Integrationslauf am Ende seines Laufs. Interaktiv loest ihn der Mensch aus, oder die Sitzung von `/implement-next` und `/implement-ready`, wenn sie die letzte offene Reparaturkarte desselben Laufs nach In review gebracht hat: Meldet `issue report` danach `reparaturenOffen: 0`, startet sie `checks.mjs run --integration` als Nachpruefung der Reparaturen und nennt das Ergebnis; jede andere Umsetzung eines Pakets startet ihn nicht. In Pro mit Build-Dienst ist er keine Pflicht mehr: Die Pruefung je Karte prueft jeden fertigen Stand im vollen Umfang, der Runner faehrt ihn nicht am Laufende, und der Mensch loest ihn mit `/integration-test` auf Wunsch aus. **Keine Pruefung entfaellt:** Jede laeuft spaetestens im Integrationslauf oder in der Pruefung vor `push main`. **Der Abschluss eines Arbeitspakets muss nicht jede Pruefung tragen.** Neben Zuordnung (`areas`/`always`), Zeitpunkt (`stage`) und Guetemessung (`quality`) steht `notAtCompletion` als vierte Achse an einem Eintrag: Sie sagt, **warum** eine Pruefung den Abschluss einer einzelnen Karte nicht tragen muss — `zusammenspiel`, weil sie das Zusammenspiel mehrerer Teile prueft, oder `volleTestmenge`, weil sie ihren Befund nur aus der vollstaendigen Testmenge gewinnt. Sie wirkt **allein beim Lauf mit `--finish <kartennummer>`**, den die implement-Skills beim Abschluss genau einer Karte fahren, und nur an der Stufe `paket`; nennt der Eintrag in `completionAreas` einen Bereich, den das Paket direkt beruehrt, laeuft er auch beim Abschluss. **Verschoben, nicht erlassen:** Jede so ausgelassene Pruefung laeuft **vor dem Veroeffentlichen** in `/push-main` — dort faehrt der Lauf unveraendert den vollen Umfang, und im Bericht des Abschlusslaufs steht sie als Auslassung mit ihrem Grund. **Ohne `--finish` faehrt jeder Lauf den heutigen Umfang** — ein Prueflauf von Hand, das Commit-Gate, die Nachpruefung des Runners; wer die Achse nicht setzt, merkt von ihr ebenso nichts. Haelt der Lauf vor dem Veroeffentlichen an, nennt er von sich aus die Karten, deren Aenderung die rote Pruefung beruehrt; die Reparatur ist eine **neue Karte** — die genannte Karte wandert nicht aus „In review" zurueck. **Integrationslauf und Pruefung vor dem Veroeffentlichen sammeln alle Funde.** Eine rote Pruefung beendet dort weder die Vorphase noch die folgende Phase, jede Pruefung bekommt ein Ergebnis, bis die Obergrenze erreicht ist; beim ersten Rot hoert nur der Lauf mit `--finish`, mit `--hotfix` und an der Paketstufe ohne Integrationslauf auf. **Ein roter Lauf legt die Reparaturkarten selbst im Backlog an**, alle auf einmal ueber `node .claude/kit/board.mjs issue repair`: je Ursache und Plan eine Karte, eine schon offene Karte derselben Ursache bekommt statt einer zweiten einen Kommentar, und ein Fund an der Umgebung wird ein Handgriff statt einer Karte. Den Integrationslauf und `push main` liest `issue repair --summary <datei>` aus der Zusammenfassung des Laufs. Im Build-Dienst legt nicht der Build-Job die Karten an, sondern wer sein Urteil liest — der Runner nach der Vorbereitung und die Sitzung von `push main` —, ueber `issue repair --ci <sha>` aus dem Protokoll der roten Jobs. Nach Ready zieht diese Karten der Mensch, das GO fuer die Reparatur bleibt bei ihm; die Ausnahme bleiben in Pro die Reparaturkarten mit `kit:repair` aus der Pruefung je Karte (Schritt 4). Das weicht bewusst ab von #1964, PO-Antwort 5 (bei rotem Build-Dienst keine Karte) und PO-Antwort 6 (interaktiv loest allein der Mensch den Integrationslauf aus), und von #1827, PO-Antwort 2 (keine Karte durch den Runner bei Rot im Build-Dienst); entschieden hat das die fachliche Quelle #2079 mit Antwort 1 und Kriterium 8 (Plan #2087, A1, A4, A5, A11).
+**Der volle Lauf vor `push main` findet lokal statt, es sei denn, das Projekt verlegt ihn mit `pushCheck` in seinen Build-Dienst** — dann pusht `/push-main` zuerst auf einen Pruefzweig und `mainBranch` erst, wenn der Build-Dienst gruen meldet; die Pflicht ist an beiden Orten dieselbe. Hat das Projekt den Schutz eingerichtet, weist der Code-Host ungepruefte Staende auf `mainBranch` ab; am Schutz vorbei kommt nur der Inhaber ueber `/push-main notfall`, nach gruenem vollem lokalem Lauf. **Die Push-Stufe laeuft beim `push main` oder in der Vorbereitung der Kette für genau den Commit, den `push main` unverändert übernimmt; in Pro mit Build-Dienst läuft sie in der Prüfung je Karte, deren grün geprüften Commit `push main` unverändert veröffentlicht, sonst im Build-Dienst beim `push main` auf dem Prüfzweig.** Kein Commit ohne gruenen Nachweis, keine Uebernahme eines roten oder geaenderten Stands: `push main` uebernimmt eine Vorbereitung der Kette (`.claude/push-vorbereitung.json`) nur mit dem Ergebnis gruen oder gruen mit offener Pruefung und nur, solange `mainBranch`, `origin/<mainBranch>` und der vorbereitete Commit unveraendert stehen; sonst prueft es vollstaendig wie ohne Vorbereitung. Was in der Vorbereitung offen blieb, holt `push main` nach. **Eine rote Pruefung wird einmal wiederholt — nur dort, wo ihr Ergebnis entscheidet:** Faehrt der Lauf mit `--finish <kartennummer>` (Abschluss eines Arbeitspakets) oder mit `--retry` (Pruefung vor `push main` und `merge production`), wiederholt `checks.mjs` jede rote Pruefung genau einmal auf demselben Stand, nur diese und nicht den ganzen Lauf; gruen danach steht als `Gewackelt:`-Zeile im Bericht. Waehrend der Umsetzung, in einem Prueflauf von Hand, im Commit-Gate und im Build-Dienst wird nie wiederholt. Ist ein Lauf der Paketstufe rot und `formatFixCommand` gesetzt, faehrt `checks.mjs run` den Fix einmal und einen zweiten Durchgang; das ist keine Wiederholung im Sinn von `--retry`. **Vor jedem `push main` laeuft von selbst die Sicherheitspruefung** — ohne Handgriff des Menschen, in Community wie in Pro, auf dem lokalen Weg, ueber den Build-Dienst und auf dem Notfallweg. Nach dem gruenen Prueflauf und vor dem Commit liest ein Modell die Aenderungen, die hinausgehen (`git diff <anker>...HEAD`, Anker ist `git merge-base HEAD origin/<mainBranch>`), mit der Pruefrolle `sicherheit` — derselbe Pruefer wie bei `/kit-review` (`reviewModel` oder `reviewCommand`), hoechstens 10 Minuten. Das Ergebnis wertet das Kit aus, nicht die Sitzung. **Ein Befund KRITISCH haelt den Push an** wie eine rote Pflichtpruefung: kein Commit, kein Push. Befunde WICHTIG und HINWEIS stehen im Ergebnis des Pushs und halten nicht an. **Faellt die Pruefung aus** — keine auswertbare Antwort, Zeitgrenze ueberschritten —, haelt der Push ebenfalls an und fragt; nur ein ausdrueckliches Ja des Menschen veroeffentlicht ohne Sicherheitspruefung, und das steht im Ergebnis des Pushs. **Je Befund KRITISCH oder WICHTIG liegt danach eine `[Task]`-Karte im Backlog** mit dem Befund im Wortlaut und der Verursacher-Karte; derselbe Befund bei einem spaeteren Push bekommt einen Kommentar an der offenen Karte statt einer zweiten, und keine Karte geht nach Ready. Eine Vorbereitung der Kette haelt ihr Ergebnis fest; `push main` uebernimmt sie nur mit dem Ergebnis gruen fuer genau den geprueften Stand, sonst prueft es selbst.
+
+**Pro.** **Ausnahme beim Hotfix: Pruefungen erst nach der Auslieferung.** Die Regel, dass jede Pflichtpruefung vor der Freigabe laeuft, hat genau eine Ausnahme, den Hotfix (`hotfix production`). Vor seiner Auslieferung laufen die Tests, die der Fix schreibt oder aendert, der volle Testlauf des Projekts, die Mutationspruefung ueber die geaenderten Zeilen, die Sicherheitspruefung und jede weitere Pflichtpruefung ohne `deferOnHotfix`; ein roter Lauf haelt den Hotfix an wie jeden anderen Weg. Die Pruefungen mit `deferOnHotfix`, die statische Analyse und das Review laufen erst nach der Auslieferung, und der nächste `push main` holt sie nach. Bis dahin ist der Hotfix als „verkürzt geprüft“ ausgewiesen. **Verschoben, nicht erlassen:** Auch beim Hotfix entfaellt keine Pruefung aus dem Gesamtprozess; wird eine nachgeholte Pruefung rot, haelt der regulaere Weg an wie bei jeder roten Pflichtpruefung.
+
+---
+
+## Leitplanken der Pruefungen
+
+Drei Leitplanken gelten fuer jede Sitzung, die Pruefkommandos startet oder ihr Ergebnis liest — beim Abschluss eines Arbeitspakets, vor `push main` und bei einem Prueflauf von Hand. Die Umsetzungs-Skills verweisen hierher.
+
+**Leitplanke: Ein Coverage-/Qualitäts-Gate ist ein Floor, kein Beweis voller Abdeckung.** Grün heißt „über der vereinbarten Schwelle", nicht „vollständig getestet". Als Vertrauenssignal trägt eine Metrik nur, wenn sie ehrlich bleibt: Eine Lücke muss echt ungetestete Logik bedeuten, nie stillschweigend ausgeschlossenes Rauschen. Liegt der Coverage-Report unter dem im Projekt vereinbarten Ziel (siehe Projekt-Guide bzw. `workflow.config.json`), das explizit als Signal ausweisen statt es still durchzuwinken — der Mensch entscheidet, ob reingeschaut oder Tests nachgezogen werden.
+
+**Leitplanke: Wiederkehrende, klassenweite Modell-Fehler gehören ins Gate, nicht in Prompts.** Ein KI-Modell reproduziert das häufigste, nicht das aktuellste Muster seines Trainingskorpus — abgekündigte APIs und veraltete Idiome tauchen deshalb wiederholt und flächendeckend auf. Solche Fehlerklassen gehören als harte Lint-/Compiler-Leitplanke in die `buildChecks` der Pflichtchecks, nicht als Bitte in eine CLAUDE-`*`.md: Ein Prompt an die Disziplin wird unter Zeitdruck übersprungen, eine Leitplanke im Gate kann gar nicht erst grün committen. Die Leitplanke leitet aus den vorhandenen Annotationen ab, statt eine handgepflegte Verbotsliste zu führen (die selbst veraltet) — z. B. `@typescript-eslint/no-deprecated` (liest JSDoc-`@deprecated`), Java `-Xlint:deprecation` mit `-Werror`. SonarQube o. Ä. bleibt Sicherheitsnetz, nicht Hauptfang: Der Round-Trip über `main` fängt sicher, aber spät — der Check gehört nach vorn, in die Pflichtchecks.
+
+**Leitplanke: Lang laufende Checks brauchen einen großzügigen Zeitrahmen.** Das Bash-Tool killt Kommandos nach einem generischen Default von rund zwei Minuten, wenn kein größerer Wert übergeben wird. Ein `mvn verify` mit vollem Testcontainers-IT-Lauf, ein Mutationstest oder ein Multi-Modul-Build überschreiten das unter Last regelmäßig — der Check stirbt dann nicht an einem echten Fehler, sondern an der Uhr. Deshalb für solche Kommandos immer einen großzügigen Zeitrahmen explizit setzen: Richtwert mindestens 5 Minuten, bei IT-lastigen Multi-Modul-Builds 15 Minuten und mehr. Das bleibt eine Bitte an den Aufrufer, weil ein Werkzeug sich **nicht mehr Zeit geben kann, als sein Aufrufer** ihm einräumt. Läuft ein Check trotzdem in den Timeout, ihn **nicht** stillschweigend mit demselben Wert erneut starten — entweder den Timeout erhöhen und das benennen, oder den Check eindeutig als Fehlschlag zurückmelden. Ein zweiter Lauf ins gleiche Limit kostet die doppelte Zeit und liefert dieselbe Nicht-Antwort. Unsichtbar bleibt ein Abbruch an der Uhr dabei nicht: `checks.mjs run` schreibt seine Zusammenfassung begleitend, und nur die letzte Fassung ist abgeschlossen — stirbt der Lauf an der Uhr, bleibt sie **unabgeschlossen und ungrün**.
+
+Die vierte, das Abwarten laufender eigener Arbeit, steht im Abschnitt „Unbeaufsichtigter Betrieb (optional)“ und gilt auch interaktiv.
+
+---
+
+## Strenge (strictness)
+
+Jedes Projekt hat genau eine Strenge, festgelegt im Feld `strictness` der Config: `light` (Leicht, fuer Ideen, Prototypen und Experimente), `normal` (Normal, fuer ein gewoehnliches Projekt) oder `strict` (Streng, fuer Projekte mit hohem Sicherheitsanspruch). Ohne Angabe gilt `normal`. Die Strenge bestimmt, **welche** Pruefungen vor dem Veroeffentlichen (`push main`) und vor der Auslieferung (`merge production`) laufen; wie schnell sie laufen, bestimmt der Projekttyp. Was sie vorgibt, leitet das Kit an genau einer Stelle ab; kein Skill traegt eine eigene Auslegung.
+
+**In jeder Strenge gleich:** Test-First, die Pruefungen beim Abschluss eines Arbeitspakets (`checks.mjs run --finish`, nur die beruehrten Bereiche), die drei Stop-Punkte, das Fertig-Setzen durch den Menschen und die Schutzregeln. Die Strenge wechselt nie von selbst.
+
+| Strenge | vor dem Veroeffentlichen (`push main`) | vor der Auslieferung (`merge production`) |
+| --- | --- | --- |
+| `light` | die Pruefungen der Paket- und Push-Stufe nur ueber die Bereiche, die seit dem letzten Veroeffentlichen beruehrt wurden (`always`-Pruefungen laufen); kein Mutationstest, keine Sicherheitspruefung, kein voller Lauf. Fachplan und Plan prueft je ein Pruefer statt zwei. | zuerst das Nachholen: `checks.mjs run --stage push --catch-up` faehrt den vollen Umfang ueber den ganzen Stand mit Mutationstest, dazu die Sicherheitspruefung ueber alles seit der letzten Auslieferung, beides haltend wie in `normal`; danach die Merge-Stufe wie immer |
+| `normal` | voller Lauf wie gewohnt; ein eingerichteter Mutationstest laeuft und berichtet, haelt aber nicht an; die Sicherheitspruefung laeuft vor jedem Veroeffentlichen; eine benannte Guetemessung haelt unter ihrer Marke an | die Merge-Stufe wie gewohnt |
+| `strict` | alles aus `normal`, dazu haelt der Mutationstest an, wenn er unter der Marke liegt, die das Projekt in `mutationQuality` gesetzt hat; ein Mutationstest ohne auswertbares Ergebnis gilt als Ausfall und haelt ebenfalls an. Fehlen Mutationstest, Marke oder Guetemessung, haelt der Lauf nicht an und nennt die Luecke in einer eigenen Zeile | die Merge-Stufe wie gewohnt |
+
+**Verschoben, nicht erlassen.** `light` laesst vor dem Veroeffentlichen weg, was vor der Auslieferung nachgeholt wird; aus dem Gesamtprozess entfaellt keine Pruefung, und die Mechanik aus „Pflichtchecks vor Push" bleibt hart: Ein roter Nachhol-Lauf und ein Befund KRITISCH der Sicherheitspruefung halten `merge production` an.
+
+**Einstellungen uebersteuern die Strenge einzeln.** Ein eigener Block `reviewStages` legt die Pruefer fest, auch in `light`; ein eigener `quality`-Eintrag legt die Guetemessung fest. Ausgenommen sind Mutationstest und Sicherheitspruefung in `light`: Ein eingerichteter `mutationCommand` schaltet sie dort nicht wieder ein, das tut nur ein Eintrag im Block `strictnessOverrides`. Jede Abweichung von der Strenge nennt das Kit beim Veroeffentlichen.
+
+**Ein Aufstieg verlangt einen vollen Lauf.** Ist die Strenge seit dem letzten Veroeffentlichen gestiegen, faehrt der naechste `push main` den Umfang von `--catch-up` in der neuen Strenge, bevor er veroeffentlicht. Ein Abstieg gilt sofort und wird mit Datum und Urheber vermerkt (Zeile `Strenge: <alt> -> <neu> (<Urheber>)` in der Commit-Nachricht).
+
+**Der Hotfix liest die Strenge nicht.** `hotfix production` (Pro) prueft in jeder Strenge, was im Abschnitt „Pflichtchecks vor Push" unter der Ausnahme beim Hotfix steht; `checks.mjs run --hotfix` uebergeht die Strenge.
+
+**Nur der Mensch senkt die Strenge.** Absenken heisst: `strictness` milder stellen oder eine Einstellung abschwaechen, die eine von der Strenge verlangte Pruefung traegt — eine Pruefung aus `buildChecks` entfernen, `mutationCommand` leeren, eine Marke (`quality.marker`, `mutationQuality.marker`) senken, Pruefer in `reviewStages` verringern oder in `strictnessOverrides` etwas abschalten. Eine Sitzung der KI und ein automatischer Lauf senken nie: Der Hook weist einen Schreibzugriff auf `.claude/workflow.config.json` ab, der absenkt, und das Commit-Gate weist unbeaufsichtigt (`KIT_AGENT_MODEL` gesetzt) jeden Commit ab, der absenkt; interaktiv laesst es ihn nur mit der `Strenge:`-Zeile durch. Die Einstellungs-Oberflaeche und die App verlangen fuer das Absenken eine Bestaetigung, nie ueber ein Argument. Anheben darf jeder. Wer als KI meint, die Strenge sei zu hoch, schreibt das in den Bericht; die Entscheidung bleibt beim Menschen.
+
+---
+
+## Lange Texte ans Board
+
+**Jeder Text, den eine Sitzung ans Board schreibt, geht ueber eine Datei ausserhalb des Projektverzeichnisses — nie im Befehl selbst.** Erst `printenv TMPDIR` — bleibt die Ausgabe leer (Linux und WSL2 ohne Sandbox), gilt `/tmp` —, dann stueckweise `cat >` und `cat >>` in `<tmpdir>/<name>.md`, dann ein Aufruf mit `--text-file` bzw. `--body-file`. Vier Regeln, jede mit einem Beleg dahinter:
+
+1. **Hoechstens 6.000 Zeichen je Werkzeugaufruf**, nicht je Datei. Die 6.000 sind eine **Beobachtung** vom 2026-09-10 im Kit-Repo: Aufrufe bis 9.722 Zeichen gingen durch, ab 10.154 wies der Befehls-Parser sie ab — auch ein `cat >>`, nicht nur der Board-Aufruf.
+2. **Der Zielpfad steht woertlich im Befehl, nie als Variable.** Ein Variablen-Redirect wird unbeaufsichtigt als „path is runtime-determined" abgewiesen.
+3. **Nur die Shell, kein Dateischreib-Werkzeug.** Unbeaufsichtigt sind Schreibzugriffe ausserhalb des Projektverzeichnisses damit abgewiesen, innerhalb von `.claude/` zustimmungspflichtig.
+4. **Kein Pipe, keine Gruppierung um den Board-Aufruf.**
+
+Eine Datei im Repo machte den Working Tree unsauber, und darauf stoppt der Runner hart. Wer knapp schreibt, merkt von der Grenze nichts; wer gruendlich prueft, verloere sonst alles. **Benannte Ausnahme: `issue report --text` und `--part`.** Den Abschlussbericht einer Umsetzung traegt `issue report <id> --text '<bericht>'` als Argument in einfachen Anfuehrungszeichen — ohne Zwischendatei, ohne Heredoc, ohne Pipe; ein `'` im Bericht wird als `'\''` geschrieben. Ueber 6.000 Zeichen geht er in nummerierten Stuecken (`issue report <id> --part <n> --text '…'`, jedes ein eigener Werkzeugaufruf), der abschliessende Aufruf `issue report <id>` ohne `--text` setzt sie zusammen. Grund: Der Ablageort ausserhalb des Projektverzeichnisses war im gemessenen Lauf genau die Stelle, an der ein Bericht scheiterte und doppelt hinausging. Fuer `issue create`, `update` und `comment` gilt die Regel oben unveraendert.
+
+---
+
+## Issue-Format (Vier Abschnitte)
+
+```markdown
+## Kontext
+Warum wird diese Aufgabe gemacht?
+
+## Aufgabe
+Was konkret ist zu tun?
+
+## Akzeptanzkriterium
+Wie wird verifiziert, dass die Aufgabe erledigt ist?
+Portabilitaets-Konvention: Wenn eine Datei als eigenstaendig portabel gedacht ist (Installer, kopierbares Script), muss hier stehen: "lauffaehig ohne weiteren Repo-Kontext".
+
+## Abhaengigkeiten
+Keine. (oder: Issue #N muss vorher fertig sein)
+```
+
+Abhaengigkeits-Konvention: exakt "Keine." oder explizite Referenzen der Form `Issue #N`. Freitext zusaetzlich erlaubt, aber die `#N`-Referenz ist Pflicht, wenn ein anderes Issue gemeint ist — der Runner (`kit/night.mjs`) wertet nur `#N`-Referenzen aus. Fremde Repos als `owner/repo#N` referenzieren (zaehlt nicht als lokales Issue). Jede lokale `#N` im Abschnitt zaehlt als Abhaengigkeit, auch in Erlaeuterungen: „Nicht #N: …" haelt das Paket genauso fest wie `Issue #N`. Nur Verweise der Form `owner/repo#N` zaehlen nicht. Eine Verweiszeile beginnt nach optionalem Leerraum und optionalem Listenzeichen (`-`, `*`, `+`, `1.`) mit `Issue #N` und traegt keine weitere lokale Nummer; der Zusatz `(wartet auf Push)` dahinter sagt, dass das Paket das geaenderte Werkzeug, den Skill oder den Regeltext des anderen Pakets als Werkzeug braucht und erst nach dessen Push laufen kann — baut es nur auf dessen Code auf, entfaellt der Zusatz; jede andere Nummer stammt aus erlaeuterndem Text, auch eine im Codeblock des Abschnitts. Beim Schreiben melden `issue check-form`, `issue create` und `issue update` unter `hinweise` je Nummer aus Text einen Eintrag `schreibweise` und je Verweis auf ein Dokument (`[Plan]`, `[Requirement]`, `[Idea]`) einen Eintrag `dokument`, auch aus einer Verweiszeile, und je Nummer, die das Board nicht kennt, einen Eintrag `unbekannt` — ohne `ok` oder den Exit-Code zu beruehren. Unerfuellt ist eine Abhaengigkeit, solange ihre Karte in Backlog, Ready oder In progress liegt, und ein Arbeitspaket (ohne Praefix oder `[Task]`) in In review, solange kein Commit (`git log --all`) seinen Betreff auf `(Issue #N)` enden laesst — der Befund nennt dann „In review ohne Commit"; jede andere Lage — `[Human]`-Karte oder Dokument in In review, Done, archiviert, nicht auf dem Board — gilt als erfuellt, auch eine vertippte Nummer. Antwortet das Board nicht, bleibt das Paket liegen. Der Dokument-Hinweis sagt: Das Dokument ist kein Arbeitspaket und wird nicht durch Umsetzung erledigt, ein Plandokument nie, eine fachliche Anforderung oder Idee erst, wenn ihre Pakete fertig sind; der Runner wertet den Verweis trotzdem als Abhaengigkeit. Probelauf (`night.mjs --dry-run`) und Rueckstell-Kommentar nennen je Abhaengigkeit, erfuellt oder unerfuellt, ihre Herkunft (Verweiszeile oder erlaeuternder Text) mit der Textstelle. Halten sich Pakete gegenseitig fest, direkt oder ueber eine Kette, steht der Kreis-Befund als eigene Zeile `Kreis: #A -> #B -> #A`; ein Paket, das nicht selbst im Kreis steht, sondern ueber seine unerfuellten Abhaengigkeiten daran haengt, bekommt den Zusatz „dieses Paket wartet auf einen Kreis".
+
+Herkunfts-Konvention: `issue create --derived-from <nummer>` traegt die Kartennummer des naechsten Vorfahren zusaetzlich als Feld ans Board — `/requirement` und `/task` nur auf eine Idee als Eingang, sonst nie (Wurzel bzw. kein Vorfahr), `/techplan` auf das fachliche Issue oder auf die Idee, `/issues` auf das Plandokument. War eine Idee der Eingang, ist sie der Vorfahr; auf sie zeigt nur das Feld, keine Body-Zeile. Die Body-Zeilen `Plan:` und `Fachliche Quelle:` bleiben daneben stehen: Ein Projektwechsel loescht das Feld, der Text ueberlebt ihn. Nur beim Anlegen wirksam, Nachtragen gibt es nicht.
+
+### Vier Titel-Praefixe, vier Sonderfaelle
+
+Ein Issue ohne Praefix ist ein Arbeitspaket im Vier-Abschnitt-Format oben. Vier Praefixe kennzeichnen Karten, die **keine Session umsetzt**; implement-Skills und Runner stellen sie mechanisch kommentiert ins Backlog zurueck, ohne eine Session zu starten. Die ersten drei sind Dokumente und gehen nie nach Ready; `[Human]` ist ein Arbeitspaket, das nur ein Mensch erledigen kann. **Das Kit schreibt englisch, erkennt beide.** Neue Karten tragen nur die englischen Praefixe, und das Kit setzt nur englische Labels, auch in einem deutschen Projekt; `issue create --art requirement|plan|idea|human|task` setzt das englische Praefix. Karten mit den frueheren deutschen Namen arbeiten weiter: Das Kit erkennt sie beim Lesen mit, behandelt sie gleich, auch bei den Freigaberechten, und raeumt ein deutsches Label ab, wo es das englische abraeumen wuerde. `[Plan]`, `[Task]`, `kit:night`, `kit:nightrun` und `planreview:1|2` heissen in beiden Sprachen gleich. Die vollstaendige Namenstabelle steht im Abschnitt „Labels und Titel-Präfixe“ der Kit-Dokumentation, mit den frueheren Namen.
+
+| Praefix | Was es ist | Weg nach vorn |
+|---------|-----------|---------------|
+| `[Requirement]` | fachliche Anforderung aus `/requirement`, Story-Format | mit dem PO groomen, dann `/techplan #N` |
+| `[Plan]` | Plandokument aus `/techplan`, verbindliches Plan-Format | `/issues #N` zerlegt es in Arbeitspakete |
+| `[Idea]` | rohe Idee, noch kein Dokument | `/triage #N` — direkt: Abwaegung noetig `/requirement #N`, sonst `/task #N` |
+| `[Human]` | Arbeitspaket, dessen Aufgabe ausserhalb des Repositories liegt | der Mensch handelt und zieht die Karte selbst weiter |
+
+**Plandokumente** (`[Plan]`) halten den freigegebenen Stand fest, statt ihn umzusetzen. Ein Plan beschreibt einen Weg, er ist keine Aufgabe: Er wird **nie implementiert**, geht **nie nach Ready** und wird zuerst mit `/issues #N` in Arbeitspakete zerlegt. Sein Format ist verbindlich — genau diese sechs Ueberschriften in dieser Reihenfolge:
+
+```markdown
+## Ziel
+## Betroffene Bereiche
+## Architektonische Entscheidungen
+## Geplante Änderungen
+## Offene Fragen
+## Verifizierung
+```
+
+**Done setzt der Mensch** — auch hier. Nach **In review** zieht das Kit Plandokument und fachliche Anforderung, sobald der Plan durch ist: mindestens eines seiner Arbeitspakete liegt feststellbar in In review oder Done, keines in Backlog, Ready oder In progress. Die fachliche Anforderung zieht es erst, wenn jeder ihrer nicht als ueberholt vermerkten Plaene durch ist. Was schon in In review oder Done liegt, bleibt dort. Das gilt gleich, welcher Weg das letzte Paket gebaut hat — Kette, Umsetzungslauf oder interaktive Sitzung. In review heisst fuer Ursprungsdokumente ausschliesslich: alles gebaut, Review dran.
+
+**Ideen** (`[Idea]`) sind eine rohe Anforderung, kein implementierbares Issue. Ihr Regelweg ist `/triage #N`: Der Skill spricht die Idee mit dem Menschen durch, schlaegt eine Bahn mit Begruendung vor, und der Mensch waehlt einen von vier Ausgaengen — `1` setzt die Kleinigkeit sofort um und schliesst die Idee mit Verweis auf den Commit, `2, fachlich` fuehrt per `/requirement #N` in eine fachliche Anforderung, `2, technisch` per `/techplan #N` direkt in einen technischen Plan, `3` per `/task #N` in genau ein Arbeitspaket. Wer schon weiss, was die Idee will, ruft zwei dieser Wege ohne `/triage` auf: Verlangt die Idee eine Abwaegung, ist `/requirement #N` der Weg und macht aus ihr eine fachliche Anforderung; ist nichts abzuwaegen oder hat der Mensch bereits entschieden, wird sie per `/task #N` genau ein Arbeitspaket. Den Weg waehlt der Mensch, in `/triage` oder mit dem Aufruf — ein Skill, der ihn sich selbst beantwortet, traefe die Entscheidung, die er abgeben soll. Direkt zum technischen Plan geht eine Idee nur nach `/triage` mit der gewaehlten Bahn `2, technisch`: Dort wird ueber das Ziel entschieden, und der Mensch waehlt die Bahn; ohne diese Stelle uebersprange der Weg sie. Ein solcher Plan hat keine fachliche Quelle und ist darum kein Eingang fuer die Kette — er laeuft interaktiv ueber `/issues #N` mit der Nummer des Plans. Ohne das Gate wuerde eine Session eine Idee in Ready zwar korrekt ablehnen, aber der Runner kann diese Ablehnung nicht von einem Fehlschlag unterscheiden — die Session ist verbrannt und der Kommentar am Board irrefuehrend.
+
+**Menschenschritte** (`[Human]`) sind Arbeitspakete im Vier-Abschnitt-Format, aber ihre Aufgabe liegt ausserhalb des Repositories: eine Einstellung in einer Weboberflaeche, ein Konto, ein Zugang, eine Freigabe. Kein Zug einer Sitzung erledigt sie, deshalb startet keine. Bei der Formpruefung fallen sie in die Stufe `issue` wie jedes andere Paket. Der Rueckgabe-Kommentar sagt ausdruecklich, dass die Karte **wartet** und nicht gescheitert ist — im Backlog sieht sie sonst aus wie ein gescheitertes Paket, und wer beim naechsten Blick aufs Board die Spalten liest, findet sie nicht mehr da, wo er sie hingelegt hat. Ohne das Gate startete der Runner eine Session, die den Fall richtig erkennt und nichts tut; er kann diese richtige Untaetigkeit nicht von einem Fehlschlag unterscheiden.
+
+**`[Task]` ist das einzige Praefix, das ein implementierbares Arbeitspaket kennzeichnet**; es wird implementiert und nach Ready gezogen wie ein Paket ohne Praefix. Die vier Praefixe der Tabelle oben bezeichnen Karten, die keine Session umsetzt — `[Task]` gehoert ausdruecklich nicht dazu, und es in dieselbe Liste aufzunehmen kehrte seinen Zweck um. Auch `[Human]` ist ein Arbeitspaket, aber eines, das seine Aufgabe nicht im Repository hat; `[Task]` bleibt das einzige Praefix, dessen Paket eine Sitzung baut.
+
+---
+
+## Abschlussbericht-Format
+
+```
+### Aenderungen
+- `Datei` — kurze Beschreibung der Wirkung
+
+### Tests und Checks
+- <Zeilen aus dem Block `Fuer den Abschlussbericht:` von `checks.mjs run`, wortgetreu: zuerst `Wartezeit: <s> s, zusammen <s> s in <n> Laeufen fuer Karte #<n>` (ohne Kartennummer `Wartezeit: <s> s`), nach einem roten Teillauf `Teillauf: nur die zuletzt roten Pruefungen`, dann `gelaufen: <Kommando> → <Ergebnis>, <Dauer> — <Grund>`, nach einer gewackelten Pruefung direkt darunter `Gewackelt: <Kommando> → erst rot, dann gruen`, bzw. `ausgelassen: <Kommando> → <Grund>`, darunter `ausgelassen: <Kommando> → wartet auf den Integrationslauf` und `ausgelassen: <Kommando> → keine Datei des Pakets`, nach einem Testkommando, das beim Abschluss nur die Tests des Pakets gefahren hat, `teilweise: <Kommando> → <n> von <m> Tests`; danach je Szenario, das das Paket aus dem Fachplan uebernommen hat, `- Szenario „<Titel>“ → Test <Testname>`>
+
+### Hinweise
+- <Restrisiken, offene Punkte, manuelle Folgeschritte>
+
+### Entscheidungen
+- E1: <Frage>. Gewählt: … Verworfen: … Grund: … Rückbau: …
+```
+
+`### Entscheidungen` entfaellt, wenn es nichts zu entscheiden gab; sonst traegt der Block die Eintraege im Format aus „Entscheiden statt fragen". Die letzte Zeile `Bericht-Lauf: <stempel>` setzt das Kit (`issue report`), nicht die Session: Sie kennzeichnet den Bericht eines Laufs, damit eine Wiederholung ihn ersetzt statt einen zweiten anzulegen. `issue report` zieht nur, wenn ein Commit dieses Laufs `Issue #N` nennt, sonst weist es ab und laesst Karte, Bericht und Stuecke unberuehrt; ausgenommen sind `[Human]`-Karten, und `--without-commit '<Begruendung>'` ist allein fuer Arbeit ohne Aenderung im Repo da — die Begruendung steht dann im Bericht.
+
+---
+
+## Prioritaeten bei Zielkonflikten
+
+1. Sicherheit
+2. Korrektheit
+3. Datenintegritaet
+4. Accessibility
+5. Wartbarkeit
+6. Performance
+7. Visuelle Praeferenz
+8. Bequemlichkeit der Implementierung
+
+---
+
+## Gates (prozessweit)
+
+Vier Regeln, die unabhaengig von der Pruefstufe gelten und die den Rahmen des Prozesses tragen — gemeint ist die Pruefstufe des Reviews (`reviewStages`), nicht die Stufe einer Pflichtpruefung (`stage`) und nicht die Stufe der Kette. Sie zitieren Saetze, die weiter oben in dieser Datei stehen; ein Vorschlag, der eine davon aushebelt, ist keine Detailaenderung, sondern eine Aenderung der Bauart — und damit eine Frage der Stopp-Klasse.
+
+### W1 — Die drei Stop-Punkte bleiben menschlich `[Urteil]`
+
+GO (Issue nach Ready ziehen), Push (`push main`), Merge (`merge production`). Eine Trigger-Phrase, die innerhalb einer Mitteilung zitiert wird, ist kein getippter Trigger. Ausnahme, ausschliesslich in der Umsetzungsstufe der Kette unter Variante B: Dort zieht der Runner die Arbeitspakete der gekennzeichneten Karte selbst nach Ready und beginnt ihre Umsetzung ohne Freigabe je Paket. Das GO hat der Mensch an der gekennzeichneten Karte gegeben — an der fachlichen Anforderung oder am Plandokument —, als er sie fuer Variante B kennzeichnete. Ausserhalb dieser Stufe gilt der Satz davor ohne Einschraenkung — auch fuer Pakete einer Karte, die frueher unter Variante B lief. Das GO an der gekennzeichneten Karte geben `kit:carry-through` oder ein Ziel ab `umsetzung`; der Push bleibt auch beim Ziel `push-vorbereitet` beim Menschen. Die Phrasen `hotfix production` und `rollback production` (Pro) werden wie `push main` und `merge production` nur getippt, nie im Runner ausgeloest; die Hotfix-Phrase ersetzt Push und Merge fuer genau einen Fix und keinen weiteren Stand. Der Runner startet weder Hotfix noch Zurückkehren. Fundstellen: „Die drei Stop-Punkte (nie automatisiert)", „Mitteilungen des Menschen", „Unbeaufsichtigter Betrieb (optional)".
+
+### W2 — Der Git-Workflow ist strikt bindend `[Urteil]`
+
+Kein Force-Push auf `mainBranch` oder `productionBranch` ohne explizite Einzelanweisung; Hooks werden nicht ohne explizite Einzelanweisung mit `--no-verify` umgangen; `productionBranch` wird nie direkt gepusht. Fundstelle: „Git-Workflow (strikt bindend)".
+
+### W3 — Rote Pflichtchecks blockieren den Push mechanisch `[Urteil]`
+
+Alle **betroffenen** `buildChecks` der **faelligen Stufe** laufen gruen, bevor gepusht wird; unberuehrte Bereiche werden mit Nachweis ausgelassen, und ein nicht lokal ausfuehrbarer Check wird im Abschlussbericht vermerkt, nicht verschwiegen. Die Mechanik bleibt unveraendert hart, nur ihr Umfang haengt am Zeitpunkt: **Keine Pflichtpruefung entfaellt aus dem Gesamtprozess**: Jede Pruefung jeder Stufe laeuft **einmal** vor der Freigabe — Paket- und Push-Stufe beim `push main` oder in der Vorbereitung der Kette für genau den Commit, den `push main` unverändert übernimmt; in Pro mit Build-Dienst läuft sie in der Prüfung je Karte, deren grün geprüften Commit `push main` unverändert veröffentlicht, sonst im Build-Dienst beim `push main` auf dem Prüfzweig; die Merge-Stufe laeuft beim `merge production`. Kein Commit ohne gruenen Nachweis, keine Uebernahme eines roten oder geaenderten Stands. Eine Pruefung, die bei der einmaligen Wiederholung erst rot und dann gruen war, ist bestanden; Rot und Rot blockiert. Ein Vorschlag, der einen Check zur Empfehlung macht oder eine Schwelle senkt, hebt die Mechanik auf. **Eine Guetemessung unter ihrer Marke ist ein Fall genau dieser Mechanik**: ein roter Pflichtcheck, der wie jeder andere blockiert — **kein vierter Stop-Punkt**, keine eigene Entscheidungsstelle, und die Marke zu senken ist die Schwellensenkung aus dem Satz davor. **Die einzige Ausnahme vom Zeitpunkt ist der Hotfix** (`hotfix production`, Pro): Die Pruefungen mit `deferOnHotfix`, die statische Analyse und das Review laufen erst nach der Auslieferung, und der nächste `push main` holt sie nach; alle uebrigen laufen vorher, und ein roter Lauf blockiert auch dort. Fundstelle: „Pflichtchecks vor Push".
+
+### W4 — Die Prioritaetenordnung bei Zielkonflikten `[Urteil]`
+
+Sicherheit, Korrektheit, Datenintegritaet, Accessibility, Wartbarkeit, Performance, visuelle Praeferenz, Bequemlichkeit — in dieser Reihenfolge; sie ist der Schiedsspruch fuer jeden Konflikt, den ein Dokument nicht selbst entscheidet. Fundstelle: „Prioritaeten bei Zielkonflikten".
+
+---
+
+## KI-Retro (alle 1-2 Wochen)
+
+`/retro` startet die KI-Retrospektive. Vier Fragen:
+- Wo hat die Mensch-KI-Zusammenarbeit gehakt?
+- Welche Memory-Eintraege sind veraltet?
+- Welche Workflow-Regel braucht eine Schaerfung?
+- Was sagen die Zahlen? (gekippte Entscheidungen unbeaufsichtigter Laeufe, Stopp-Fragen, Anforderung bis GO, GO bis Push)
+
+Output: konkrete Aenderungen an Memory-Dateien und CLAUDE*.md-Dateien, dazu die Kennzahlen als Tabelle.

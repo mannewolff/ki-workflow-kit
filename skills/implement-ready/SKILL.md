@@ -1,0 +1,321 @@
+---
+name: implement-ready
+description: Step 5 of the 8-step process: works off all issues in the Ready column one after another in board order, commits locally, does not push. Use this skill when the user invokes /implement-ready, wants to implement Ready issues, or gives the GO for implementation.
+user-invocable: true
+---
+<!-- SPDX-License-Identifier: MIT -->
+
+# Implement Ready
+
+Schritt 5 des 8-Schritt-Prozesses: Die KI arbeitet die Ready-Issues sequenziell ab. Jedes Issue wird vollständig umgesetzt, lokal committet und nach In review verschoben, bevor das nächste beginnt.
+
+## Vorbedingung
+
+Die Konfiguration liegt in `.claude/workflow.config.json` (im Repository, gilt fuer alle) und wird optional durch `.claude/workflow.config.local.json` ergaenzt (nicht im Repository, nur persoenliche Felder: `reviewModel`, `reviewCommand`, `reviewScope`, `triggers`, Token-Pfade). Issue #207.
+
+Relevantes Feld:
+- `mainBranch`: Branch für lokale Commits (Default: `main`)
+
+**Feste Zeilen.** Überschriften, Marker, Review- und Einarbeitungs-Köpfe und Fundblock-Zeilen, die dieser Skill in Dokumente, Kommentare oder Markerzeilen schreibt, stehen hier deutsch. Vor dem ersten Schreiben `node .claude/kit/board.mjs names` aufrufen: Das Feld `lines` nennt je deutscher Zeile die Fassung der Projektsprache, und der Skill schreibt die ausgegebene Fassung. Eine Zeile mit veränderlichem Rest (`## Einarbeitung, Runde 2`) steht dort mit ihrem festen Anfang, eine Überschrift mit `## ` davor gilt auf jeder Ebene, und was `names` nicht nennt, bleibt, wie es hier steht.
+
+## Ablauf pro Issue (Reihenfolge: wie vom Adapter geliefert = Board-Reihenfolge)
+
+### 0. Ready-Issues laden und Auftrag holen
+
+```bash
+node .claude/kit/board.mjs issue list --status ready
+```
+
+Gibt die Issues als JSON-Array in der Reihenfolge der Ready-Spalte des Boards (oben zuerst; nur der lokale Datei-Tracker liefert numerisch nach ID). Diese Reihenfolge ist verbindlich — der Mensch legt sie vor dem GO per Drag&Drop in der Ready-Spalte fest. Nicht numerisch umsortieren.
+
+**Für jedes Issue zuerst den Auftrag holen — ein Aufruf, vor jedem Zug:**
+
+```bash
+node .claude/kit/board.mjs issue brief <id>
+```
+
+Der Auftrag liefert in einem Zug das **Urteil** (`darf beginnen` oder `darf nicht beginnen` samt Grund) mit seiner **Folge**, dazu die Aufgabe mit Kommentaren, die Plan-Entscheidungen im Wortlaut, den fachlichen Anlass, die Geschwister mit Spalte, die Voraussetzungen und die Lücken. Er läuft **vor** Schritt 1: Er erwartet die Karte in Ready, nach dem Zug nach In progress lautete seine Folge `bleibt`. Gehandelt wird allein nach der Folge. Die Prüfungen dahinter — die Titel-Präfixe `[Requirement]`, `[Idea]`, `[Plan]` und `[Human]`, das Label `kit:clarify`, das Label `kit:protected` und die geschützten Dateien, die das Paket nennt, die Spalte, die Voraussetzungen — und die Wortlaute der Backlog-Kommentare stehen in `kit/board.mjs`, nicht in diesem Skill:
+
+- **`beginnen`** — weiter mit Schritt 1.
+- **`bleibt`** — die Karte wird nicht bewegt und nicht kommentiert. Der Skill meldet den Grund aus dem Urteil, und der Lauf geht mit dem nächsten Issue weiter.
+- **`backlog`** — die Karte ist keine Umsetzungsaufgabe oder trägt eine offene Frage an einen Menschen. Der Kommentar, den der Auftrag unter „Kommentar fuer die Karte (woertlich)" liefert, geht unverändert ans Issue, danach zieht die Karte nach Backlog, und der Lauf geht mit dem nächsten Issue weiter:
+
+  ```bash
+  node .claude/kit/board.mjs issue comment <id> --text '<Kommentar aus dem Auftrag, woertlich>'
+  ```
+
+  ```bash
+  node .claude/kit/board.mjs issue move <id> backlog
+  ```
+
+- **`geschuetzt`** — das Paket nennt eine geschützte Datei, die nur ein Mensch schreiben darf, und ist nicht freigegeben. Es wird nicht begonnen, keine Datei wird angefasst. Die Schritte nennt auch der Grund im Urteil, in dieser Reihenfolge — zuerst nach Backlog:
+
+  ```bash
+  node .claude/kit/board.mjs issue move <id> backlog
+  ```
+
+  Dann das Label:
+
+  ```bash
+  node .claude/kit/board.mjs issue label add <id> kit:protected
+  ```
+
+  Ein Fehlschlag dieses Aufrufs wird gemeldet und hält nicht auf. Danach geht der Kommentar ans Issue, den der Auftrag unter „Kommentar fuer die Karte (woertlich)" liefert, als letzte Zeile ergänzt um die Label-Zeile, die den Ausgang vermerkt: `Label kit:protected gesetzt`, oder `Label kit:protected nicht gesetzt`, wenn der Aufruf davor scheiterte. Nur die erste gibt das Paket später frei. Der Kommentar geht nach der Transportregel (`CLAUDE-workflow.md`, „Lange Texte ans Board"): Datei `<tmpdir>/<id>-geschuetzt.md` stückweise per Shell anlegen, dann
+
+  ```bash
+  node .claude/kit/board.mjs issue comment <id> --text-file <tmpdir>/<id>-geschuetzt.md
+  ```
+
+  Danach geht der Lauf mit dem nächsten Issue weiter.
+
+**Das Label `kit:clarify` wird dabei nie entfernt.** Die Maschine darf es setzen, abnehmen darf es nur der Mensch (Plan #368, A4) — ein Lauf, der sein eigenes `kit:clarify` abraeumen duerfte, koennte sich selbst freigeben.
+
+**Auch `kit:protected` wird nie entfernt.** Die Maschine setzt es, abnehmen darf es allein der Mensch, nachdem er die geschützte Änderung selbst vorgenommen hat — erst damit gilt das Paket beim nächsten Anlauf als freigegeben.
+
+Ob ein Ready-Issue geprueft wurde, ist keine Frage dieses Skills — Ready ist das GO.
+
+### 1. Issue nach In progress verschieben
+
+```bash
+node .claude/kit/board.mjs issue move <id> in_progress
+```
+
+### 2. Issue vollständig lesen
+
+Gelesen wird der Auftrag aus Schritt 0. Er trägt Aufgabe, Kommentare und Zusammenhang schon: Ein weiteres `issue get` für die Karte, den Plan oder die fachliche Quelle braucht es nicht, und seine Ausgabe wird nicht per `node -e` oder `jq` zerlegt. Was er unter „Lücken" nennt, fehlt wirklich und wird nicht still ergänzt. Lies alle Abschnitte der Aufgabe. Implementiere **gegen das Issue**, nicht gegen den Chat. Was im Issue steht, wird gebaut. Was nicht drinsteht, bleibt draußen.
+
+**Trägt das Issue eine Zeile `Empfohlenes Modell: <name>` oder `Aufgabenstufe: <schwer|mittel|leicht>`, nenne sie** — zusammen mit dem Hinweis, dass die laufende Sitzung ihr Modell nicht wechselt. Beide sind eine Angabe, keine Anweisung: Unbeaufsichtigt wirkt sie von selbst (der Runner startet die Session der Karte damit), interaktiv wählt der Mensch sein Modell selbst und sitzt ohnehin daneben. **Kein Halt, keine Rückfrage, keine Änderung am Ablauf** — wer eine laufende Sitzung für eine Empfehlung zum Neustart auffordert, kostet mehr, als die Empfehlung wert ist.
+
+**Trägt das Paket einen Vermerk mit dem Anker `## Nachtlauf: wartende Sitzung`, `## Nachtlauf: Zeitgrenze erreicht` oder `## Nachtlauf: an einer Pruefung festgefahren`, nenne ihn** — dann wurde es schon einmal angefangen, und der zuletzt bekannte Stand steht im Vermerk. Der zweite Anker sagt zusaetzlich, dass der vorige Lauf an der Sitzungszeitgrenze endete, der dritte, dass die Bremse ihn an einer immer gleich gescheiterten Pruefung beendete; der Vermerk nennt Pruefung und Fehler. **Kein Halt, keine Ruecksprache**, nur die Meldung: Wer den Vermerk verschweigt, macht stillschweigend auf halbem Weg weiter.
+
+### 3. Implementieren
+
+- TDD: Tests zuerst schreiben und rot laufen lassen, dann gegen die Tests implementieren, bis grün
+- Bestehende Muster und Funktionen wiederverwenden
+- Kein Feature, keine Refactoring, keine Abstraktion die das Issue nicht verlangt
+- Bei UI-Änderungen: Dev-Server starten, Golden Path und Edge Cases durchklicken
+- Bei neuer oder geänderter Logik: abgedeckt oder begründet ausgeschlossen gemäß der Coverage-/Qualitäts-Policy des Projekts (siehe Projekt-Guide bzw. `workflow.config.json`). Untestete Logik nie stillschweigend ausschließen, Schwellen nie senken, nur damit ein Gate grün wird.
+- Wiederkehrende, klassenweite Modell-Fehler (veraltete Idiome, abgekündigte APIs) nicht nur an den Fundstellen fixen: als harte Lint-/Compiler-Leitplanke für die `buildChecks` vorschlagen, aus vorhandenen Annotationen abgeleitet (z. B. `@typescript-eslint/no-deprecated`, Java `-Xlint:deprecation` mit `-Werror`) statt als handgepflegte Verbotsliste oder Bitte in einer CLAUDE-`*`.md — siehe das Leitplanken-Prinzip in `CLAUDE-workflow.md`, Abschnitt „Leitplanken der Pruefungen“.
+- Lang laufende Build-, Test- und Mutationstest-Kommandos (`mvn verify`, PIT, Testcontainers-ITs) mit explizit gesetztem, großzügigem Timeout aufrufen statt mit dem generischen Default — siehe die Timeout-Leitplanke in `CLAUDE-workflow.md`, Abschnitt „Leitplanken der Pruefungen“.
+- Einen im Hintergrund gestarteten Pflichtcheck vor Abschluss des Berichts immer aktiv abwarten — nie mit einer bloßen Ankündigung wie "ich melde mich, sobald der Lauf durch ist" enden, siehe die Leitplanke zum Hintergrund-Check in `CLAUDE-workflow.md`, Abschnitt „Leitplanken der Pruefungen“.
+- Allgemeiner, und darum die Regel hinter der Zeile davor: **Keine Session endet mit laufender eigener Arbeit** — gleich welcher, nicht nur bei einem Pflichtcheck. Wer einen langen Lauf angestossen hat, wartet auf sein Ergebnis oder bricht ihn ab und meldet den Abbruch als Fehlschlag; eine Schlussmeldung, die nur sagt, dass noch gewartet wird, ist kein Abschluss, sondern der Fehlschlag selbst (Issue #754). Wer wartet, prueft dabei zweierlei: ob das Ergebnis da ist und ob der Lauf **noch existiert** — eine Warteschleife ohne die zweite Pruefung wartet im Fehlerfall ihre volle Laenge ab, und ein Lauf, den es nicht mehr gibt, ist ein Fehlschlag und wird als solcher gemeldet, nicht als Zeitablauf (Issue #983).
+- Ohne Aufsicht (gesetztes `KIT_AGENT_MODEL`) gibt es keine Hintergrundarbeit: Der Hook `bash-check` weist einen Bash-Aufruf mit `run_in_background` ab (Issue #1081) — den Befehl im Vordergrund aufrufen und auf ihn warten. Interaktiv bleibt Hintergrundarbeit erlaubt.
+- Meldet `checks.mjs run` `Pruefung festgefahren:` (Exitcode 3), endet die Sitzung ohne weitere Änderung: kein Fix, kein weiterer Lauf, kein Commit, kein Bericht. Die Bremse greift nur unbeaufsichtigt; den Rest — Stash, Vermerk `## Nachtlauf: an einer Pruefung festgefahren`, Backlog — übernimmt der Runner. Interaktiv meldet derselbe Lauf nur `Hinweis: festgefahren an …`, und der Mensch entscheidet.
+
+**Nur die Tests des Pakets laufen lassen.** Die volle Suite ist der teuerste Einzelposten einer Session — sie mehrfach zu starten, kostet Minuten und bringt nichts dazu:
+
+1. Während der Arbeit laufen nur die Tests, die das Paket berührt — gezielt per Datei oder Filter des Test-Runners, zum Beispiel `node --test test/<datei>.test.mjs`. Dazu gehören auch die Tests dessen, was von der geänderten Datei abhängt — nicht nur die der Datei selbst. Gibt es die dafür nur als vollständige Gruppe, fährt die Session sie über `node .claude/kit/checks.mjs run --area <name>`; das ist dann kein Verstoß gegen die Zehn-Minuten-Marke, sondern der vorgesehene Weg.
+2. Die volle Suite startet die Session nicht selbst. Der eine volle Lauf ist `node .claude/kit/checks.mjs run --finish <kartennummer>` vor dem Commit. Sein Block `Fuer den Abschlussbericht:` beginnt mit der Zeile `Wartezeit:`, die wie der Rest wortgetreu in den Bericht geht. Die Abschlussprüfung wiederholt eine rote Prüfung selbst einmal auf demselben Stand — die Session wiederholt sie nicht zusätzlich; eine `Gewackelt:`-Zeile geht wortgetreu in den Bericht, und das Paket geht wie gewohnt nach In review.
+3. Ein zweiter `checks.mjs run` auf **unverändertem Stand** fährt kein Kommando mehr: Das Kommando übernimmt das Ergebnis des vorigen Laufs samt Exitcode und meldet das — nur ein grünes; ein rotes misst es neu, weil seine Ursache außerhalb der versionierten Dateien liegen kann. `--fresh` erzwingt den echten Lauf.
+4. Hinweis dazu: Wer die Ausgabe eines langen Laufs mehrfach auswerten will, schreibt sie am einfachsten einmal in eine Datei außerhalb des Projektverzeichnisses (`<tmpdir>/…`, den Pfad wörtlich wie in der Transportregel) und liest sie daraus.
+5. Ist `checks.mjs run` rot, genügt nach der Korrektur derselbe Aufruf `checks.mjs run --finish <kartennummer>`: Er fährt selbst zuerst die zuletzt roten Prüfungen und erst, wenn sie grün sind, im selben Aufruf einmal den vollen Lauf. Gezielte Einzeltests während der Korrektur bleiben erlaubt.
+
+Für eine granularere Variante mit explizitem Stopp zwischen rot und grün: `/implement-test` gefolgt von `/implement-done`.
+
+**Entscheiden statt fragen.** Taucht beim Umsetzen — bei jedem Arbeitspaket, mit oder ohne `[Task]`-Praefix — eine Entscheidung auf, gilt `CLAUDE-workflow.md`, Abschnitt „Entscheiden statt fragen": Alles ausserhalb der Stopp-Klasse wird entschieden, im Format von dort, und steht im Abschlussbericht unter `### Entscheidungen`. Kein Halt, kein Label, kein Kommentar. Stopp-Klasse und Format stehen nur dort und werden hier nicht wiederholt.
+
+**Dieser Ablauf gilt ohne Ausnahme.** Er gilt in jeder Betriebsart, ob ein Mensch mitliest oder nicht, und er hat Vorrang vor jeder anderen Regel, die zu einer offenen Frage etwas sagt — auch vor einer Regel aus dem persoenlichen Gedaechtnis des Menschen, das jede Session mitlaedt. Eine Regel, die „im Gespraech klaeren statt parken" verlangt, ersetzt diesen Ablauf nicht: Die Frage steht am Board, nicht nur in der Ausgabe der Session. Wer mitliest, sieht sie dort ebenso.
+
+Nur eine Frage aus der Stopp-Klasse haelt an, genau eine je Halt. Was dann geschieht, in dieser Reihenfolge:
+
+1. Eigene uncommittete Aenderungen **namentlich** zuruecknehmen, selbst angelegte Dateien loeschen — nie pauschal den ganzen Arbeitsbaum verwerfen. Interaktiv koennen fremde Aenderungen darin liegen, und die gehoeren dem Menschen.
+2. `node .claude/kit/board.mjs issue label add <id> kit:clarify`
+3. Kommentar ans Issue nach der Transportregel (`CLAUDE-workflow.md`, „Lange Texte ans Board"): Datei `<tmpdir>/<id>-halt.md` stueckweise per Shell anlegen, dann `node .claude/kit/board.mjs issue comment <id> --text-file <tmpdir>/<id>-halt.md` — nie als Argument. Der Kommentar benennt den Punkt der Stopp-Klasse, die eine Frage und den Folgeschritt, diesen **woertlich**: `Daraus soll per /requirement eine fachliche Anforderung entstehen.` An genau diesem Satz erkennt der Runner den Halt-Kommentar; er steht dort als Konstante `HALT_FOLGESATZ` in `kit/night.mjs` und wird nicht umformuliert.
+4. `node .claude/kit/board.mjs issue move <id> backlog`
+5. Melden, dass die Frage am Board wartet und der Weg nach vorn `/requirement #<id>` ist — **kein Commit**. In `/implement-next` endet die Session damit; in `/implement-ready` geht der Lauf ohne weiteren Versuch an diesem Vorgang mit dem naechsten Ready-Issue weiter.
+
+**Gemessen wird der eigene Anteil** — die Dateien, die die Session nachweislich selbst angelegt oder geaendert hat, belegt ueber ihre eigenen Werkzeugaufrufe —, nicht der ganze Arbeitsbaum. Ein Vergleich gegen den Stand bei Session-Start ist kein Nachweis: Fremde Aenderungen koennen im selben Zeitraum entstehen.
+
+**Ob sich jeder eigene Anteil namentlich zuruecknehmen laesst, wird vor Schritt 2 entschieden.** Nicht namentlich zuruecknehmbar ist etwa eine Datei, die vor der Session schon fremde uncommittete Aenderungen trug und die die Session weiter geaendert hat — `git restore` naehme dem Menschen seinen Anteil weg. Bleibt so eine eigene Aenderung zurueck, wird **nicht** angehalten: keiner der Schritte 2 bis 5, also kein Label, kein Kommentar, kein Move, kein Commit. Die Session meldet, welche Datei zurueckbleibt und warum, und endet; das Issue bleibt in In progress. Interaktiv entscheidet der Mensch, unbeaufsichtigt greift der Dirty-Guard des Runners wie bei jeder Runde ohne In-review-Ergebnis.
+
+Das Label wird dabei **nie** entfernt — dieselbe Begruendung wie bei der `kit:clarify`-Leitplanke in Schritt 0: Die Maschine darf es setzen, abnehmen darf es nur der Mensch.
+
+**Rueckfall: Schreibzugriff auf eine geschuetzte Datei abgewiesen.** Weist Claude Code einen Schreibzugriff ab, weil die Datei geschützt ist, obwohl die Aufgabe sie nicht beim Namen nennt, hält die Session an — ohne weiteren Versuch. Der Schutz wird nie umgangen, auch nicht über die Shell. Das ist nicht der Halt einer Stopp-Frage: anderes Label, anderer Anker, eine andere Reihenfolge, und der Weg nach vorn ist die Handlung des Menschen an der Datei, kein Fachkonzept. In dieser Reihenfolge:
+
+1. Eigene uncommittete Aenderungen **namentlich** zuruecknehmen, selbst angelegte Dateien loeschen — nie pauschal den ganzen Arbeitsbaum verwerfen. Gemessen wird der eigene Anteil, belegt ueber die eigenen Werkzeugaufrufe.
+2. `node .claude/kit/board.mjs issue move <id> backlog`
+3. `node .claude/kit/board.mjs issue label add <id> kit:protected` — ein Fehlschlag wird gemeldet und beendet den Halt nicht.
+4. Den Kommentar holen: `node .claude/kit/board.mjs issue check-protected <id> --path <abgewiesener Pfad>`, je abgewiesenem Pfad ein `--path`. Das Kommando endet mit Exit 1, das ist der Befund. Das Feld `kommentar` seiner Ausgabe beginnt mit dem Anker `## Geschuetzte Datei` und ist der Text — die Session baut ihn nicht selbst. Er geht als letzte Zeile ergänzt um die Label-Zeile aus Schritt 3 (`Label kit:protected gesetzt` oder `Label kit:protected nicht gesetzt`) nach der Transportregel (`CLAUDE-workflow.md`, „Lange Texte ans Board") ans Issue: Datei `<tmpdir>/<id>-geschuetzt.md` stückweise per Shell anlegen, dann `node .claude/kit/board.mjs issue comment <id> --text-file <tmpdir>/<id>-geschuetzt.md` — nie als Argument.
+5. Melden, welche Datei ein Mensch ändern muss — **kein Commit**. In `/implement-ready` geht der Lauf danach mit dem naechsten Ready-Issue weiter, die anderen Skills enden damit.
+
+Bleibt ein eigener Anteil zurueck, der sich nicht namentlich zuruecknehmen laesst — etwa eine Datei, die vor der Session schon fremde uncommittete Aenderungen trug —, wird **nicht** angehalten: kein Move, kein Label, kein Kommentar, kein Commit. Die Session meldet die Datei und endet; das Paket bleibt in In progress. Auch hier gilt: `kit:protected` wird nie entfernt.
+
+### 4. Pruefungen vor dem Commit
+
+```bash
+node .claude/kit/checks.mjs run --finish <kartennummer>
+```
+
+Das Kommando waehlt die betroffenen `buildChecks` aus und fuehrt genau sie aus.
+**Ohne `--since`** — den Anker bestimmt das Kommando (Default `HEAD`), der Skill
+uebergibt nie selbst einen. Weil der Aufruf **vor** dem Commit steht, misst `HEAD`
+genau dieses eine Arbeitspaket: Ein Fehlschlag gehoert dem Paket, das ihn ausgeloest
+hat — in beiden Betriebsarten und auch dann, wenn eine Session mehrfach festschreibt.
+
+**Gefahren wird die Paketstufe.** Auch `--stage` uebergibt der Skill nie: Die Paketstufe
+ist die Vorgabe, und sie ist hier die richtige — gemessen wird ein Arbeitspaket. Traegt
+eine Pruefung im Projekt die Stufe `push` oder `merge`, erscheint sie darum in der Liste
+`ausgelassen`, mit ihrer Stufe als Grund. Das ist **kein Mangel**, sondern ihr Zeitpunkt:
+Sie laeuft in `/push-main` beziehungsweise `/merge-production`. Im Bericht steht sie wie
+jede andere Auslassung.
+
+**`--finish <kartennummer>` — dies ist der Abschluss genau einer Karte.** Nur ein
+solcher Lauf darf die Pruefungen auslassen, die mit `notAtCompletion` als
+Zusammenspiel-Pruefung gekennzeichnet sind: Sie messen, was mehrere Pakete gemeinsam
+ergeben, und laufen vollstaendig vor dem Veroeffentlichen in `/push-main`. Die
+**Kartennummer** ist die des Issues, das dieser Lauf abschliesst — ohne sie koennte die
+Wirksamkeit ihre Kennzahl je Karte nicht rechnen (Issue #951).
+
+**Was `--finish` prueft und was wartet.** Beim Abschluss prueft der Lauf die eigene
+Arbeit des Pakets: die Tests, die es neu schreibt oder aendert, die Tests, die eine
+geaenderte Datei selbst laden oder nennen, Format und Stil ueber die geaenderten Dateien,
+dazu Bauen, Typpruefung und Analyse wie bisher und jede Pruefung mit `always`. Was nur
+ueber gemeinsame Grundlagen mit dem Paket verbunden ist, wartet auf den Integrationslauf:
+`node .claude/kit/checks.mjs run --integration` faehrt am Ende einer Umsetzung jede
+Pruefung der Stufe `paket` ohne Bereichsfilter, die Stufen `push` und `merge` behalten
+ihren Zeitpunkt. Den Integrationslauf startet die Session nicht, ausser nach der letzten
+offenen Reparaturkarte (Schritt 6): Unbeaufsichtigt faehrt ihn der Runner am Ende seines
+Laufs, interaktiv sonst der Mensch. Im Block
+`Fuer den Abschlussbericht:` steht das als `teilweise: <Kommando> → <n> von <m> Tests`,
+`ausgelassen: <Kommando> → wartet auf den Integrationslauf` oder
+`ausgelassen: <Kommando> → keine Datei des Pakets`; der Block geht weiter wortgetreu in
+den Bericht.
+
+Ein roter Lauf verhindert den Commit, wie bisher jeder rote Pflichtcheck.
+
+Eine Hinweis-Pruefung haelt dagegen nie an: Sie endet gruen und schreibt ihre Funde als
+`hinweis: <Datei und Grund>` in den Block `Fuer den Abschlussbericht:`. Die
+`hinweis:`-Zeilen gehen wortgetreu in den Berichtsteil Tests und Checks mit und halten die Fertigmeldung nicht an —
+kein Fix im selben Paket, keine Rueckfrage, kein Halt (Issue #1156).
+
+Das Kommando nennt in seiner Ausgabe die **gelaufenen und die ausgelassenen**
+Pruefungen, jeweils mit Grund. Beides gehoert in den Abschlussbericht (Schritt 6):
+Nur die Laeufe zu nennen genuegt nicht — dann muesste man die Auslassungen indirekt
+erschliessen, und ein verkuerzter Lauf saehe aus wie ein vollstaendiger. Die
+Auslassungen werden **mit ihrem Grund** aus der Ausgabe uebernommen, wortgetreu und nicht
+zu "ausgelassen" verkuerzt — erst der Grund sagt, ob eine Pruefung an ihrem Zeitpunkt
+wartet oder ausfiel. Meldet das
+Kommando `leeresPaket`, steht das ausdruecklich als "keine Pruefung, weil nichts
+veraendert wurde" im Bericht, nicht als leere Liste.
+
+**Wer eine Datei anlegt, ordnet sie zu.** Nennt der Block `Fuer den Abschlussbericht:`
+`voller Umfang` wegen einer Datei, die dieses Paket angelegt hat, ergaenzt das Paket
+`checkAreas` um ein passendes Muster (oder begruendet einen Eintrag in `noCheck`)
+und faehrt den Lauf erneut. Weist Claude Code den Schreibzugriff auf die Config ab
+(automatischer Lauf, geschuetzte Datei), steht die Datei unter `### Hinweise` im Bericht — kein
+Anhalten, kein Umweg ueber die Shell.
+
+### 5. Lokal committen (nicht pushen)
+
+```bash
+git add <geänderte Dateien>
+git commit -m "Kurztitel (Issue #N)
+
+Beschreibung der Änderungen und Begründung.
+
+Refs #N
+
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+```
+
+Nur explizit veränderte Dateien stagen — kein `git add -A` oder `git add .`. Nennt der Bericht `Format-Fix: … → ausgefuehrt`, gehören alle vom Fix geänderten Dateien (`git status`) in denselben Commit und in den Abschlussbericht.
+
+**Kein `Closes`/`Fixes`/`Resolves #N` im Commit.** Diese Keywords schließen das Issue automatisch, sobald der Commit auf den Default-Branch gelangt (`push`/Merge), und die Board-Automation zieht geschlossene Issues sofort nach *Done* — noch bevor der Mensch testen konnte. `Refs #N` verlinkt das Issue, ohne es zu schließen. Das Schließen (→ Done) macht ausschließlich der Mensch nach seinem Test.
+
+**Pro.** **Der Commit löst die Prüfung je Karte aus.** Ist das Commit-Gate eingehängt, startet der Git-Hook `post-commit` sie losgelöst, im Build-Dienst oder ohne ihn in einem frisch ausgecheckten Stand auf diesem Rechner, und niemand wartet auf ihr Ergebnis — weder diese Session noch der Mensch; es steht danach als Kommentar `## Kartenprüfung` an der Karte (Plan #2145, E1).
+
+**Manuelle Pruefpunkte blockieren den Abschluss nicht.** Traegt das Issue einen Abschnitt `### Manuelle Pruefung (Mensch, nicht Teil des Session-Abschlusses)` (Konvention aus dem `issues`-Skill), wird das Issue abgeschlossen, sobald alle maschinellen Kriterien erfuellt sind. Die manuellen Punkte werden **unveraendert in den Abschlussbericht und den Board-Kommentar uebernommen**, damit der Mensch vor dem Done-Zug weiss, was noch aussteht. Sie sind kein Grund anzuhalten — headless antwortet niemand, und eine Session, die daran haengenbleibt, ist vom Runner nicht von einem Fehlschlag zu unterscheiden (Issue #215).
+
+### 6. Melden: Abschlussbericht und In review
+
+Bericht ablegen und Karte nach In review ziehen ist **ein** Aufruf. Der Bericht steht als Argument in einfachen Anführungszeichen, ohne Zwischendatei, ohne Heredoc, ohne Pipe:
+
+```bash
+node .claude/kit/board.mjs issue report <id> --text '## Abschlussbericht Issue #N
+…'
+```
+
+**Maskierung:** Ein `'` im Bericht wird als `'\''` geschrieben — das ist die einzige Regel, alles andere steht im Bericht, wie es ist.
+
+**Über 6.000 Zeichen** geht der Bericht in nummerierten Stücken, jedes ein **eigener** Werkzeugaufruf, weil die Grenze je Aufruf gilt. Ein Stück berührt das Board nicht, und eine Wiederholung überschreibt es:
+
+```bash
+node .claude/kit/board.mjs issue report <id> --part <n> --text '<Stück n>'
+```
+
+Danach der abschließende Aufruf ohne `--text` — er setzt die Stücke in Nummernfolge zusammen, legt ab, zieht nach In review und räumt die Stücke erst danach:
+
+```bash
+node .claude/kit/board.mjs issue report <id>
+```
+
+Die letzte Zeile `Bericht-Lauf: <stempel>` setzt das Kit; die Session schreibt sie nicht. An ihr erkennt `issue report` den Bericht dieses Laufs: Eine Wiederholung legt keinen zweiten an, sondern lässt ihn bei gleichem Inhalt stehen und ersetzt ihn bei geändertem. **Scheitert die Meldung**, ist die Karte nicht bewegt, und die Ausgabe nennt den Grund. Die Wiederholung ist der Abschlussaufruf allein — bei der Stückform `issue report <id>` ohne `--text`, die Stücke liegen noch; bei der Einzelform derselbe Aufruf mit `--text`. Warum `issue report` von der Transportregel ausgenommen ist, steht in `CLAUDE-workflow.md`, Abschnitt „Lange Texte ans Board". `issue report` zieht nur, wenn ein Commit dieses Laufs `Issue #N` nennt, sonst weist es ab und lässt Karte, Bericht und Stücke unberührt; ausgenommen sind `[Human]`-Karten, und `--without-commit '<Begründung>'` ist allein für Arbeit ohne Änderung im Repo da — die Begründung steht dann im Bericht.
+
+**Nach der letzten offenen Reparaturkarte: die Nachprüfung** (Plan #2087, A11). Trägt die Karte dieses Laufs im `## Kontext` eine Zeile `Reparatur: <cmd>` und meldet `issue report` danach `reparaturenOffen: 0`, ist keine Reparaturkarte desselben Laufs mehr offen. Dann startet die Sitzung den Integrationslauf, im Vordergrund und mit einem ausdrücklich gesetzten Timeout von 25 Minuten:
+
+```bash
+node .claude/kit/checks.mjs run --integration
+```
+
+Die Schlussmeldung nennt sein Ergebnis: grün, oder bei Rot jede rote Prüfung mit ihren Zeilen `Verursacher (<cmd>): …`. Meldet `issue report` eine Zahl über 0 oder kein Feld `reparaturenOffen`, entfällt der Lauf. Unbeaufsichtigt (gesetztes `KIT_AGENT_MODEL`) entfällt er ebenfalls: Dort fährt der Runner den Integrationslauf am Ende seines Laufs.
+
+Format des Abschlussberichts:
+
+```
+## Abschlussbericht Issue #N
+
+### Änderungen
+- `Datei.java` — kurze Beschreibung der Wirkung
+- `DateiTest.java` — was getestet wird
+
+### Tests und Checks
+<die Zeilen aus dem Block `Fuer den Abschlussbericht:` der Ausgabe von `checks.mjs run`, wortgetreu, nicht umformuliert oder gekuerzt:>
+- Wartezeit: <s> s, zusammen <s> s in <n> Laeufen fuer Karte #<n>   (ohne Kartennummer: Wartezeit: <s> s)
+- Teillauf: nur die zuletzt roten Pruefungen   (nur nach einem roten Teillauf)
+- gelaufen: <Kommando> → <Ergebnis>, <Dauer> — <Grund>
+- hinweis: <Datei und Grund>   (je Fund einer Hinweis-Pruefung, direkt unter ihrer Zeile)
+- ausgelassen: <Kommando> → <Grund>
+- teilweise: <Kommando> → <n> von <m> Tests   (ein Testkommando, das beim Abschluss nur die Tests des Pakets gefahren hat)
+- ausgelassen: <Kommando> → wartet auf den Integrationslauf
+- ausgelassen: <Kommando> → keine Datei des Pakets
+- bei `leeresPaket`: keine Pruefung, weil nichts veraendert wurde
+- Szenario „<Titel>“ → Test <Testname>   (je Szenario, das das Paket aus dem Fachplan uebernommen hat)
+
+### Hinweise
+- <verbleibende Risiken, offene Punkte, manuelle Folgeschritte>
+
+### Entscheidungen
+- E1: <Frage>. Gewählt: … Verworfen: … Grund: … Rückbau: …
+```
+
+`### Entscheidungen` entfaellt, wenn es nichts zu entscheiden gab; sonst traegt der Block die Eintraege im Format aus `CLAUDE-workflow.md`, Abschnitt „Entscheiden statt fragen".
+
+### 7. Nächstes Issue
+
+Sobald das Issue in In review liegt: naechstes Issue aus dem zuvor geladenen Ready-Array abarbeiten (in Array-Reihenfolge). Wenn Ready leer ist: Vollzug melden.
+
+### Stand des Vorhabens
+
+Hat dieser Lauf das letzte offene Paket eines Vorhabens nach In review gebracht — ein Paket mit `Plan: Issue #M`, und keine andere Karte mit derselben Zeile steht laut `node .claude/kit/board.mjs issue list` noch in Backlog, Ready oder In progress —, beginnt die Schlussmeldung mit dem Abschnitt `## Stand des Vorhabens`:
+
+1. **Was der Mensch jetzt sieht** — was sich für jemanden, der die Software benutzt, sichtbar geändert hat, in wenigen Sätzen.
+2. **Was vom Anlass nicht enthalten ist** — jedes Ziel und jedes fachliche Akzeptanzkriterium der fachlichen Quelle, das kein Paket hergestellt hat, und bei einer `Vorlage:`-Zeile jede Abweichung von der Vorlage. „Nichts" steht dort nur nach einem Abgleich Punkt für Punkt.
+3. Erst danach Commits, Checks und Hinweise.
+
+Die fachliche Quelle kommt aus der Zeile `Fachliche Quelle: Issue #N` des Plans `#M`, geholt mit `node .claude/kit/board.mjs issue get <N>` — nie aus dem Gespräch. Grün heißt „erfüllt, was aufgeschrieben wurde", nicht „erfüllt, was gemeint war"; wer das Fehlende weiter unten liest, hält das Vorhaben für fertig. Ein Paket ohne `Plan:`-Zeile gehört zu keinem Vorhaben, der Abschnitt entfällt. Hat der Plan `#M` keine Zeile `Fachliche Quelle:`, gilt Punkt 2 gegen `## Ziel` und `## Geplante Aenderungen` des Plans selbst, und der Abschnitt sagt, dass gegen den Plan abgeglichen wurde. Unbeaufsichtigt steht derselbe Abschnitt am Anfang des Abschlussberichts des letzten Pakets.
+
+Die Ursprungsdokumente zieht `issue report` selbst nach: Die Abschlussmeldung nennt die Zeilen aus dem Feld `ursprung` seiner Ausgabe (gewandert, lag bereits, nicht nachgezogen samt Kommando), und die Session bewegt Plan und fachliche Anforderung nie selbst. Das Urteil der Session gilt für den Abschnitt `## Stand des Vorhabens`, das des Kits für die Bewegung; beide folgen derselben Spaltenregel, und weichen sie ab (`ursprung.durch` ist false, obwohl der Abschnitt steht), nennt die Abschlussmeldung das.
+
+## Verhalten bei leerem Ready
+
+> "Ready ist leer. Alle Issues in In review. Ich warte auf dein GO für den nächsten Batch."
+
+Kein eigenmächtiges Ziehen aus Backlog. Kein Raten, welches Issue sinnvoll wäre.
+
+## Stop-Punkte
+
+- Fachliche Issues (`[Requirement]`-Titel), Ideen (`[Idea]`-Titel), Plandokumente (`[Plan]`-Titel) und Menschenschritte (`[Human]`-Titel) implementieren: nie — kommentiert zurück nach Backlog
+- Pushen: nie ohne explizite Trigger-Phrase `push main`
+- Backlog nach Ready ziehen: nie — das ist Mannes GO. Ausnahme, ausschliesslich in der Umsetzungsstufe der Kette unter Variante B: Dort zieht der Runner die Arbeitspakete der gekennzeichneten Karte selbst nach Ready und beginnt ihre Umsetzung ohne Freigabe je Paket. Das GO hat der Mensch an der gekennzeichneten Karte gegeben — an der fachlichen Anforderung oder am Plandokument —, als er sie fuer Variante B kennzeichnete. Ausserhalb dieser Stufe gilt der Satz davor ohne Einschraenkung — auch fuer Pakete einer Karte, die frueher unter Variante B lief. Eine zweite Ausnahme gilt in Pro-Projekten: Eine Reparaturkarte mit dem Label `kit:repair`, die der Reparatur-Kreislauf aus einem roten Ergebnis der Pruefung je Karte angelegt hat, zieht der Runner selbst nach Ready und setzt sie ohne GO um, auch wenn gerade niemand einen Lauf gestartet hat; sie behebt nur einen Fund dieser Pruefung, jede andere Karte desselben Plans bleibt gesperrt, und nach gruener Nachpruefung steht sie in In review (Kreislauf: „Unbeaufsichtigter Betrieb (optional)“, Absatz zur Pruefung je Karte).
+- Issues auf Done setzen: nie — das macht der Mensch nach seinem Test
+- Issue-schließende Commit-Keywords (`Closes`/`Fixes`/`Resolves #N`): nie — sie schließen das Issue beim Push/Merge und die Board-Automation zieht es nach Done, bevor getestet wurde. Nur `Refs #N` verwenden.

@@ -1,0 +1,1802 @@
+<!-- SPDX-License-Identifier: MIT -->
+# Changelog
+
+Alle nennenswerten Änderungen an diesem Projekt. Automatisch aus der Git-Historie generiert (`tools/changelog.mjs`) — nicht von Hand pflegen. Die Einträge sind die Commit-Betreffzeilen. Folgen mehrere Versions-Bumps unmittelbar aufeinander, stehen die Änderungen unter der höchsten davon — der Version, mit der sie veröffentlicht wurden; die internen Zwischenstände dazwischen erscheinen nicht. Was seit dem letzten Versions-Commit dazugekommen ist, steht unter `[Unreleased]`.
+
+## [6.0.0] - 2026-11-05
+- chore: release (Kartenprüfung)
+- Jobliste: übersprungener Job heißt uebersprungen, zählt weiter als bestanden (#2230)
+- SonarQube: zwei Bug-Befunde in checks.mjs beheben (#2233)
+- Tests von der Repo-Version lösen: zwei Tests scheitern ab 6.0.0 (#2232)
+- chore: release (Kartenprüfung)
+- Abschluss nachgeholt: Zug nach In progress vor dem Bericht (#2227)
+- Prüfung je Karte: leer angelegte Commits übernehmen, kein Konflikt ohne Datei (#2227)
+- SonarCloud: übrige Code Smells beheben und Gegenstücke in ESLint einschalten (#2220)
+- SonarCloud: übrige await in Schleifen entscheiden und no-await-in-loop einschalten (#2219)
+- SonarCloud: await in Schleifen unter kit/board und app entscheiden (#2218)
+- SonarCloud: Reliability-Funde in checks.mjs und issue-review.mjs beheben (#2217)
+- Abschluss nachgeholt: security-result, Fundstelle aus dem Linkziel (#2213)
+- security-result: Fundstelle aus dem Linkziel, Urteil trotz gescheiterter Karte (#2213)
+- RELEASING.md: Schritt 7 erledigt, nennt die ganze Datei (#2212)
+- Prüfung auf Tageszeit-Wörter im Prüflauf des Kits (#2211)
+- Doku ohne Tageszeit, Abschnitt zu den alten Namen (#2210)
+- Abschluss nachgeholt: Werkzeuge, App und Installer ohne Tageszeit (#2209)
+- Werkzeuge, App und Installer ohne Tageszeit (#2209)
+- Prüflauf, Einstellungen und übrige Kit-Werkzeuge ohne Tageszeit (#2208)
+- Board-Adapter ohne Tageszeit (#2207)
+- Wartende Sitzung ohne Tageszeit (#2206)
+- Runner und Kette ohne Tageszeit (#2204)
+- Hängegrenze misst am gefahrenen Umfang statt an Teilläufen desselben Kommandos (#2216)
+- Bausteine unter kit/night ohne Tageszeit (#2205)
+- Meldungen unter kit/texte ohne Tageszeit (#2203)
+- Bericht des Laufs ohne Tageszeit (#2202)
+- Beschreibungen der Einstellungen ohne Tageszeit (#2201)
+- Planungs-Skills ohne Tageszeit (#2200)
+- Skills der Umsetzung und Veroeffentlichung ohne Tageszeit (#2199)
+- Wortliste fuer Tageszeiten, Regeltexte ohne Tageszeit (#2198)
+- Szenario Beispieldatei vergleicht ohne den App-Namen der Doku-Seite (#2194)
+- Die Doku nennt die Einstellungs-Oberflaeche nur als Teil der Desktop-App in Pro (#2195)
+- Die Doku-Seite zu den Einstellungen nennt je Einstellung den Namen in der App (#2194)
+- Die Einstellungen in der App stehen in drei Teilen nach der Doku-Seite (#2193)
+- settings.mjs startet nur noch eingebettet in der Desktop-App, das alte Aussehen entfaellt (#2192)
+- Build-Dienst: Pruefung in vier Teilen, Urteil weiter unter check (#2190)
+- checks.mjs run schreibt mit --summary-file eine Tabelle der Dauern je Pruefung (#2189)
+- checks.mjs teilt die Pruefungen einer Stufe mit --part nach Gewicht auf (#2188)
+- chore: release (Kartenprüfung)
+- Pro: Runner holt den Integrationslauf vor dem ersten Paket nicht mehr nach (#2186)
+- Kartenpruefung im Worktree: env-Block der Projekt-Settings aus der Hauptkopie (#2183)
+- Kartenpruefung: Blob-Quellen der Sicherheitspruefung aus dem geprueften Commit (#2181)
+- Kartenpruefung: Ursachen eines roten Laufs bleiben ohne Reparaturkarte erhalten (#2180)
+- Änderungen durch 5.4.13
+- chore: release (Kartenprüfung)
+- Kartenpruefung rot: Rechnerkennung auf der Ausnahmeliste des frischen Checkouts (#2179)
+- Skill-Tests lassen den Nachhol-Lauf von /merge-production zu (#2175)
+- Update und Installer: Tests fuer abgeschlossene Laeufe mit vergebener PID (#2174)
+- Kartenpruefung rot: Zeilengrenze der Vorlage zieht mit dem Abschnitt Strenge nach (#2171)
+- Kartenpruefung rot: zwei Tests haengen von Zeit und Nebenlauf ab (#2170)
+- Installer und update run: Puls eines beendeten Laufs zaehlt nicht (#2169)
+- Strenge: Sicherheitsprüfung an einer Stelle und Nachholen vor der Auslieferung (#2116)
+- Strenge: Frage bei der Einrichtung und Normal nach dem Update (#2114)
+- Strenge: Header X-Kit-Strictness an jeder Board-Anfrage (#2113)
+- Strenge: Einstellungen und App mit Bestätigung und Vermerk (#2112)
+- Strenge: Prüferzahl für Fachplan und Plan in Leicht (#2111)
+- Strenge: Abfrage config strictness und Anzeige beim Sitzungsstart (#2110)
+- Strenge: Hook und Commit-Gate weisen Absenken ab (#2109)
+- Strenge: Mutationstest mit Marke und Halt in Streng (#2108)
+- Strenge: Prüfumfang beim Veröffentlichen, Aufstieg und --catch-up (#2107)
+- Strenge: Schlüssel, Namen und die Ableitung strengeVorgaben (#2105)
+- Strenge: Regeltext und Doku zuerst (#2106)
+- Projekttyp: Erkennung und Vorgaben bei der Einrichtung (#2115)
+- Stabile Rechnerkennung über .claude/rechner.json statt des wechselnden DHCP-Namens (#2168)
+- Die Sicherheitsprüfung der Kartenprüfung prüft einen großen Stand in Stücken (#2167)
+- chore: release (Kartenprüfung)
+- Der Release-Commit der Kartenprüfung entsteht ohne das Commit-Gate (#2166)
+- Die Kartenprüfung startet aus dem post-commit-Hook ohne die Git-Variablen des Hooks (#2165)
+- laufLebt: ein beendeter Lauf gilt nicht mehr als lebend, auch wenn seine PID neu vergeben ist (#2163)
+- Die Doku beschreibt gesammelte Funde, Reparaturkarten und den Schritt in der App (#2098)
+- Die App zeigt beim Veröffentlichen die nötigen Reparaturen und einen Schritt, sie einzuplanen und umzusetzen (#2097)
+- Der CLI-Test der Probe wird nach 60 Sekunden rot, wenn die Fälschung nicht zum Code passt (#2162)
+- Ein rotes Sonar-Gate auf main nennt seine verletzten Bedingungen im Log (#2144)
+- app outgoing nennt die nötigen Reparaturen, die Handgriffe und den Stand des Integrationslaufs (#2096)
+- Der Runner legt Reparaturkarten über dieselbe Stelle an, auch nach rotem Build-Dienst (#2095)
+- Reparaturkarten entstehen auch aus dem Protokoll eines roten Build-Diensts (#2094)
+- Kritische Sicherheitskarten zählen als Reparatur, und issue report meldet die offenen Reparaturen (#2093)
+- Ein Befehl legt aus einem roten Lauf alle Reparaturkarten auf einmal an, ohne Doppel (#2092)
+- Jede Prüfung kann in einem Satz sagen, was sie sichert (#2091)
+- Ein roter Prüflauf hält jeden Fund im Wortlaut fest und erkennt Funde an der Umgebung (#2090)
+- Vor push main und im Integrationslauf laufen nach einem Rot alle übrigen Prüfungen weiter (#2089)
+- Regeltexte: Integrationslauf und push main sammeln alle Funde und legen Reparaturkarten an (#2088)
+- Doku: Prüfung je Karte in Pro statt Vorbereitung, deutsch und englisch (#2159)
+- Desktop-App: Ergebnis der Kartenprüfung und Knopf Erneut prüfen (#2158)
+- push main übernimmt in Pro den grün geprüften Commit aus publish-state (#2157)
+- Git-Hooks post-commit und post-merge starten die Kartenprüfung (#2156)
+- Pro ohne Vorbereitung: Runner startet die Kartenprüfung statt Vorbereitung und Integrationslauf (#2155)
+- worktree.mjs publish-state: der grün geprüfte Stand für push main (#2154)
+- Kartenprüfung: Reparatur-Kreislauf im eigenen Worktree ohne Rückfrage (#2153)
+- Kartenprüfung: Reparaturkarte je Ursache, Umgebungsfund als Handgriff (#2152)
+- Kartenprüfung: Sicherheitsprüfung je Karte auf diesem Rechner mit Ausfallpfad (#2151)
+- Kartenprüfung: Push auf den Prüfzweig, Fristen und Kommentar ## Kartenprüfung an den Karten (#2150)
+- Kartenprüfung: Pro-Teil card-check mit Sperre, Prüfzweig je Rechner und Zusammenführung (#2149)
+- Config des Kit-Repos: release.commands, Testmuster und checkAreas für die Kartenprüfung (#2147)
+- Prüfzweige je Rechner: Build-Dienst löst auf kit-pruefung-* aus, Probe auf eigenem Zweig (#2148)
+- Config-Felder pushCheck.machine und release.commands für die Prüfung je Karte (#2146)
+
+### Was du noch tun musst
+- Wer Version und Änderungsprotokoll im geprüften Stand will, trägt `release.commands` in die workflow.config.json ein.
+- Den Build-Dienst zusätzlich auf <pushCheck.branch>-* auslösen lassen (Prüfzweige je Rechner und Probezweig).
+- In Pro mit Build-Dienst vor dem ersten `push main` nach dem Update prüfen, dass das Commit-Gate eingehängt ist (`git config core.hooksPath .githooks`) und `release.commands` gesetzt ist — `push main` veröffentlicht nur noch den Stand, den die Prüfung je Karte grün geprüft hat, sonst meldet es `nicht-geprueft`.
+- Strenge prüfen: Das Projekt steht auf Normal; ändern über die Einstellungen (strictness).
+
+## [5.4.11] - 2026-11-01
+- Doku: Vorbereitung als Abschluss jedes Laufs und push main in einem Schritt (#2141)
+- push main übernimmt ein grünes Urteil und startet sonst die Vorbereitung (#2140)
+- night.mjs --prepare fährt nur die Vorbereitung, --detach startet sie losgelöst (#2139)
+- Die Reparaturschleife setzt kit:repair-Karten ohne GO um und prüft höchstens drei Runden nach (#2138)
+- Anläufe je Veröffentlichung: worktree.mjs attempt und Abschnitt im Aufwandsbericht (#2137)
+- Jeder Lauf mit unveröffentlichten Paketen endet mit der Vorbereitung der Veröffentlichung (#2136)
+- Ein rotes Urteil des Build-Diensts ergibt Reparaturkarten mit kit:repair, die die Plansperre durchlässt (#2135)
+- check-preparation nennt den Grund ohne grünes Urteil, und das Kit erkennt unveröffentlichte Pakete (#2134)
+- Push-Stufe und Integrationslauf prüfen nach einem Rot weiter, bis jede Prüfung ein Ergebnis hat (#2133)
+- Das Warten auf den Build-Dienst endet: volle Kennung, code ci-wait mit Fristen, kit-stand.json bleibt in der Hauptkopie (#2132)
+- Die App-Tests warten auf den erwarteten Zustand statt fester Pausen, und der Wächter erkennt Pausen-Hüllen (#2129)
+- Eine verspätete Antwort des Eingangs erreicht nach dem Projektwechsel die Ansicht nicht mehr (#2128)
+- Ein gekürzter Blob nennt im Prüfmaterial Hash und eindeutigen Quellpfad (#2127)
+- Der Hotfix-Worktree trägt die Config des Tags und startet kein installCommand der Hauptkopie (#2126)
+- Der Doku-Test prüft das Board-UI an seiner Quelle statt an der erzeugten Kopie unter docs/public (#2125)
+- Die App übernimmt die Antwort des Eingangs nur in das Projekt, das beim Abruf offen war (#2124)
+- Das Warten der App-Szenarien scheitert bei Fristablauf mit Befund und hält den Leichtigkeitswächter grün (#2122)
+- Die Szenarien der App warten auf den gezeichneten Zustand statt auf feste Zeiten (#2121)
+- Der Hotfix führt seine Release-Befehle vor der Umsetzung auf dem unberührten Produktionsstand aus (#2120)
+- Das Zurückkehren führt seine Befehle in einem unveränderten Checkout des ausgelieferten Commits aus (#2119)
+- Die Blob-Kürzung im Prüfmaterial belegt jeden Zielpfad eines Verzeichnis-Blobs mit seiner Quelldatei (#2118)
+- Die Doku beschreibt Hotfix und Zurückkehren: Abgrenzung, Einrichtung und was danach bleibt (#2065)
+- Die Doku der App erklärt die Marke der Priorität und ihre Einstellung (#2077)
+- Die Einstellungen der App zeigen unter Für das Team die Prioritäten in ihrer Rangfolge (#2076)
+- Jeder Eintrag mit Kartennummer zeigt in der App die Marke der Priorität seiner Karte (#2075)
+- Die Vorlage der App zeigt die Priorität neben der Kartennummer und die Zeile Prioritäten (#2074)
+- app inbox und app team liefern die Prioritäten der Karten und ihre Rangfolge (#2073)
+- Die Einstellung app.priorities legt Namen und Rangfolge der Prioritäten fest (#2072)
+- Die Doku zählt zwanzig Skills und nennt Hotfix und Zurückkehren bei Stop-Punkten und Pro-Teilen (#2064)
+- session-start meldet offene Hotfixes und ein Zurückkehren und legt die Karte eines Hotfix ohne Board an (#2063)
+- merge production hält an, wenn die laufende Version keinen Rückkehrpunkt hat (#2062)
+- push main hält ohne übernommenen Hotfix an, holt seine Prüfungen und das Review nach und schließt ihn ab (#2061)
+- Ablauftests zeigen: Ein Hotfix liefert nur den Fix, auch nach dem Zurückkehren (#2060)
+- hotfix production setzt eine Karte auf dem Produktionsstand um und liefert sie verkürzt geprüft aus (#2059)
+- security-result legt seine Karten auch bei großem Board an und liest die Fundstelle als Markdown-Link (#2086)
+- Das Zurückkehren liest seinen Weg aus dem ausgelieferten Stand und zeigt die Befehle vor dem Ja (#2085)
+- code merge-pr merged nur den geprüften PR-Kopf (#2084)
+- Der Leichtigkeitswächter ist wieder grün (#2084)
+- Die Hotfix-Ausnahme im Build-Dienst gilt nur für Pull Requests nach production (#2082)
+- Die Sicherheitsprüfung kürzt nur Blobs mit Klartextquelle im Projekt (#2083)
+
+### Was du noch tun musst
+- Wer `rollback production` nutzt, bringt den Abschnitt `## rollback production` in RELEASING.md nach production — ein nur auf main oder lokal stehender Abschnitt gilt nicht mehr.
+- Wer `rollback production` nutzt und im Abschnitt Dateien außerhalb des Repos braucht (etwa eine `.env`), nennt sie dort mit festem Pfad — die Befehle laufen jetzt in einem frischen Checkout ohne unversionierte Dateien der Arbeitskopie.
+- Label kit:repair je Board einmal anlegen (node .claude/kit/board.mjs doctor nennt es).
+
+## [5.4.10] - 2026-10-29
+- install.mjs trägt nach dem Nachziehen auf v5.4.9 wieder VERSION 5.4.9 und die passenden Blobs
+- Die Sicherheitsprüfung kürzt eingebettete Blobs im Material und bleibt unter der Lesegrenze des Prüfers (#2081)
+- Integrationslauf wieder grün: prozess.md nennt rollback-production, board-produktion hängt nicht mehr an den kitweiten Tests (#2080)
+- rollback production bringt die Vorversion in Minuten wieder in Betrieb (#2058)
+- Der Build-Dienst des Kits prüft einen Hotfix-PR verkürzt, das Kit-Repo trägt seine Hotfix-Einstellungen (#2057)
+- version.mjs und changelog.mjs kennen die Hotfix-Version, RELEASING.md den Abschnitt hotfix production (#2056)
+- issue-review review-result wertet die Antwort der Prüfrolle code-review aus (#2055)
+- code merge-pr merged einen Pull Request über den Board-Adapter, für GitHub und GitLab (#2054)
+- board.mjs bekommt die Achse release, die Pro-Gates für Hotfix und Zurückkehren und das Label kit:hotfix (#2053)
+- Das Pro-Modul produktion.mjs hält den Produktionsstand in refs/kit/produktion auf beiden Rechnern gleich (#2052)
+- checks.mjs prüft einen Hotfix verkürzt: --hotfix lässt verschobene Prüfungen aus, Mutation über die geänderten Dateien (#2051)
+- Hotfix und Zurückkehren haben ihre Einstellungen: hotfixMinutes, runsInstance, zwei Phrasen und deferOnHotfix (#2050)
+- Die Prozessregeln nennen Hotfix und Zurückkehren und die Ausnahme für nachgeholte Prüfungen (#2049)
+
+### Was du noch tun musst
+- Pflicht-Job für Pull Requests aus hotfix/* auf checks.mjs run --stage push --hotfix umstellen; RELEASING.md um ## rollback production und ## hotfix production ergänzen; nachzuholende buildChecks mit deferOnHotfix markieren und im mutationCommand den Platzhalter {files:} setzen
+
+## [5.4.9] - 2026-10-28
+- Die Doku der App nennt die Kartennummer ohne Beispielnummer und bleibt unter der Wortsumme (#2078)
+- Der Test von app-bilder nennt den Sandbox-Eintrag ohne Fehlalarm der Leichtigkeitsprüfung (#2071)
+- app-bilder bricht in der Sandbox vor dem Start von Electron ab (#2042)
+- Die Doku der App erklärt die Kartennummer am Eintrag und wann sie nicht anklickbar ist (#2037)
+- Ideen, Anforderung, Fragen, Umsetzung und Veröffentlichen zeigen die Kartennummer am Eintrag (#2036)
+- Der Eingang der App zeigt an jedem Eintrag mit Karte die Nummer und öffnet sie am Board (#2034)
+- Die Bilder der Vorlage zeigen die Kartennummer an jedem Eintrag mit Karte (#2033)
+- Ein Werkzeug fotografiert die Bilder der Vorlage aus entwurf.html mit festen Parametern je Bild (#2044)
+- Die Vorlage der App zeigt die Kartennummer an jedem Eintrag mit Karte (#2033)
+- Der Hauptprozess der App öffnet eine Karte am Board über ihre Nummer (#2032)
+- Das Kit liefert im Eingang der App die Adresse einer Karte am Board (#2031)
+- Integrationslauf wieder grün: Doku unter der Wortsumme, Bereiche der Community-Tests vollständig (#2028)
+- Die App findet Claude Code aus dem nativen Installer auch beim Start aus dem Finder (#2025)
+- Der öffentliche Community-Stand enthält den Runner und keinen Pro-Teil (#2021)
+- Der erneute Installer-Aufruf hält bei laufendem Runner an (#2020)
+- Der Installer richtet in Community den Runner mit Labels und Prüfern ein (#2019)
+- Der Runner in Community bereitet die Veröffentlichung ohne Prüfzweig vor (#2018)
+- Das Urteil des Build-Diensts ist ein Pro-Teil in kit/board/build-dienst.mjs (#2017)
+- Die Prüfplätze je Rechner sind ein Pro-Teil in kit/checks/pruefplaetze.mjs (#2016)
+- Das gleichzeitige Umsetzen ist ein Pro-Teil, Community setzt nacheinander um (#2015)
+- doctor und update geben in Community die Pro-Meldung, edition show nennt die Version (#2014)
+- Einstellungen und Leitstand stehen unten im Fenster, auch bei langem Eingang (#2027)
+- Die App meldet einen gescheiterten Aufruf, statt ihn still zu verlieren (#2024)
+- Das Linux-Paket der Desktop-App baut, weil package.json Homepage und Autor trägt (#2023)
+- Community prüft mit mehreren Modellen, Paarungen und Prüfstufen wie Pro (#2013)
+- Runner, Auswertungen und Vorbereitung von push main laufen in Community ohne Pro-Meldung (#2012)
+- Die Doku nennt den Runner als Teil von Community und den neuen Umfang von Pro (#2011)
+- Skills und Prozessbeschreibung ziehen die Grenze zwischen Community und Pro neu (#2010)
+- Das öffentliche Community-Repository heißt mannewolff/ki-workflow-kit (#2009)
+- Die vorbereitete Veröffentlichung hält das Ergebnis der Sicherheitsprüfung fest und wird nur grün übernommen (#1993)
+- Das Kit wertet die Sicherheitsprüfung aus und legt je Befund eine Karte ohne Doppel an (#1992)
+- issue-review start beendet einen fremden Prüfer an einer Zeitgrenze (#1991)
+- Die Prüfrolle sicherheit sucht nach Angriffsklassen und verlangt Angreifer, Grenze und Folge (#1990)
+- push main, kit-review, Vorlage und Doku beschreiben die Sicherheitsprüfung vor jedem Push (#1989)
+
+### Was du noch tun musst
+
+## [5.4.8] - 2026-10-27
+- Die englische Vorlage nennt die Frist des Runners mit 150 Minuten und trägt den passenden Stempel (#2007)
+- Reste aus #2003 und #2005: Kopplung im App-Test und Frist des Runners im Text (#2006)
+- Die App erkennt einen Ordner ohne Kit auch bei gesetztem NODE_OPTIONS=--import (#2005)
+- push main wartet bis zu 120 Minuten auf den Build-Dienst (#2003)
+- Der Aufräum-Test wartet auf den Start des Schreibers statt mit fester Pause (#2002)
+- Die Installer-Tests räumen ihre Wegwerfverzeichnisse ohne Wackler ab (#2001)
+- Die Desktop-App öffnet ein installiertes Projekt, auch ohne settings.mjs neben dem Kit (#1994)
+- Der Aufwandsbericht zeigt die Prüfzeit beim Abschluss vorher und nachher und die späten Fehler (#1986)
+- Der Runner fährt am Ende einer Kette den Integrationslauf, bei vorbereiteter Veröffentlichung keinen zweiten (#1985)
+- Der Runner fährt nach einem Lauf über Ready den Integrationslauf und legt bei Rot Reparaturkarten an (#1984)
+- /integration-test löst den Integrationslauf aus, push main nennt einen fehlenden (#1983)
+- checks.mjs fährt den Integrationslauf und kennt seinen Nullpunkt (#1982)
+- Format- und Stilprüfung laufen beim Abschluss nur über die Dateien des Pakets (#1981)
+- Der Abschluss eines Pakets fährt nur neue, geänderte und direkt betroffene Tests (#1980)
+- Regeltext, Skills und Doku beschreiben den Abschluss je Paket und den Integrationslauf (#1979)
+- push main übernimmt ein grünes Urteil des Runners für denselben Commit ohne erneuten Lauf im Build-Dienst (#1976)
+- Bericht der Vorbereitung nennt das Urteil des Build-Diensts mit Adresse und offener Bereinigung (#1975)
+- Runner prüft den vorbereiteten Stand auf dem Prüfzweig und hält das Urteil des Build-Diensts fest (#1974)
+- Liegengebliebener Prüfzweig ist festgehalten und wird mit Lease nachträglich freigegeben (#1973)
+- Code-Host-Achse prüft einen Zweig mit Adresse und Verursachern und gibt ihn mit Lease frei (#1972)
+- Fehlerabdruck: Surefire-Nullzeilen und Logzeilen grüner Tests sind kein Fehler (#1977)
+- Entwicklungsabhängigkeiten von Kit und App auf aktuellem Stand, npm audit ohne Befund (#1932)
+- Skill, Vorlage, Doku und Hilfetext erlauben dem Runner den Prüfzweig in der vorbereiteten Veröffentlichung (#1971)
+- /task, /requirement und /techplan setzen --derived-from auf die Idee, wenn sie der Eingang war (#1970)
+- app-bilder bricht nach einem Electron-Start mit Signal ab (#1968)
+- Alle Texte der App sind ohne Technikbegriffe, und die Doku beschreibt ihre Abläufe (#1962)
+- Der Weg wird mit vier Knöpfen gewählt, „Gleich erledigen“ mit Rahmen (#1961)
+- Die App trägt Name, Logo und Farbe eines Kunden mit geprüftem Kontrast (#1960)
+- Einstellungen bündeln Darstellung, Team und Wartung; Einrichtung und Aktualisieren laufen im Hintergrund (#1959)
+- Veröffentlichen sagt, wo es hakt, und prüft auf Wunsch erneut (#1958)
+- Umsetzung startet freigegebene Aufgaben und Durchläufe mit Rahmen und zeigt ihren Stand (#1957)
+- Fragen werden in der App beantwortet, zurückgestellt und erst gesammelt übernommen (#1956)
+- Eine Idee wird frei oder Frage für Frage mit der KI verfeinert (#1955)
+- Ideen und Anforderungen zeigen je Karte die Stufe und genau einen nächsten Schritt (#1954)
+- Seitenleiste und Eingang zeigen fünf Bereiche und was auf den Nutzer wartet (#1953)
+- Die App öffnet Projekte über das Ordnerfenster und merkt sie sich (#1952)
+- Das Gespräch der App versteht Optionen, Art, Klären und Zurückstellen (#1951)
+- Die Einstellungs-Oberfläche zeigt sich in der App im Aussehen der Vorlage und in Alltagssprache (#1950)
+- Die Umsetzung hält nach Überschreiten ihres Kostenbudgets an (#1949)
+- Der Eingang der App erfährt Stufe, Fortschritt, wartende Fragen und Startbares aus dem Kit (#1948)
+- Ein Werkzeug fotografiert jede Ansicht der App neben der Vorlage (#1947)
+- Groom klärt vor dem Ja und nimmt auch Umsetzungspläne (#1946)
+- Triage legt Fragen mit Optionen und den Weg als Wahl vor (#1945)
+- Ausgehende Arbeit nennt je roter Prüfung die Aufgabe und den nächsten Schritt (#1944)
+- Der Prüflauf prüft auch Umsetzungspläne (#1943)
+- Ein automatischer Durchlauf startet für genau eine Karte (#1942)
+- Das Kit liefert der App Kundenmarke, Leitstand-Adresse und Rahmen je Lauf (#1941)
+- Die App trägt die Gestaltungswerte und die Schrift der Vorlage (#1940)
+- Die Vorlage zeigt drei Rahmen je Lauf (Issue #1937, Plan #1939)
+
+### Was du noch tun musst
+
+## [5.4.7] - 2026-10-26
+- Die Vorlage zeigt beim gesperrten Veröffentlichen den Weg zur erneuten Prüfung (#1937)
+- Der Entwurf der Desktop-App liegt als verbindliche Vorlage im Projekt (#1937)
+
+### Was du noch tun musst
+
+## [5.4.6] - 2026-10-26
+- Die Desktop-App startet, statt beim Warten auf ready zu hängen (#1935)
+
+### Was du noch tun musst
+
+## [5.4.5] - 2026-10-26
+- Das kitstand-Fixture kopiert LICENSE und LICENSE-PRO mit (#1933)
+- sonar-project.properties nennt den neuen Repo-Namen und warum der Sonar-Schlüssel bleibt (#1930)
+- Die Doku nennt Lizenz und Bezug beider Ausgaben, RELEASING.md die Schritte zur ersten getrennten Veröffentlichung (#1929)
+- Die Desktop-App wird am Release des privaten Repositorys veröffentlicht und dort abgefragt (#1928)
+- Ein 5.x-Projekt sieht vor dem Update seine Ausgabe, der Runner weicht in Community einem Stummel (#1927)
+- update und doctor vergleichen mit der Fassung der eigenen Ausgabe, Pro über KIT_PRO_TOKEN oder gh api (#1926)
+- Der Workflow community-veroeffentlichen.yml bringt jede Veröffentlichung ins öffentliche Repository (#1925)
+- docs.mwolff.org liefert den Community-Installer, den Changelog und die Downloads bis v5.4.0 aus (#1924)
+- tools/community-stand.mjs baut und prüft den öffentlichen Community-Stand aus einer Positivliste (#1923)
+- Der Installer legt die Lizenztexte seiner Ausgabe ins Projekt (#1922)
+- tools/lizenzkennung.mjs setzt und prüft die SPDX-Kennung in jeder ausgelieferten Datei (#1921)
+- Lizenztexte MIT und FSL-1.1-MIT liegen bei, die Listen der Pro-Teile liegen in kit/board/ausgabe.mjs (#1920)
+- Die Doku beschreibt die Desktop-App als Pro auf Deutsch und Englisch (#1915)
+- Die App zeigt Läufe, Veröffentlichen mit Zwischenschritt, Einrichtung, Aktualisieren und Einstellungen (#1914)
+- Die App zeigt Rahmen, Eingang, Fachpläne, Fragen, Gespräch und Idee anlegen mit Gestaltungswerten an einer Stelle (#1913)
+- tools/app-bauen.mjs und ein Workflow bauen die App-Pakete und das Manifest app.json (#1912)
+- Der Hauptprozess der App führt alle Module über eine IPC-Schnittstelle, Fenster und Infobereich zusammen (#1911)
+- Die App bringt ihre Texte auf Deutsch und Englisch ohne Entwicklerbegriffe in der ersten Zeile mit (#1910)
+- Die App findet Projekte wie die Einstellungs-Oberfläche und startet diese als Bereich Einstellungen (#1909)
+- Ready, push main, merge production und Festschreiben laufen in der App nur über eine bestätigte Freigabe (#1908)
+- Die App fragt Laufstand und Eingang im Hintergrund ab und meldet Ende von Prüfung und Lauf und neue Fragen (#1907)
+- Gespräche der App laufen als fortsetzbare Sitzungen von Claude Code und erkennen den Block kit-vorlage (#1906)
+- Die Desktop-App bekommt ihr Gerüst unter app/ und einen einzigen Ausführungsweg für Kit-Befehle (#1905)
+- Die Vorlage von /groom endet mit einem maschinenlesbaren Block kit-vorlage (#1904)
+- app version liest die veröffentlichte App-Fassung aus dem Manifest der Pro-Quelle (#1903)
+- app outgoing zeigt, was mit push main und merge production hinausgeht, und app settings-commit schreibt die Team-Einstellung fest (#1902)
+- app run-status liefert den Stand der letzten Läufe aus Journal und Puls (#1900)
+- app inbox liefert den Eingang mit wartenden Karten, Fachplänen und Ideen je Projektsprache (#1899)
+- Das Kit bekommt die Pro-Achse app mit Projektliste und Sitzungsrechten für die Desktop-App (#1898)
+- Unbeaufsichtigte Prüfung eines Fachplans schließt das Review auch mit Stopp-Frage ab (#1897)
+- Lokaler Tracker: issue update erhält die Kommentare, issue get trennt sie vom Body (#1888)
+
+### Was du noch tun musst
+- Nutzt du settings.mjs oder deployment.mjs aus dem Download, lade sie künftig von docs.mwolff.org/v5.4.0/ oder beziehe Pro.
+- Brauchst du Runner oder Auswertungen weiter, hole vor dem Update den Pro-Installer und starte ihn im Projekt: gh api repos/mannewolff/claude-workflow-kit-pro/contents/install.mjs?ref=production -H 'Accept: application/vnd.github.raw' > install.mjs && node install.mjs (--edition pro gibt es erst ab 6.0.0; Bezug siehe docs.mwolff.org/pro). Sonst kannst du .claude/kit/night/ und die übrigen Pro-Dateien löschen.
+
+## [5.4.4] - 2026-10-22
+- Einrichtung und Quickstart beschreiben die Liste am Ende von doctor und den Bericht für den Support (#1894)
+- doctor --report legt einen Bericht für den Support als Datei ab (#1893)
+- doctor wiederholt am Ende alle offenen Punkte als Liste mit Satz zum Support (#1891)
+- doctor nennt für jeden Mangel und jeden nicht prüfbaren Punkt einen ausführbaren nächsten Schritt (#1890)
+
+### Was du noch tun musst
+
+## [5.4.3] - 2026-10-22
+- Die Skripte im Projektordner stehen in der .gitignore, und das Kit-Repo bekommt keine (#1854)
+- Die Doku-Seiten kennzeichnen Runner, Mehrfachprüfung, Routing und Bereichsvergleich als Pro (#1879)
+- Eine Doku-Seite zu Pro nennt Umfang und Kontakt, und die erste Stunde gelingt mit Community (#1878)
+- Die Prozessbeschreibung kennzeichnet jeden Pro-Teil, ohne Überschriften zu ändern (#1877)
+- Die Skills kennzeichnen jeden Schritt des unbeaufsichtigten Betriebs als Pro (#1876)
+- push main, merge production und issue-review kennzeichnen die Auswertungen als Pro (#1875)
+- Die Einrichtung fragt in Community einen Reviewer für alle Stufen und legt keine Runner-Labels nahe (#1874)
+- Runner, Kette und Prüflauf antworten in Community mit der Pro-Meldung (#1873)
+- Vergleich der Prüfbereiche und vorbereiteter push main antworten in Community mit der Pro-Meldung (#1872)
+- doctor nennt die Ausgabe und führt Pro-Einstellungen in Community als entfällt (#1871)
+- Der Skill /issue-review führt in Community den einen Reviewer mit allen Rollen aus (#1870)
+- In Community prüft ein Reviewer mit allen Rollen der Stufe in einem Auftrag (#1869)
+- Das Label-Register liefert mit runnerLabels die Labels des unbeaufsichtigten Betriebs (#1868)
+- Eine Installation kennt ihre Ausgabe, und board.mjs edition beantwortet sie für Skills und Skripte (#1867)
+- Die Einrichtungsseite beschreibt Erinnerung, ./update.sh und ./update-all.sh auf Deutsch und Englisch (#1852)
+
+### Was du noch tun musst
+- Die vom Update ergaenzte .gitignore (Skripte im Projektordner) einmal committen.
+
+## [5.4.2] - 2026-10-21
+- board-issue-review-arten liest die Pruef-Zusammenfassung der Arbeitskopie nicht (#1856)
+- Entwurf der Kit-App als Anregung für Issue #1886 abgelegt
+- Der globale Install schreibt keinen Datei-Stand ins Projekt (#1849)
+- Hook bash-check weist eine vorangestellte Umgebungszuweisung ab (#1881)
+- ablauf-install-ohne-pro nutzt den Helfer projektliste-umgebung (#1864)
+- Das Kit läuft ohne Pro-Teile vollständig interaktiv, neu sind board.mjs pro run|list und sync-blobs --ohne-pro (#1864)
+- Eine Prüfung im Repo des Kits fängt jeden neuen Pro-Bezug im Community-Code (#1863)
+- Die Skills rufen Pro-Auswertungen über pro run und laufen ohne sie weiter (#1862)
+- sync-blobs und Installer erzeugen einen Kit-Stand ohne Pro-Teile (#1861)
+- doctor läuft ohne Runner durch und führt die Runner-Labels als entfällt (#1860)
+- Der Vergleich der Prüfbereiche liegt getrennt vom Vorschlag und darf fehlen (#1859)
+- push main und merge production legen ihre Arbeitskopie ohne den Runner an (#1858)
+- Das Notfall-Gate und doctor finden ihre Prüfhelfer in checks.mjs (#1857)
+- Der Prüfauftrag kennt die Mangel-Arten ohne das Pro-Teil Befunde (#1856)
+- Ein Lader kennt die Pro-Teile und ruft ihre Auswertungen ohne Abbruch auf (#1855)
+- ./update-all.sh aktualisiert alle Projekte der Liste und nennt je Projekt das Ergebnis (#1851)
+- ./update.sh aktualisiert ein Projekt über board.mjs update run, nicht während eines Runners (#1850)
+- Das Update lässt eine vom Menschen geänderte Datei des Kits unverändert und nennt sie (#1849)
+- Die Meldung des Updates nennt jede Umbenennung einmal mit den Dateien, in denen der alte Name steht (#1848)
+- Das Update meldet Versionen, Changelog-Einträge, liegengebliebene Dateien und Was du noch tun musst (#1847)
+- Der Runner warnt beim Start im Protokoll und im Laufstand vor einer veralteten Kopie (#1846)
+- board.mjs update check meldet eine neue Fassung, /session-start gibt den Hinweis aus (#1845)
+- Der Changelog trägt je Fassung Was du noch tun musst und Umbenannt und reist als Blob im Installer (#1844)
+- Installation und Update tragen das Projekt in die Projektliste des Rechners ein (#1843)
+- Der Bezugsstand der veroeffentlichten Fassung liegt in kit/board/fassung.mjs, doctor nennt ./update.sh (#1842)
+
+## [5.4.1] - 2026-10-21
+- Eine Pruefung ohne Historie bricht im Build-Dienst erst nach 60 Minuten als haengend ab (#1828)
+- Fuenf Skripte im Projektordner starten Runner, Kette, Pruefauftrag, doctor und Pruefkommandos (#1794)
+- Eine Pruefung ohne Historie misst ihre Abbruchgrenze an der laengsten gruenen dieses Laufs (#1822)
+- Doku ohne GitHub-Link, Lizenzangabe GPL v3 wie in LICENSE (#1813)
+- Die Einrichtung beschreibt das Update ohne Fragen und den Schalter --reconfigure (#1805)
+- Ein Update mit install.mjs kopiert nur und fragt nichts (#1804)
+- Die Übernahme-Tests der gleichzeitigen Nacht starten keine echte Sitzung (#1811)
+- Die Doku beschreibt gleichzeitige Pakete in der Umsetzungsnacht (#1793)
+- Nachtbericht, Ergebnisstand, Laufmeldung und Aufwandsbericht zeigen die Gleichzeitigkeit (#1792)
+- Die Umsetzungsnacht setzt Pakete gleichzeitig in eigenen Arbeitskopien um (#1791)
+- Die Nacht übernimmt Pakete einzeln, löst einen Konflikt einmal und stellt sonst zurück (#1790)
+- Die Nacht wählt unabhängige Pakete für die gleichzeitige Umsetzung (#1789)
+- Das Prüfwerkzeug sagt die Prüfbereiche einer Dateiliste voraus (#1788)
+- Die Nacht kennt die Einstellungen für gleichzeitige Pakete und die Nachtgrenze (#1787)
+- issue report legt mit --no-move einen Bericht ohne Spaltenwechsel ab (#1786)
+- Volle Prüfläufe belegen rechnerweit einen Platz, interaktive warten nie (#1785)
+- /groom und /triage legen alle Fragen in einer Vorlage vor, ein Ja deckt alles Folgende (#1803)
+
+## [5.4.0] - 2026-10-19
+- Ein versionierter Ausschluss lehnt jssecurity:S8705 in deployment.mjs ab (#1801)
+
+## [5.3.3] - 2026-10-19
+- deployment.mjs gibt Commit-Werte nur geprüft an git weiter (#1798)
+- Eine Abhängigkeit in In review ohne Commit gilt nicht als erfüllt (#1796)
+
+## [5.3.2] - 2026-10-19
+- Die Einrichtung beschreibt das Melden einer Auslieferung an kanban-kit (#1772)
+- deployment.mjs wird gestempelt und über docs.mwolff.org angeboten (#1770)
+- Das Kommando deployment.mjs meldet eine Auslieferung an kanban-kit (#1769)
+
+## [5.3.1] - 2026-10-19
+- Ein Test verbietet statische Importe aus kit/night/ in kit/board/ (#1784)
+- Einrichtung und erste Stunde nennen den Aufruf doctor (#1781)
+- doctor prüft das Board: Erreichbarkeit, Anmeldung, Spalten und Pflichtlabels (#1780)
+- doctor prüft Prüfkommando der Paketstufe, Prüfmodelle und sauberen Workspace (#1779)
+- doctor prüft in der Gruppe Kit Kopie-Stand, Einstellungen und Commit-Gate (#1778)
+- doctor prüft Umgebung und Werkzeuge und endet mit Schlusszeile und Exit-Code (#1777)
+- Der Adapter liest je Board Anmeldung, Spalten und Labels, ohne zu schreiben (#1776)
+- Der Installer hält den Verzicht auf das Commit-Gate als commitGate fest (#1775)
+- Der Runner prüft einen Reviewer mit vorübergehendem Engpass erneut (#1766)
+- push-main fragt nicht mehr nach der Oberflächenprüfung (#1764)
+- Die erste Stunde führt das lokale Board-UI zum Ziehen per Hand ein (#1762)
+
+## [5.3.0] - 2026-10-16
+- Die WSL2-Anleitung führt nur bis zum bereitstehenden WSL2 und nennt Firmenrechner und Runner unter Windows (#1758)
+- Der Einstieg „Die erste Stunde“ führt vom Rechner bis zur geprüften Karte in Done (#1757)
+- Die Doku nennt genau einen Installationsweg und die richtige Vorgabe des Issue-Trackers (#1756)
+- Die Runner-Seite verweist für Einstellungen auf einstellungen statt sie zu wiederholen (#1755)
+- Der Installer meldet am Ende laut uncommittete Dateien im Workspace (#1749)
+- Die Doku spricht vom Runner statt von Nacht, Nachtlauf und Nachtbetrieb (#1748)
+- Änderungen in der Konfiguration durch install.mjs 5.2.3
+
+## [5.2.3] - 2026-10-16
+- Warnung ohne Label nennt das Repo, dessen Board gelesen wurde (#1744)
+- Die Einstellung scaffoldOnly steht im Teil Feinabstimmung (#1723)
+- Regeltexte, Skills und Doku nennen Einstellungen mit ihrem englischen Namen (#1737)
+- Die Einstellungs-Oberfläche gliedert nach Zweck und schreibt englische Namen (#1736)
+- Jedes Projekt bekommt eine kommentierte Beispieldatei seiner Einstellungen (#1735)
+- Die Einstellungsseite gliedert die Einstellungen nach ihrem Zweck (#1734)
+- Jede Einstellung der ersten beiden Teile sagt, wann man sie setzt (#1733)
+- Die Einstellungsseite zieht wörtlich gleiche Geschwisterzeilen zusammen (#1732)
+- Eine Tabelle ordnet jede Einstellung einem Zweck zu (#1731)
+- Einstellungsdatei des Kit-Repos auf englische Schlüssel umgestellt (#1730)
+- einstellungen-vorschau liest die Einstellungsdatei ueber normalisiereConfig (#1743)
+- checks.mjs run uebernimmt nie ein rotes Ergebnis (#1742)
+- Das Update migriert auch die persoenliche Einstellungsdatei und sichert sie vorher (#1729)
+- config-zuschnitt zaehlt auch neue, noch nicht committete Testdateien (#1741)
+- Ein Hook weist Schreibwerkzeuge an geschuetzten Dateien ab, auch im Modus auto (#1740)
+- Das Update schreibt die geteilte Einstellungsdatei mit englischen Namen und erhaelt jeden Wert (#1728)
+- Die Vorgeschichte ist an, ausser ein Projekt hat sie ausgeschaltet (#1727)
+- Der Schalter fuer den Ideen-Speicher entfaellt und wirkt in alten Dateien nicht mehr (#1726)
+- Das Namensmodul schreibt englische Schluessel und laesst Werte unveraendert (#1725)
+
+## [5.2.2] - 2026-10-15
+- Die Pruefgruppe der Nacht-Runner-Tests laeuft mit vier Tests gleichzeitig (#1694)
+- Langsame Nacht-Runner-Tests teilen sich einen gleichen Lauf je Datei, Teil 3 (#1739)
+- Langsame Nacht-Runner-Tests teilen sich einen gleichen Lauf je Datei, Teil 2 (#1738)
+- Langsame Nacht-Runner-Tests teilen sich einen gleichen Lauf je Datei, Teil 1 (#1693)
+- Die Doku beschreibt, wie man Pruefbereiche einrichtet und pflegt (#1724)
+- Das Kit-Repo gleicht seine Pruefbereiche mit areas compare ab und pflegt seine Geruest-Pfade (#1722)
+- Der Installer bietet beim ersten Einrichten den Bereichsvorschlag an und nennt ihn beim Update (#1721)
+- Der Nachtbericht sammelt die Luecken der Pruefbereiche aller Pakete der Nacht (#1720)
+- Der Prueflauf eines Pakets mit geaenderter Testdatei meldet Luecken der Pruefbereiche als Hinweis (#1719)
+- Neue Kommandos areas suggest und areas compare schlagen Pruefbereiche vor und gleichen sie ab (#1718)
+- Das Kit leitet Pruefbereiche aus der Messung ab und gleicht eine eingerichtete Zuordnung ab (#1717)
+- Das Kit liest aus einem Pruefkommando, welche Testdateien es faehrt, oder nennt es nicht beurteilbar (#1716)
+- Die Messung der Verflechtung liest TypeScript und Java, auch gemischt (#1715)
+- Die Messung der Verflechtung wird der mitgelieferte Teil kit/checks/ und trennt laedt und nennt (#1714)
+- Der Nacht-Runner loescht seine Protokolle nach einer Frist (#1696)
+- Regeltext, Plan-Regeln und Doku nennen den Halt nach der Pruefung und den Neustart am Plan (#1704)
+- Stopp-Frage am Plan unbeaufsichtigt in den Plan, /techplan nennt den Halt nach der Pruefung (#1703)
+- Halt-Kommentar ohne Pruefung von Hand, vorgefundene Review-Stufe haelt an der offenen Frage (#1702)
+- Neustart am Plan: die Kette prueft einen durch die Antwort geaenderten Plan vor dem Schnitt erneut (#1701)
+- Die Nacht-Kette haelt an einer offenen Frage im Plan erst nach der Pruefung an (#1700)
+- Pruefstand am Plan: schreiben, lesen und erkennen, ob die Antwort den Plan geaendert hat (#1699)
+- Ein Helfer schreibt die Vermerke der Nacht-Kette und wirft nie (#1698)
+- testfaelle.mjs list zeigt Fortschritt je Datei und bricht eine haengende Datei ab (#1709)
+- Seitenleiste der Doku nennt den Prozess in acht Schritten (#1708)
+
+## [5.2.1] - 2026-10-14
+- Doku zum Aufwandsbericht nennt Rechner und Median je Pruefkommando (#1691)
+- Werkzeug haelt die Testfaelle einer Pruefgruppe fest und vergleicht zwei Staende (#1690)
+- Aufwandsbericht nennt je Pruefkommando den Median einer vollstaendigen Ausfuehrung (#1689)
+- Aufwandsbericht weist jeden Rechner getrennt aus und zeigt die Werkzeugbasis je Stufe (#1688)
+- Ergebnisstand nennt Rechner, Teillauf und Uebernahme (#1687)
+- Werkzeugzeit-Beobachter folgt der echten Form des Session-Stroms (#1686)
+- Skill local-check entfernt: Update räumt die Kopie, Skill-Zahl siebzehn, Abschlusstest (#1679)
+- Ausführliche Doku ohne lokale Prüfung, mit Format-Fix und Mutationstest am neuen Ort (#1678)
+- Prozessseite und WSL2-Anleitung ohne lokale Prüfung, mit Prüflauf von Hand (#1677)
+- Prozess auf acht Schritte umnummeriert: Vorlage, Skills, Board-Marker, Schema (#1676)
+- Leitplanken der Prüfungen in die Vorlage, Aufstellung der Regeln mit neuem Ort (#1675)
+- push-main fragt vor jedem Veröffentlichen nach den Oberflächenänderungen des Stands (#1674)
+- Mutationstest einmal nachgelagert in checks.mjs run --stage push, Ergebnis in der Nacht-Vorbereitung (#1673)
+- Nachformatieren in checks.mjs run an der Paketstufe, ohne eigenen Fix im Nacht-Runner (#1672)
+- Regeltext, Fachplan-Regeln und Doku nennen das Warten auf ein Ereignis (#1666)
+- /techplan nennt das Warten, /groom und /issue-review erhalten die Wartezeile (#1665)
+- Nacht-Kette prüft das Warten beim Kettenstart erneut (#1664)
+- Nacht-Kette überspringt wartenden Fachplan und den Plan zu ihm (#1663)
+- Kommando issue hold setzt und hebt das Warten, check-form meldet es (#1662)
+- Wartezeile im Fachplan: Register, Leser und Schreiber, Schutz in /groom (#1661)
+
+## [5.2.0] - 2026-10-14
+- Sonar auf kit-pruefung läuft nur mit und blockiert push main nicht (#1683)
+- Sonar-Analyse auf kit-pruefung bekommt den Zweignamen (#1682)
+- Triage lädt die Anhänge einer kanban-kit-Karte in die Ideen-Ablage (#1681)
+- Historische Seite regeln-im-werkzeug: Kopfzeile mit Stand (#1670)
+- Einstellungs-Referenz: Wertebereiche, Bedingung der reviewStages-Vorgaben, Namensprüfung im Fließtext (#1669)
+- Toolbox-Adapter: kein alter Titel im PUT, fehlende Karte fällt aus der Zuordnung (#1668)
+- Test: Zuordnung je Adapter-Instanz über zwei Methoden (#1667)
+- Sonar auch auf kit-pruefung, kurzlebiger Zweig gegen main (#1578)
+- Einstiegsseite neu, Sidebar auf die neuen Seiten, Wortsumme scharf (#1660)
+- Seite Nachtbetrieb mit Nachtlauf, Nacht-Kette, Laufstand und Aufwand (#1659)
+- Einrichtungsseite mit Installation, Config, Tracker und Aktualisieren (#1658)
+- Prozessseite um Vorgeschichte, Prüflauf, Issue-Review und Plan-Format ergänzen (#1657)
+- Prozessseite mit allen Skills, Durchlauf und PO-Schleife (#1656)
+- Nebenseiten der Doku im Wortbudget und ohne Geschichte neu schreiben (#1655)
+- Historische Seiten aus der aktuellen Doku in eine eigene Sidebar-Gruppe verschieben (#1654)
+- Nachschlagewerk der Einstellungen auf eigener Seite mit einem Satz je Einstellung (#1653)
+- Toolbox-Adapter schreibt und verschiebt Einzelkarten ohne Kartenliste (#1651)
+- Toolbox-Adapter liest Einzelkarten per by-number statt Kartenliste (#1650)
+
+## [5.1.2] - 2026-10-13
+- Nacht-Kette gleicht einen Plan ohne fachliche Anforderung gegen den Plan ab und berichtet das (#1648)
+- Nacht-Kette nimmt einen Plan ohne fachliche Anforderung als eigene Wurzel auf (#1647)
+- Regeltexte und Doku: ein Plan ohne fachliche Anforderung kann nachts laufen (#1646)
+- Szenario-Zeilen mit Komma zählen, und die Grooming-Prüfung weist ungültige Szenarien ab (#1626)
+
+## [5.1.1] - 2026-10-13
+- Prozesstext und Doku nennen den Weg einer Idee über /triage (#1632)
+- /techplan, /requirement und /task nehmen eine Idee aus /triage an (#1631)
+- Skill /triage spricht eine Idee durch und bringt sie auf ihre Bahn (#1630)
+- issue triage --finish verschiebt die Vorlage und löscht die Ablage einer Idee (#1629)
+- Kommando issue triage liest Einstieg, Ablage und geklärten Stand einer Idee (#1628)
+- Leser des geklärten Stands und neue feste Zeilen für /triage (#1627)
+- Fester Zeitpunkt im Testhelfer berichtMitPlanBody (#1610)
+- Prüfrolle architektur-bestand meldet einen nicht erklärten Vertrag (#1617)
+- Stopp-Klasse nennt Verträge, /techplan, /issues und /issue-review führen sie (#1616)
+- Kommando code contract-repo holt den gebauten Stand des Partnerrepos (#1615)
+- Config-Feld vertragsRepos nennt das Partnerrepo eines Projekts (#1614)
+- P14 im Plan-Register und in der Doku, Korrekturauftrag darf die Vertragsfrage schreiben (#1613)
+- Plan-Gate P14: Verträge mit dem anderen Repo in fester Form (#1612)
+
+## [5.1.0] - 2026-10-13
+- Retro zählt Pakete, die die Nacht-Kette selbst nach Ready zieht, als vierte Gruppe (#1607)
+- check-form trennt Szenarien-Prüfung und Stichtag-Hinweis in zwei Schalter (#1606)
+- Vorgabe Englisch für neue Projekte (#1474)
+- Konfigurationsänderungen durch installer 5.0
+
+## [5.0.1] - 2026-10-13
+- Test ablauf-night-klaeren misst den Labelnamen am Register (#1604)
+- issue report zieht nur mit Commit, der die Karte nennt (#1584)
+- Testgruppe install/tools/sync nicht mehr jedem Bereich zuordnen (#1582)
+- Plan-Gate P13: neue Namen und kopierte Strukturen auf ihre Folgen prüfen (#1581)
+- W2: --no-verify wie Force-Push nur auf explizite Einzelanweisung (#1575)
+- Doku (DE/EN): Szenarien-Pflicht im Fachplan mit Beispiel, Gate F12 und Stichtag szenarienAb beim Update (#1596)
+- Szenario im Arbeitspaket und im Abschlussbericht (#1595)
+- Skills requirement, techplan, issue-review und Prüfrolle kennen die Szenarien (#1594)
+- Nacht-Kette: kein Plan aus einem pflichtigen Fachplan ohne Szenarien (#1593)
+- Grooming: /groom ergänzt fehlende Szenarien, issue questions meldet ihren Stand (#1592)
+- Stichtag: Kommando scenarios baseline, Installer setzt szenarienAb beim Update (#1591)
+- Gate F12: issue check-form und issue create weisen einen Fachplan ohne Szenarien ab (#1590)
+- Teil szenarien: Register, Stichtag-Feld szenarienAb und Leser für den Abschnitt Szenarien (#1589)
+- Label kit:clarified zeigt am Board, dass keine PO-Frage offen ist (#1587)
+- Version 5.0.0 und Release-Schritt für die Liste eingebauter Kommandos (#1574)
+- Übrige Doku-Seiten und README nennen nur englische Namen (#1573)
+- Doku: Namenstabellen englisch, Tabelle alt → neu, Zusage zu den deutschen Namen entfällt (#1572)
+- Regeltext, Vorlagen, Prüfrollen und Agenten nennen nur englische Namen (#1571)
+- Update nennt die Stellen, die der Mensch selbst ändern muss, mit Tabelle alt → neu (#1570)
+- Update: Hooks englisch ersetzen, alte Skill-Ordner löschen, Installer-Optionen englisch (#1569)
+- Skills schreiben feste Zeilen über board.mjs names, /push-main prepare (#1568)
+- Skills: englische Beschreibung, nur englische Namen im Text, kein eingebautes Kommando (#1567)
+- Eine Fassung je Skill: session-start und kit-review, Alias-Skills und en/skills entfallen (#1566)
+- night.mjs nimmt nur --chain, --check und --watcher an (#1565)
+- checks, worktree und board-ui nehmen nur englische Namen an (#1564)
+- Kommando settings: Code zieht nach kit/settings.mjs, Download heißt settings.mjs (#1563)
+- Kommandos effort und effectiveness: Code zieht in die englischen Dateien, nur englische Namen (#1560)
+- Kommando findings: Code zieht nach kit/findings.mjs, nur englische Namen (#1559)
+- Neues Kommando board.mjs names gibt die festen Zeilen in der Projektsprache aus (#1558)
+- board.mjs nimmt nur englische Namen an und weist deutsche mit Hinweis ab (#1557)
+- Alle Aufrufer von board.mjs auf die englischen Namen umstellen (#1556)
+- board.mjs: englische Namen fuer issue questions, --compare und Auswahlwerte (#1555)
+- Config-Vorgaben nennen englische Labelnamen (#1554)
+- Nachtlauf und Texte schreiben Labels, Praefixe und Skill-Namen englisch (#1553)
+- Board-Teil schreibt Labels und Titel-Praefixe englisch, erkennt beide (#1552)
+- Build-Dienst: Push-Auslöser auf main entfernt (#1414)
+- Doku: Abschnitt Vorgeschichte in DE und EN (#1544)
+- Regel und Skills: Vorgeschichte in /requirement, /techplan und /issue-review (#1543)
+- check-form: Hinweis bei fehlendem Abschnitt zur Vorgeschichte (#1542)
+- Nachtbericht nennt Widersprüche zur Vorgeschichte aus dem Plan (#1541)
+- Prüfauftrag mit Vorgeschichte: gefundene Fachpläne vollständig an die vier Dokument-Rollen (#1540)
+- Kommando issue vorgeschichte: frühere Fachpläne suchen, zusammenführen und begrenzen (#1539)
+- Toolbox-Adapter: Suche, Einzelabruf nach Nummer und Herkunftskette (#1538)
+- Schalter vorgeschichte: Schema, englischer Name, Überschrift und Feldreferenz (#1537)
+- Config und Doku: ablauf-night-* beim Abschluss nur bei direkter Berührung des Nachtlaufs (#1533)
+- Einstellungen: Befund und bereichsFolgen für abschlussBereiche (#1532)
+- Auswahl beim Abschluss: abschlussBereiche lässt einen Eintrag bei direkter Berührung laufen (#1531)
+- Feld abschlussBereiche: Schema, englischer Name, Feldreferenz und Config-Prüfung (#1530)
+
+## [4.2.4] - 2026-10-12
+- /groom in Regeltext, Doku und Nachbar-Skills (#1515)
+- Skill /groom mit Skill-Zahl und Kurzanleitung (#1514)
+- Kommando issue fragen: Grooming-Stand eines Fachplans lesen (#1513)
+- Grooming-Modul, Teil 2: Body-Prüfung und Vergleich von Kriterien und Nicht-Zielen (#1512)
+- Grooming-Modul, Teil 1: offene Fragen lesen, Einstieg und Stopp-Kommentar (#1511)
+- Texttabellen ziehen nach kit/texte/: Module unter kit/board/ (#1526)
+- Texttabellen ziehen nach kit/texte/: Module unter kit/night/ (#1525)
+- Texttabellen ziehen nach kit/texte/: Teil anlegen und Einzeldateien (#1524)
+- push main frischt die installierte Kopie nach dem Nachziehen auf (#1523)
+
+## [4.2.3] - 2026-10-12
+- Versionsstempel lösen beim Nachweislauf keine Bereiche aus (#1521)
+- Schnelle Prüfungen laufen vor den gleichzeitigen (vorab) (#1519)
+- Englische Fassungen der Prüfrollen und des Prüfers kit-pruefer (#1509)
+- Englische Fassungen der Vorlagen CLAUDE-Fachplan.md und CLAUDE-Plan.md (#1508)
+- Englische Fassung des Regeltexts CLAUDE-workflow.md (#1507)
+- Englische Fassungen von local-check und review (#1506)
+- Englische Fassungen von implement-test und implement-done (#1505)
+- Englische Fassungen von implement-next und implement-ready (#1504)
+- Englische Fassungen von issues, task und issue-review (#1503)
+- Englische Fassungen von requirement, techplan und plan (#1502)
+- Doku (DE/EN): Skills, Befehle und Einstiegsdateien mit beiden Namen (#1472)
+- Englische Fassungen von context, retro, document, fachplan und kontext (#1469)
+- Englische Fassungen von push-main und merge-production (#1468)
+
+## [4.2.2] - 2026-10-11
+- Prompts an Sessions in der Projektsprache (#1471)
+- Doku (DE/EN): Meldungen, Berichte und Marker in der Projektsprache (#1459)
+- Freitextfelder des Melders zweisprachig (#1454)
+- Berichte zweisprachig: kit/night/bericht.mjs und kit/night/abhaengigkeiten.mjs (#1450)
+- Meldungen zweisprachig: kit/worktree.mjs (#1499)
+- Meldungen zweisprachig: kit/befunde.mjs (#1498)
+- Meldungen zweisprachig: kit/wirksamkeit.mjs (#1497)
+- Meldungen zweisprachig: kit/checks.mjs, Teil 3 (#1496)
+- Meldungen zweisprachig: kit/checks.mjs, Teil 2 (#1495)
+- Meldungen zweisprachig: kit/checks.mjs, Teil 1 (#1494)
+- Meldungen zweisprachig: kit/night/kette.mjs, Teil 3 (#1493)
+- Meldungen zweisprachig: kit/night/kette.mjs, Teil 2 (#1492)
+- Meldungen zweisprachig: kit/night/kette.mjs, Teil 1 (#1491)
+- Meldungen zweisprachig: kit/night/kitstand.mjs (#1490)
+- Meldungen zweisprachig: kit/night/session.mjs, Teil 2 (#1489)
+- Meldungen zweisprachig: kit/night/session.mjs, Teil 1 (#1488)
+- Meldungen zweisprachig: kit/night/wartend.mjs (#1487)
+- Meldungen zweisprachig: kit/night/laufstand.mjs und kit/night/tag.mjs (#1486)
+- Meldungen zweisprachig: kit/night/grundlagen.mjs (#1485)
+- Meldungen zweisprachig: kit/night.mjs (#1484)
+- Meldungen zweisprachig: grundlagen, testhinweise, ursprung, wiederholung (#1483)
+- Meldungen zweisprachig: kit/board/geschuetzt.mjs und kit/board/schutz.mjs (#1482)
+- Meldungen zweisprachig: kit/board/issue-review.mjs und kit/board/hook.mjs (#1481)
+- Meldungen zweisprachig: kit/board/adapter.mjs (#1480)
+- Meldungen zweisprachig: kit/board/dokumente.mjs, Teil 2 (#1479)
+- Meldungen zweisprachig: kit/board/dokumente.mjs, Teil 1 (#1478)
+- Englische Hilfe von board.mjs nennt Laufstempel und Laufstand neutral (#1477)
+- Meldungen zweisprachig: kit/board.mjs (#1477)
+- Doku nennt beide Namen der Labels und Titel-Präfixe, kit:klaeren/kit:clarify u. a. (#1433)
+- Skills requirement und context, fachplan und kontext als Weiterleitung (#1463)
+- fachplan, techplan und task legen Dokumente mit --art an (#1432)
+- Nachtlauf nennt Kit-Labels im Namen der Projektsprache (#1429)
+- issue label add|remove bildet Kit-Labels auf die Projektsprache ab (#1428)
+- issue create und issue check-form mit Option --art (#1427)
+- push main pusht auf den Prüfzweig mit vollem Referenznamen (#1518)
+
+## [4.2.1] - 2026-10-11
+- Englische Unterkommandos und Optionen in kit/board.mjs (#1461)
+- Lokale Board-Oberfläche zweisprachig, Teil 2: kit/board-ui.mjs ab renderMarkdown (#1501)
+- Lokale Board-Oberfläche zweisprachig, Teil 1: kit/board-ui.mjs bis vor renderMarkdown (#1500)
+- Test des Nachtberichts mit fester Uhrzeit statt mit der Uhr (#1476)
+- sprachfassungen.mjs prüft die Paare unter en/ (#1465)
+- Spiegel en/ als Blobs, Installer legt Skills und Regeltexte je Sprache ab (#1464)
+- Englische Befehlsnamen und englische Einstiegsdateien der Kit-Werkzeuge (#1462)
+- Formgates und Abschnittsparser erkennen englische Formatüberschriften (#1460)
+- Commit-Gate gate.mjs und pre-commit zweisprachig (#1458)
+- Einstellungsoberfläche zweisprachig: Texte, lang-Attribut, Befundtexte (#1456)
+- Meldungen des Installers zweisprachig (#1455)
+- Meldungen zweisprachig: kit/aufwand.mjs und kit/preise.mjs (#1452)
+- Doku: Abschnitt Sprache mit Einstellungsnamen language/sprache und install --language (#1444)
+- Zurückgelesene Marker werden unter beiden Namen erkannt (#1443)
+- Einstellungsoberfläche zeigt englische Namen in einem englischen Projekt (#1441)
+- Register der zurückgelesenen Marker und gemeinsamer Texthelfer (#1440)
+- Englische Config-Referenz nennt englischen Namen und deutschen Altnamen (#1439)
+- install.mjs --language en|de stellt ein Projekt um (#1438)
+- sync-blobs bettet config-namen in kit/einstellungen.mjs ein (#1437)
+- Rohleser der Config lesen über normalisiereConfig (#1436)
+- loadConfig und ladeConfigMitOverrides normalisieren vor dem Mischen (#1435)
+- Namenspaare der Einstellungen: kit/board/config-namen.mjs mit normalisiereConfig (#1434)
+- Einstellungsoberfläche zeigt die Projektsprache (#1431)
+- Installer fragt neue Projekte zuerst nach der Sprache (#1430)
+- Strukturiertes Feld grundArt statt Freitext-Erkennung im Melder (#1426)
+- Nachtlauf erkennt Kit-Labels unter beiden Namen (#1425)
+- Schutz im KI Repository angeschmissen
+- Freigaberechte gelten unter beiden Labelnamen (#1424)
+- Titel-Präfixe werden unter beiden Namen erkannt (#1423)
+- Namen-Register kit/board/namen.mjs und Spracheinstellung language (#1421)
+
+## [4.2.0] - 2026-10-10
+- CI des Kits läuft mit Node 24 statt Node 20 (#1419)
+
+## [4.1.1] - 2026-10-10
+- Test der Rundenauswertung liest nicht mehr die Prüf-Zusammenfassung der Projektwurzel (#1418)
+- Doku (DE/EN): Schutz des Hauptzweigs, --schutz, Notfallweg, code schutz (#1412)
+- Build-Dienst des Kits: Lauf der Stufe push auf dem Prüfzweig kit-pruefung (#1411)
+- Skills und Regeltext: /push-main notfall und Prüfzweig-Push in /merge-production (#1410)
+- Installer: Schutz-Vorschlag bei GitHub und Modus --schutz (#1409)
+- CLI code schutz mit Probe: status, einrichten, aussetzen, wiederherstellen, nachpruefen (#1408)
+- Neues Modul kit/board/schutz.mjs: Zustand, Ruleset-Soll, Anleitung, Notfall-Gate, Nacht-Sperre (#1407)
+- Code-Host-Adapter: Ruleset-Operationen und Zweigfilter für getCiStatus (#1406)
+- Doku: Wackelnde Prüfungen einmal wiederholt (DE/EN) (#1403)
+- Regeltext und implement-Skills: einmalige Wiederholung, Wackler, Messgrenze (#1402)
+- push main und merge production: Halt mit Rückfrage nach einem Wackler (#1401)
+- Vorbereitung der Nacht: Wackler als offener Punkt für push main (#1400)
+- Nachtbericht: gewackelte Prüfungen mit Zahl der Fälle nennen (#1399)
+- Wirksamkeit: Wackler zählen, Reparaturkandidaten kennzeichnen (#1398)
+- Prüfläufe: Wackler je Karte in der Zusammenfassung fortschreiben (#1397)
+- Prüfläufe: rote Prüfung einmal wiederholen (#1396)
+- Skills, Regeltext und Doku: das festgefahrene Paket (#1393)
+- Melder: Ausgang festgefahren als RED/CHECKS_RED an den Leitstand (#1392)
+- Nachtbericht, Kette und Schlusszeile zeigen den Ausgang festgefahren (#1391)
+- Nacht-Runner: Ausgang festgefahren mit Stash, Vermerk und Backlog (#1390)
+- Nacht-Runner: Sitzung bei Bremsmarke vorzeitig beenden (#1389)
+- checks.mjs: festgefahrene Prüfung zählen und unbeaufsichtigt bremsen (Exitcode 3) (#1388)
+- Config: Feld night.festgefahrenNach in Schema, Einstellungen, Vorlage und Referenz (#1387)
+- Doku und Changelog: Prüfer nur lesend (kit-pruefer), Rollen als Dateien unter kit/rollen/ (#1384)
+- Schalter: /issue-review und /review prüfen über kit/rollen/, pruefauftrag und kit-pruefer (#1383)
+- befunde pruefen meldet keine-pruefer ohne Reviewer-Kopf (#1382)
+- issue-review start mit Lesegrenze; check und roles melden Lesegrenze und Rollendateien (#1381)
+- issue-review pruefauftrag: Prüfauftrag aus Rollendatei montieren (#1380)
+- Config-Felder lesegrenze und reviewLesegrenze, Reviewer-Paar als Gruppe (#1379)
+- Rückfallebene der Review-Stufen auf die Rollen aus ROLLEN_KATALOG (#1378)
+- Rollen und Leser-Agent ausliefern: sync-blobs, Installer, Kit-Stand (#1377)
+- Prüfrollen als Dateien unter kit/rollen/ und Leser-Agent kit-pruefer (#1376)
+
+## [4.1.0] - 2026-10-08
+- Wächtertest läuft bei jeder geänderten Testdatei mit (#1374)
+- Release-Arbeitsbaum: Prüflauf und Push ohne cd und ohne Symlink-Pfad (#1372)
+- Kopfzeile Ablauf-Pruefung in test/docs-sprachfassungen.test.mjs ergänzen (#1373)
+- Zweisprachige Doku aktivieren: Locales, Weiterleitung, Schalter (#1370)
+- Sprachwahl merken und Fußzeile je Sprache (#1369)
+- Dokumentation auf Englisch, Teil 9: Issue-Tracker bis Lizenz (#1368)
+- Dokumentation auf Englisch, Teil 8: Laufstand bis Was bewusst nicht im Kit ist (#1367)
+- Dokumentation auf Englisch, Teil 7: Geschützte Datei bis Nacht-Kette (#1366)
+- Dokumentation auf Englisch, Teil 6: Nachtbetrieb bis Permissions (#1365)
+- Dokumentation auf Englisch, Teil 5: Drei Bahnen bis Prüflauf (#1364)
+- Dokumentation auf Englisch, Teil 4: Skills bis Mitteilungen (#1363)
+- Dokumentation auf Englisch, Teil 3: Oberfläche und Alle Einstellungen (#1362)
+- Dokumentation auf Englisch, Teil 2: Die Config-Datei (#1361)
+- Dokumentation auf Englisch, Teil 1: Konzept bis Vault (#1360)
+- Restliche kleine Seiten und historische Hinweisseiten auf Englisch (#1359)
+- Seiten lokal, regeln-im-werkzeug und pruefbereiche auf Englisch (#1358)
+- Glossar und Einstiegsseiten auf Englisch (#1357)
+- Englische Einstellungs-Referenz aus config-referenz.mjs (#1356)
+- Prüfwerkzeug für Sprachfassungen und Schalter englischAktiv (#1355)
+
+## [4.0.1] - 2026-10-08
+- Doku-Tests auf Skillzahl und Sidebar-Anker der Doku-Seite ausdehnen (#1340)
+- future aus der Probeliste genommen
+- Wurde geändert beim groomen
+- Aufwandsauswertung um Verteilung je Laufart und Aufgabenstufe erweitern (#1339)
+- Konzeptdokumente nach konzepte/ verschieben und historische Texte markieren (#1338)
+- Modell-IDs der Config-Vorlage vereinheitlichen und gegen die Preistabelle prüfen (#1337)
+- Sidebar und Beschreibung der Doku-Seite auf sechzehn Skills korrigieren (#1336)
+- Erweiterungsdokument für Version 5.0
+
+## [4.0.0] - 2026-10-08
+- Natives Windows wird ab 4.0.0 nicht mehr unterstützt; Umzug nach WSL2: docs.mwolff.org/wsl2#umzug-von-nativem-windows (#1276)
+- Kette hält den Stand der Ursprungsdokumente nach der Umsetzungsstufe fest (#1290)
+- Nachtbericht: Abschnitt Ursprungsdokumente für Ketten unter Variante B (#1289)
+- Bau-Skills nennen die gewanderten Ursprungsdokumente aus issue melden (#1288)
+- issue move und Rettungs-Session ziehen die Ursprungsdokumente nach (#1287)
+- issue melden zieht die Ursprungsdokumente nach und meldet sie im Abschlussbericht (#1286)
+- Auswertung der Ursprungsdokumente und Kommando issue ursprung (#1285)
+- Regeltext: Ursprungsdokumente wandern nach In review, wenn der Plan durch ist (#1284)
+- Prüfkommandos erben die Umgebung des Nachtlaufs nicht (#1282)
+- Wartende Menschenschritte im Laufstand und unter Ausgang (#1281)
+- Test zu parallelen Prüfläufen weist fehlende Sperre über einen Treffpunkt nach (#1278)
+- Rest-Durchsicht: letzte Windows-Erwähnungen außerhalb des Installers (#1275)
+- Release und CI ohne Windows-Prüfung (#1274)
+- Werkzeug windows-brueche samt Fixtures, Tests und buildCheck entfernt (#1272)
+- kit/board: Programmstart ohne Git Bash, PATHEXT und startbefehlFuer (#1271)
+- kit/night: Prozessgruppe, Sitzungssuche und Baum-Abbruch ohne Windows-Zweig (#1270)
+- kit/night: Session- und Kommandostart ohne Git Bash (#1269)
+- kit/checks.mjs ohne Windows-Zweige bei Shellstart und Prozessbaum-Abbruch (#1268)
+- TMPDIR-Rückfall /tmp statt cygpath, CI-Gate ohne windows-latest (#1267)
+- Anleitung „Windows über WSL2“ und Plattformsatz macOS, Linux, WSL2 (#1266)
+- Jede Kette liest Ziel und Startkennzeichen beim eigenen Start frisch (#1263)
+
+## [3.8.0] - 2026-10-07
+- Der Puls des Nacht-Runners wird atomar geschrieben (#1262)
+
+## [3.7.1] - 2026-10-06
+- Regeltext und Dokumentation beschreiben Ziel-Labels, planreview und die Vorbereitung der Veröffentlichung (#1255)
+- Die Nacht-Kette bereitet die Veröffentlichung am Ende des Laufs vor und meldet das Ergebnis an jeder Karte (#1254)
+- /push-main bereitet nachts ohne Push vor und übernimmt morgens einen unveränderten Stand (#1253)
+- Review-Stufe der Kette gibt planreview als KIT_PLAN_REVIEWER an die Session (#1252)
+- Laufstand und Nachtbericht zeigen Ziel, Projektgrenze und das Ende am Ziel (#1251)
+- Die Vorbereitung wartet befristet, bis in der Nacht nichts mehr baut (#1250)
+- Ziel einer Karte bestimmt Variante und Ende der Nacht-Kette (#1249)
+- Laufmeldung traegt releasePreparation und meldet nach einer Abweisung ohne das Feld nach (#1248)
+- Uebergang umsetzungVorbereitung und Frist vorbereitungMin in Runner, Schema und Einstellungen (#1247)
+- worktree.mjs haelt eine vorbereitete Veroeffentlichung fest und prueft morgens ihre Uebernahme (#1246)
+- issue-review roles uebernimmt die Prueferzahl der Stufe plan aus KIT_PLAN_REVIEWER (#1245)
+- Auswahl der Nacht-Kette liest Ziel und Prueferzahl und lehnt unpassende Einstellungen ab (#1244)
+
+## [3.7.0] - 2026-10-06
+- CI unter Node 20 und Windows wieder gruen nach der Nacht-Zerlegung (#1261)
+- Rechnerweite Pruefsperre entfernt (#1241)
+- Testparallelitaet bleibt bei 2 (#1239)
+- Testparallelitaet je Kommando auf 3 (#1239)
+- Der Lastbeleg gleicht die Kopie nach der Referenzaenderung ab (#1257)
+- board.mjs startet hinter dem Proxy nur fuer den Toolbox-Tracker neu (#1259)
+- night-43 schreibt seine Meldungen in ein eigenes Verzeichnis (#1258)
+- Pruefkommandos erben den Sperrpfad des Laufs nicht mehr (#1256)
+- lastbeleg: Kopie-Verzeichnisse vor sync-blobs anlegen (#1239)
+- Doku-Seite zu Pruefbereichen, abhaengigen Bereichen und Ablauf-Pruefungen (#1238)
+- tools/lastbeleg.mjs: wiederholbares Belegverfahren fuer parallele Prueflaeufe (#1237)
+- Waechter scharf schalten und Teilzuordnung festschreiben (#1236)
+- Uebrige Testdateien leicht machen oder als Ablauf-Pruefung begruenden (#1235)
+- Nacht-Teil kit/night/tag.mjs auslagern und Nacht-Zerlegung abschliessen (#1234)
+- Tests des Nacht-Teils kette im selben Prozess (#1233)
+- Nacht-Teil kit/night/kette.mjs auslagern (#1232)
+- Nacht-Teil kit/night/wartend.mjs auslagern (#1231)
+- Nacht-Teil kit/night/bericht.mjs auslagern (#1230)
+- Tests des Nacht-Teils session im selben Prozess (#1229)
+- Nacht-Teil kit/night/session.mjs auslagern (#1228)
+- Nacht-Teil kit/night/abhaengigkeiten.mjs auslagern (#1227)
+- Nacht-Teil kit/night/kitstand.mjs auslagern (#1226)
+- Nacht-Teil kit/night/laufstand.mjs auslagern (#1225)
+- kit/night.mjs wird Einstieg, erster Teil kit/night/grundlagen.mjs (#1224)
+- Board-Teil kit/board/hook.mjs auslagern und Board-Zerlegung abschliessen (#1223)
+- Board-Teil kit/board/melder.mjs auslagern (#1222)
+- Board-Teil kit/board/issue-review.mjs auslagern (#1221)
+- Board-Teil kit/board/testhinweise.mjs auslagern (#1220)
+- Board-Teil kit/board/geschuetzt.mjs auslagern (#1219)
+- Board-Teil kit/board/dokumente.mjs auslagern (#1218)
+- Board-Teil kit/board/adapter.mjs auslagern (#1217)
+- Voller Lauf vor push main wahlweise im Build-Dienst (#1216)
+- Board-Teil kit/board/wiederholung.mjs auslagern (#1215)
+- Hinweis auf Pruefkommandos, die jedem Bereich zugeordnet sind (#1214)
+- Tests von aufwand, befunde und wirksamkeit im selben Prozess (#1213)
+- Tests der Pruefgruppe pruefungen im selben Prozess (#1212)
+- kit/board.mjs wird Einstieg, erster Teil kit/board/grundlagen.mjs (#1211)
+- Waechter fuer leichte Pruefungen und begrenzte Testparallelitaet je Kommando (#1210)
+- sync-blobs und Installer verteilen die Teilverzeichnisse kit/night/ und kit/board/ (#1209)
+- Die Pruefzuordnung leitet abhaengige Bereiche aus dem Importgraphen ab (#1208)
+- Die Kette haelt ein vorhandenes Stufenergebnis nicht mehr fuer eine wartende Sitzung (#1207)
+- Ein Start raeumt Kit-Staende erst nach bestandenen Vorpruefungen ab (#1200)
+- Vorlage und Dokumentation beschreiben nebeneinander laufende Runner (#1191)
+- Zwei Starts in derselben Sekunde bekommen verschiedene Stempel, ein wartender Bericht geht genau einmal ans Board (#1190)
+- Der Prueflauf beansprucht seine Wurzel und setzt einen Laufstand (#1189)
+- Die Kette beansprucht ihre Wurzel am Board mit Bestaetigung (#1188)
+- wurzelBelegt erkennt, ob ein lebender Runner eine fachliche Wurzel hält (#1187)
+- Der Laufstand trägt Lauf-ID, Stand und Position, und das Journal kennt abgegeben (#1186)
+- Eine Kette wartet auf eine belegte Umsetzung, statt sie auszulassen (#1185)
+- Die Umsetzungssperre wird atomar genommen und nur vom Eigentümer freigegeben (#1184)
+- Ein Start räumt keine Arbeitskopie und keinen Kit-Stand ab, deren Runner noch lebt (#1183)
+- checks.mjs legt die Ausgabe roter Kommandos als Datei ab (#1196)
+- Belegfall 5 im Schrittprotokoll-Test wartet unter Last lang genug (#1197)
+- Der Nacht-Runner weist sich bei jedem Board-Aufruf mit seiner Laufkennung aus (#1194)
+- Vorschläge nur noch für prüfbare Mangel-Arten, und die Reviewer-Rolle wird gebucht (#1182)
+- Eine neue Datei ohne Muster erbt die Bereiche der Dateien, die sie importieren (#1181)
+- I8 lässt einen als (nur genannt) gekennzeichneten geschützten Pfad durch (#1179)
+- Die Abschlussprüfung fährt zwei Gruppen gleichzeitig und reine Blob-Änderungen berühren den Installer nicht (#1178)
+- Die Prüfsperre wartet auf ein fremdes Projekt nur kurz und sagt, wer sie hält (#1177)
+- buildChecks und formatFixCommand laufen unter Windows über die Git Bash (#1176)
+- Dokumentation: buildChecks laufen unter Windows über die Git Bash (#1175)
+- Nacht-Runner vermerkt unter Windows, wenn er die Prozesse der Session nicht abfragen kann (#1174)
+- Zwei Tests räumen unter Windows erst auf, wenn ihre Prozesse beendet sind (#1173)
+- Bestandstest der Windows-Brüche legt den verbotenen Namen auch unter Windows an (#1172)
+- Vor-Push-Schritt erkennt fehlenden Vorab-Zweig auch bei deutschem git (#1171)
+- Ein Paket, das auf einen Push wartet, sagt es am Board, und die Bilanz zählt es (#1170)
+- Test-Repos per git init übernehmen die LF-Regel der .gitattributes (#1168)
+- Kit-Code zerlegt Datei- und Prozessausgabe an /\r?\n/ (#1167)
+- Tests starten sh über posixShell() statt wörtlich (#1166)
+- Eingebaute Windows-Brüche erscheinen bei jedem Lauf an allen drei Meldeorten (#1164)
+
+## [3.6.1] - 2026-10-04
+- windows-brueche.mjs erkennt Test-Ersatzprogramme ohne Windows-Hülle (#1163)
+- windows-brueche.mjs erkennt Zeilenende-Brüche (#1162)
+- windows-brueche.mjs erkennt Prozess- und Signal-Brüche (#1161)
+- windows-brueche.mjs erkennt Dateinamen- und Modus-Brüche (#1160)
+- windows-brueche.mjs erkennt Kommando-Brüche in Code und Skills (#1159)
+- windows-brueche.mjs erkennt Pfad-Brüche (#1158)
+- windows-brueche.mjs prüft den Bestand statisch, erste Art: Plattform-Skips (#1157)
+- Nacht-Runner und Abschlussberichte geben Hinweis-Zeilen weiter (#1156)
+- checks.mjs kennt Hinweis-Prüfungen, die melden und nie anhalten (#1155)
+- push main fährt den Vor-Push-Schritt aus RELEASING.md vor der Veröffentlichung (#1154)
+- windows-pruefung.mjs --vorab wartet vor dem Push auf die Windows-Prüfung des fertigen Commits (#1153)
+- Die gehostete Prüfung fährt Windows auch für den Vorab-Zweig windows-vorab (#1152)
+- code ci-status nennt je Job den Startzeitpunkt (#1151)
+- Eine Abhängigkeit ist erfüllt, sobald sie nicht mehr in Backlog, Ready oder In progress liegt (#1149)
+- Sechs Test-Fixtures prüfen unter Windows dieselbe Zusage (#1146)
+- Die Fake-CLIs der Kommentar-Tests greifen unter Windows (#1145)
+- Hängende Sessions enden unter Windows samt den Prozessen mit ihrer Marke, die Tests erwarten die Windows-Meldungen (#1144)
+- Die Kommando-Stufe übergibt unter Windows Programmpfad und Argumente unverändert an die Git Bash (#1143)
+
+## [3.6.0] - 2026-10-03
+- Das Hilfsskript der Hänge-Tests bricht die Testsuche nicht mehr (#1142)
+- README und Dokumentation sagen Windows mit Git Bash zu, die Anweisungen fangen ein leeres TMPDIR ab (#1139)
+- Kein Test überspringt sich mehr wegen Windows, ein Wächtertest hält das fest (#1138)
+- Der GO-Commit der Board-Oberfläche startet git ohne Shell (#1137)
+- checks.mjs und install.mjs nehmen Node-Fakes für git und glab über Test-Hooks (#1136)
+- board.mjs startet Reviewer- und Board-CLIs unter Windows auch als npm-Skript-Hülle (#1135)
+- Night-Tests ueber die Ketten- und Kit-Stand-Fixtures laufen unter Windows (#1134)
+- Night-Tests mit lokaler NUR_POSIX-Konstante laufen unter Windows (#1133)
+- Der Nacht-Runner beendet unter Windows hängende Sessions samt Prozessbaum (#1132)
+- Die Kommando-Stufe des Nacht-Runners läuft unter Windows über die Git Bash (#1131)
+- Die Windows-Prüfung der CI meldet sich beim nächsten Arbeitsschritt im Kit-Repository (#1129)
+- Die Hänge-Tests des Prüfwerkzeugs laufen unter Windows grün (#1127)
+
+## [3.5.3] - 2026-10-02
+- Das Kit-Stand-Fixture hält unter Windows LF wie das Repo (#1125)
+- Die Sperrliste erkennt absolute Windows-Pfade unter der Projektwurzel (#1124)
+- Das Prüfwerkzeug startet und beendet Kommandos unter Windows ohne Prozessgruppe (#1123)
+- Zwei Nacht-Tests laufen ohne KIT_AGENT_MODEL in der Umgebung (#1118)
+
+## [3.5.2] - 2026-10-02
+- Der frische Checkout zählt todo-Tests nicht als rot und kennt die Einstellungsdateien (#1120)
+- Vorlage und Dokumentation beschreiben kit:geschuetzt, das neue Gate und I7 bis I9 (#1055)
+- Der Runner fängt eine Session auf, die an einer geschützten Datei scheitert und keinen Halt vermerkt (#1051)
+- Pakete, die auf einen Push warten, sagen es, und die Dokumentation nennt den festen Kit-Stand (#1104)
+- Der Kit-Stand steht an jedem Kommentar des Laufs und im Nachtbericht (#1103)
+- Der Vorflug-Auftrag sagt, woran die Session Exit-Code 0 erkennt (#1107)
+- Unbeaufsichtigte Läufe arbeiten mit dem Kit-Stand des letzten Pushs (#1102)
+- befunde vorschlag legt eine neue Idee an, wenn die vermerkte Vorschlagskarte fehlt (#1100)
+- Die Abdeckungs-Session bekommt keinen Auftrag mehr, ans Board zu schreiben (#1106)
+- Ohne Eintrag in night.kette.uebergaenge setzt kit:durchziehen wieder um (#1105)
+- /issues und /task trennen geschützte Änderungen als [Mensch]-Karte heraus (#1054)
+- Die implement-Skills halten ein Paket mit geschützter Datei vor dem Start und im Rückfall an (#1053)
+- issue auftrag urteilt über geschützte Dateien mit der Folge geschuetzt (#1052)
+- Der Runner unterscheidet den Halt an einer geschützten Datei von einer Stopp-Frage (#1050)
+- Die Formstufe der Kette korrigiert I7, lässt I8 aber zur Umsetzungsstufe durch (#1049)
+- Die Umsetzungsstufe der Kette vermerkt angehaltene und abhängige Pakete am Board (#1048)
+- Die Vorschau des Nacht-Runners meldet das Gate für geschützte Dateien wie der echte Lauf (#1047)
+- Der Nacht-Runner hält ein Paket mit geschützter Datei vor dem Start an (#1046)
+- issue check-geschuetzt meldet Treffer, Freigabe und den Halt-Kommentar eines Pakets (#1045)
+- issue check-form weist Pakete ohne Dateipfad, mit geschützter Datei oder mit installierter Kopie ab (#1044)
+- Das Kit erkennt geschützte Pfade in Aufgabe und Akzeptanzkriterium eines Pakets (#1041)
+- Tests für ungedeckte Wege: Vorflug, Prüflauf-Ausgänge, Argumente der Oberfläche (#1096)
+- Toolbox-Verlauf gleichzeitig, S9382-Stellen begründet, Duplikat aufwand/wirksamkeit deklariert (#1095)
+- Die Dokumentation zeigt je Belegfall den Kartenstand und den Weg nach vorn (#1091)
+- Jeder Schritt hat sein Protokoll, und Vorabprüfung wie Halt stehen im Laufstand (#1090)
+- Ein gescheitertes Paket hält nur sich und seine Abhängigen an, seine Reste landen im Stash (#1089)
+- Ein Umgebungsfehler des lebenden Laufs bekommt einen Versuch, danach hält der Lauf sichtbar an (#1088)
+- Das Projekt gibt die Übergänge der Kette einzeln frei (#1087)
+- Jede Kettenstufe erkennt ihr vorhandenes Ergebnis, und kit:night setzt bei der ersten offenen Stufe an (#1086)
+- Ein Wächter macht einen verstummten Nachtlauf nach der Frist am Board sichtbar (#1085)
+- Der Nachtlauf führt ein Journal, gibt Lebenszeichen und hinterlässt beim Abbruch einen Stand (#1084)
+- issue stand setzt Label und Laufstand-Kommentar einer Karte in einem Zug (#1083)
+- Regeltext und Dokumentation beschreiben den Laufstand (#1082)
+- Ohne Aufsicht weist der Hook Hintergrundarbeit ab (#1081)
+- checks.mjs run bricht eine hängende Prüfung ab und meldet sie als hängend (#1077)
+- Laufzeit-Tests prüfen Wachstum statt fester Millisekunden und halten Last aus (#1080)
+- Der Test, der in der Gruppe auf stdin wartet, hängt nicht mehr (#1076)
+- Skills, Vorlage und Dokumentation erklären, was der Nachtlauf als Abhängigkeit liest (#1065)
+- Probelauf zeigt Herkunft, Dokument-Verweise und Kreise der Abhängigkeiten (#1064)
+- Nachtlauf meldet Kreise in den Abhängigkeiten als eigenen Befund (#1063)
+- Rückstell-Kommentar nennt Herkunft und Dokument-Verweis jeder Abhängigkeit (#1062)
+- check-form, create und update zeigen, was der Nachtlauf als Abhängigkeit liest (#1060)
+- Formstufe der Kette kommentiert nur echte Testhinweise (#1059)
+- Abhängigkeits-Lesung liefert je Nummer Herkunft und Textstelle (#1058)
+- Testgruppen laufen gleichzeitig, nach gemessener Dauer zugeschnitten (#1074)
+- Nachtbericht und Wirksamkeit zeigen Abschluss-Wartezeit und gleichzeitig gemessene Dauern (#1073)
+- checks.mjs run fährt nach einem roten Abschluss zuerst die zuletzt roten Prüfungen (#1072)
+- Achse gleichzeitig: gekennzeichnete Prüfungen laufen in checks.mjs run gleichzeitig (#1071)
+- checks.mjs run fährt Kommandos asynchron, ohne das Verhalten zu ändern (#1070)
+- checks.mjs run weist Wartezeit des Laufs und Summe je Karte aus (#1069)
+- Prüfgruppen zurück auf den groben Zuschnitt bis #1040 (#1068)
+- Nacht-Runner übersteht langsame Leitungen: Board-Aufrufe mit Nacht-Budget und 30 s je Versuch (#1067)
+- Frischer Checkout als Pflichtprüfung der Push-Stufe (#1039)
+- Prüfwerkzeug frischer Checkout mit Befund je Testdatei (#1038)
+- Spur-Einstieg für fehlende Dateizugriffe im frischen Checkout (#1037)
+- worktreeAnlegen bekommt den Schalter spiegeln (#1036)
+- techplan, Plan-Register und Doku beschreiben die Testhinweise (#1034)
+- Nacht-Runner kommentiert verbliebene Testhinweise am Plan (#1033)
+- Config-Feld testAblagen in Schema, Einstellungen und Referenz (#1032)
+- check-form meldet Testhinweise für ungenannte Tests eines Plans (#1031)
+- Aufwandsauswertung weist Auskunftszeit aus und misst Transkripte mit aufwand.mjs auskunft (#1027)
+- Nacht-Runner misst je Einheit die Zeit für Board-Auskünfte und ihr Aufbereiten (#1026)
+- Umsetzungs-Skills holen den Auftrag und melden mit je einem Board-Aufruf (#1025)
+- issue auftrag ergänzt Plan-Entscheidungen, fachlichen Anlass und Geschwister mit Spalte (#1024)
+- issue auftrag liefert Aufgabe, Voraussetzungen und das Urteil darf beginnen in einem Zug (#1023)
+- issue melden legt den Abschlussbericht je Lauf idempotent ab und zieht nach In review (#1022)
+- Board-Adapter liefern Kommentar-IDs, lesen streng und ersetzen Kommentare (#1021)
+
+## [3.5.1] - 2026-09-29
+- Befunde-Vorschläge nur in der Hauptkopie, Prüflauf holt Befunde zurück (#1028)
+- Kit-Skripte mit Board-Zugriff in der Sandbox-Doku (#1016)
+- Zuschnitt der Prüfkonfiguration mit board als gekoppeltem Bereich (#1008)
+- Installer fragt ein neues Projekt nach seinen Bereichen (#1009)
+- Config-Feld gekoppelteBereiche in Schema, Einstellungen und Referenz (#1007)
+- implement-Skills und Prozessvorlage übernehmen den Berichtsblock wortgetreu (#1006)
+- Wirksamkeits-Auswertung zeigt den Abschnitt Bereiche (#1005)
+- checks.mjs protokolliert den Auslöser und bietet den Unterbefehl bereiche (#1004)
+- checks.mjs run bildet die Berichtszeilen samt Dauer, Grund und Obergrenze (#1003)
+- merge production prüft nur, was push main nicht geprüft hat (#1000)
+- Prüfsperre räumt nur eine gelesene, kaputte Sperre ab (#999)
+- Kleine Änderungen in der Konfiguration
+
+## [3.5.0] - 2026-09-29
+- board.mjs erreicht das Board auch hinter dem Sandbox-Proxy (#998)
+- Fünf Sonar-Befunde in kit/ und tools/ behoben (#997)
+- CI und Release-Worktree installieren die Abhängigkeiten vor den Prüfungen (#996)
+
+## [3.4.0] - 2026-09-29
+- Ein Hook weist Kit-Aufrufe mit Pipe oder Umleitung ab, bevor die Sandbox sie schluckt (#995)
+- Nachtlauf startet mit Opus 5.5 (night.modell)
+
+## [3.3.8] - 2026-09-29
+- Das Modell des Nachtlaufs kommt aus der Config, und die Preistabelle kennt Opus 5.5 (#994)
+- Zeitlimit hochgesetzt
+- Zeitlimit hochgesetzt
+
+## [3.3.7] - 2026-09-28
+- Vorflug probt Reviewer ohne Pipe, damit excludedCommands wieder greift (#986)
+- Doku und Prozessvorlage beschreiben den Zeitabbruch ohne Ursachenbehauptung (#982)
+- Die implement-Skills melden Fortschritt und kennen den zweiten Vermerk-Anker (#981)
+- Der Kettenbericht nennt die Pakete ueber der Sitzungszeitgrenze (#980)
+- Jedes Arbeitspaket sagt beim Zerlegen, ob es in eine Sitzung passt (#979)
+- Die Auswertung zeigt, wie viele Umsetzungen die Zielmarke reissen (#978)
+- Ein Zeitabbruch steht mit Stand und Empfehlung an der Karte (#977)
+- Der Zeitabbruch-Vermerk entsteht als reine Funktion mit dem wirksamen Zeitlimit (#976)
+- Der Nachtlauf liest die Fortschrittszeilen einer Sitzung live aus ihrem Strom (#975)
+- Eine Karte, die nur ein Mensch erledigen kann, startet keine Session (#984)
+- Wer auf einen Hintergrundlauf wartet, erkennt einen toten Lauf (#983)
+- Jede Lint-Regel nennt ihre Fundklasse und ihren Anlass (#970)
+- Die Prozessbeschreibung verweist auf die Lint-Konfiguration (#971)
+- Der Kopf der Lint-Konfiguration sagt, wann eine Fundklasse zur Regel wird (#969)
+
+## [3.3.6] - 2026-09-28
+- Der zweite Schritt des Linters laeuft mit (#965)
+- Die Basisregeln des Linters laufen mit (#400)
+- Der frische Worktree stellt seine Abhaengigkeiten selbst her (#964)
+- Eine Idee hat genau zwei Wege, und sie stehen ueberall gleich (#962)
+- Ein Stromereignis wird an einer Stelle gelesen, nicht an drei (#960)
+- Gleichzeitige Prueflaeufe auf einer Maschine laufen nacheinander (#958)
+
+## [3.3.5] - 2026-09-27
+- Die Salvage-Vorpruefung schreibt den Nachweis, den das Commit-Gate liest (#919)
+- I6 erkennt Mutations-Vollläufe auch über Projekt-Treiber und aufhebende Entscheidungen (#942)
+- Die Verflechtungserhebung sieht den Arbeitsstand, nicht nur den Commit (#957)
+- Der Linter faengt .sort() ohne Vergleich, bevor Sonar es tut (#956)
+- Der Worktree-Abbau gelingt auch aus dem Worktree heraus (#955)
+
+## [3.3.4] - 2026-09-26
+- Prozesstext und Doku beschreiben den Abschlussumfang (#953)
+- Die implement-Skills rufen den Prueflauf mit --abschluss (#952)
+- Die Wirksamkeit weist die mittlere Pruefzeit je Karte aus (#951)
+- Der Nacht-Runner faehrt denselben Abschlussumfang (#950)
+- Die Einstellungen kennen die Achse nichtBeimAbschluss (#949)
+- Das Ausfuehrungsprotokoll fuehrt Anlass, Lauf und Karte (#948)
+- Der rote Prueflauf vor dem Push nennt die Verursacher (#947)
+- Der Abschlusslauf laesst Pruefungen mit nichtBeimAbschluss aus (#946)
+
+## [3.3.3] - 2026-09-26
+- Die Verflechtung unterscheidet Geruest von Kopplung (#943)
+- Die Invariante deckt wieder nur kit/ und tools/ (#937)
+- Die Doku nennt neun Teile und kein kit/** mehr (#937)
+- Die Bereiche werden Quell-Einheiten, die Invariante deckt alles (#936)
+- Die Dateien ohne Zuordnung bekommen eine (#935)
+- Die pruefungsfreie Zuordnung ohnePruefung (#934)
+- Die Nacht-Sessions laufen im auto mode (#940)
+- Kein Bereich beansprucht mehr das ganze Werkzeugverzeichnis (#933)
+- Die Verflechtung von Test und Quelle wird erhoben (#931)
+- push main und merge production laufen im eigenen Worktree (#929)
+- Der Umsetzungspfad liest den Kartenzustand an der Karte (#927)
+- Beantwortete PO-Fragen brauchen die Keine-Zeile (#921)
+
+## [3.3.2] - 2026-09-25
+- Die Befunde aus dem Code-Review des Batches sind eingearbeitet
+- Beide Berichte weisen Prueflaeufe und Zielmarke aus (#926)
+- Die Umsetzungs-Skills nennen den sanktionierten Gruppenlauf (#925)
+- Der Runner zaehlt die Prueflaeufe einer Umsetzung (#924)
+- Die Zielmarke fuer eine Umsetzung steht in der Konfiguration (#923)
+- Die Pruefung sammelt alle Dateien ohne Zuordnung und kennt den Bereichslauf (#922)
+- Eine Kette ohne ausgefuehrte Umsetzung heisst nicht gelungen (#862)
+
+## [3.3.1] - 2026-09-25
+- Die Kette nimmt keine Anforderung mit offenen Fragen auf (#916)
+- Der Reviewer-Prompt nennt die Form der Gegenprobe (#915)
+- Der Prueflauf bekommt sein Kapitel in Prozesstext und Dokumentation (#910)
+- Der Prueflauf laeuft: node .claude/kit/night.mjs --pruefen (#909)
+- Jeder Lauf raeumt nur Worktrees seines eigenen Praefixes ab (#908)
+- Der Prueflauf erkennt sein Ergebnis am Unterschied der Board-Spuren (#907)
+- Der Prueflauf waehlt seine Kandidaten (#906)
+- Der Prueflauf bekommt den Einstellungsblock pruefLauf (#905)
+- Das Bash-Limit der Nacht-Session bleibt unter dem Rundenzeitlimit (#902)
+- Ein Akzeptanzkriterium verlangt keinen Mutationslauf (#901)
+- Das Aufraeumen des Wegwerf-Repos kippt den Windows-Lauf nicht mehr (#892)
+- Der CI-Guard laeuft nur noch am Tor main (#891)
+- Die letzten zwei Sonar-Befunde verschwinden (#879)
+- checks-8 raeumt unter Windows den Prozessbaum ab (#874)
+- Prozessdoku und Skills nennen den Plan als zweite Auftragsart (#898)
+- Die Leitstandsmeldung laesst die uebernommene Plan-Stufe aus (#897)
+- Halt und Bericht der Kette gehen an die gekennzeichnete Karte (#896)
+- Die Nacht-Kette nimmt einen gekennzeichneten Plan als Auftrag an (#895)
+- Der Runner erkennt einen startbereiten Plan an zwei reinen Proben (#893)
+- Die Doku nennt alle Faelle eines Laufs ohne Arbeit (#888)
+- Die Umsetzungsnacht nennt ihren Fall statt zu schweigen (#887)
+- Der Umsetzungs-Lock unterscheidet belegt von Schreibfehler (#886)
+- Der Lauf bildet seine Gruende ohne Arbeit an einer Stelle (#885)
+- Der Runner meldet seinen harten Stopp mit Grund (#881)
+
+## [3.3.0] - 2026-09-24
+- Die Kette laeuft neben einer unsauberen Hauptkopie (#878)
+- ..
+
+## [3.2.1] - 2026-09-24
+- Die Regexe ohne Backtracking-Risiko (#877)
+- Sonar-Stilpflege in night, board, befunde, aufwand und wirksamkeit (#876)
+- Sonar-Stilpflege in kit/einstellungen.mjs (#875)
+
+## [3.2.0] - 2026-09-23
+- Der Windows-Job der CI wird wieder gruen (#873)
+- Die drei String-Sortierungen tragen eine Vergleichsfunktion (#872)
+- Salvage-Session faehrt auch bei --verbose no ueber den Strom (#871)
+
+## [3.1.2] - 2026-09-23
+- Live-Verlaufsprotokoll des Nacht-Runners ist der Normalfall (#867)
+- ..
+- ..
+- Kleine Änderungen an der Konfiguration
+- Kleine Änderungen an der Konfiguration
+- claude 5.5 eingefügt
+
+## [3.1.1] - 2026-09-22
+- Pruefnachweis gilt nur zum Commit des Pakets (#865)
+- Bytegleichheits-Test gegen .claude/CLAUDE-workflow.md entfaellt (#864)
+- checks.mjs uebernimmt sein Ergebnis auf unveraendertem Stand (#863)
+- Aufstellung docs/regeln-im-werkzeug.md: welche Regel von /local-check wohin wanderte (#861)
+- Bedien-Regeln verlassen den Text von /local-check (#860)
+- Salvage-Vorpruefung kennt die Fehlermerkmale wie checks.mjs (#859)
+- checks.mjs prueft die Ausgabe selbst auf Fehlermerkmale (#858)
+- checks.mjs: Die Pruef-Zusammenfassung begleitet den Lauf (#857)
+- Massstab 'Regel im Text oder Regel im Werkzeug' in der Prozessvorlage (#856)
+- Konfiguration, Aufwand für die Implementierung im Nachtbetrieb eingestellt
+
+## [3.1.0] - 2026-09-22
+- Blob von checks.mjs in install.mjs nachgezogen (#850)
+- Eingrenzung im Kit: sechs Teile, drei Testaufrufe und ein Schutztest (#850)
+- Die Push-Stufe faehrt wie die Merge-Stufe den vollen Umfang (#849)
+- Aufwandsbericht je Aufgabenstufe und Gruendlichkeit (#848)
+- Aufgabenstufen als Auswahl je Stufe statt JSON-Text (#847)
+- Gruendlichkeit der Stufe als --effort an die Session (#846)
+- Gruendlichkeit je Aufgabenstufe als Feld effort (#845)
+- Die fuenf langsamsten Testdateien thematisch geteilt (#836)
+- Kurzes Wiederholbudget fuer Prozess-Tests per KIT_TOOLBOX_BUDGET_MS (#842)
+- Volle Testsuite nur einmal ueber checks.mjs run (#835)
+
+## [3.0.1] - 2026-09-22
+- Wiederholung, Idempotenz-Schluessel und drei Rueckmeldungen in board.mjs (#834)
+- Installer erkennt das eigene Commit-Gate auch bei absolutem core.hooksPath (#833)
+- befunde auswerten: Code-Zahlen auch je Art (#806)
+- befunde auswerten und befund: Bericht, Lauf-Abschluss und dritter Block in /push-main (#806)
+- Buchung verdrahten: /issue-review Schritt 6 und /push-main vor dem Commit (#805)
+- befunde vorschlag: Idee am Board, Vorschlagsstand und Ablehnung (#804)
+- Nacht-Kette: befundeZurueck als Rueckweg aus dem Worktree (#803)
+- befunde buchen: Protokoll .claude/befunde.tsv und Vergleichsstand der Code-Stufe (#802)
+- Fundblock in den Prompts von /issue-review und /review (#801)
+- Einstellungen: optionaler Block befunde mit der Schwelle (#800)
+
+## [3.0.0] - 2026-09-22
+- Worktree-Spiegel ohne Pfadvergleich, damit er unter Windows filtert (#832)
+
+## [2.0.7] - 2026-09-22
+- SDD-Rueckbau 5: Doku und specs/ entfernen (#831)
+- SDD-Rueckbau 3: Nacht-Runner ohne Vorhaben-Notizen, SYNC-Kommentare (#829)
+- SDD-Rueckbau 4: Einstellungs-Oberflaeche und Schema ohne spec-Block (#830)
+- SDD-Rueckbau 2: spec.mjs, Gate in board.mjs und Installer entfernen (#828)
+- Regeltext und Skills ohne Spec-Driven Development (#827)
+- Kleinkram aus dem Review: Spiegel-Filter, Zeitlimit, Schema-Grenzen, Doku-Abgleich (#824)
+- Funde in Listen erkennen, leere Gegenprobe melden (#823)
+- Ausfuehrungsprotokoll maskieren, Fenster ohne Stack-Grenze und mit Obergrenze (#822)
+- Aufwands-Auswertung rechnet nur mit gemessenen Werten (#821)
+- Zeiten je Einheit: offene Schuebe nicht als 0, Salvage summiert (#820)
+- Warte-Erkennung: abgeschlossene Hintergrundarbeit und Go-Test richtig einordnen (#819)
+- Salvage-Prompt prueft Sauberkeit mit den Ausnahmen von gitReste() (#818)
+- Ungueltige Prozentwerte rot, Salvage wertet die Marke (#817)
+- Umbenennen auf belegten Namen abweisen, Reviewer-Pflichtfelder pruefen (#816)
+- Pruefstufen-Redaktor: fehlerhafter Bestand, Katalogrollen, Befunde an der Zeile (#815)
+- Einstellungs-Oberflaeche haelt Entwuerfe, Vorschau-Timer und Eingabefelder je Teil (#814)
+- Nacht-Runner meldet Budgets, Herkunft, Stufen, Modellzeit und Zuege ans Board (#808)
+
+## [2.0.6] - 2026-09-21
+- Spec-ID auf night-63 umgestellt, night-52 vergab v2.0.3 (#772)
+- Kennzahlen einer Stufe mit Korrekturrunden summieren (#807)
+- kit/befunde.mjs mit arten und pruefen, Spec-Bereich befunde, Verteilung durch den Installer (#799)
+- Regeltext haelt die Form eines Befunds fest (#798)
+- Der Halt-Ablauf bei einer Stopp-Frage gilt ohne Ausnahme (#770)
+- Nacht-Sessions starten ohne das Auto-Memory des Menschen (#772)
+
+## [2.0.5] - 2026-09-21
+- Spec-IDs auf night-61 und board-19 umgestellt, night-59 und board-17 vergab v2.0.4 (#794)
+- Kettenlauf meldet sich nach jeder Stufe (#794)
+- docs.mwolff.org wieder baubar machen und v2.0.2/v2.0.3 nachdokumentieren (#792)
+
+## [2.0.4] - 2026-09-21
+- Nacht-Runner ruft die Wirksamkeits-Auswertung (#790)
+- Config-Block wirksamkeit: Schema, Referenz und einstellungen.mjs (#789)
+- Ruecklaeuferquote in kit/wirksamkeit.mjs (#788)
+- kit/wirksamkeit.mjs: Auswertung und Befund der Pruefungs-Kennzahlen (#787)
+- Bewegungsprotokoll und Verlaufs-Sammelabfrage in board.mjs (#786)
+- Ausfuehrungsprotokoll: checks.mjs schreibt je Pruefung eine Zeile (#785)
+- Rest-Guard, Worktree-Spiegel und .gitignore kennen die vier neuen Dateien (#784)
+- Regeltext: Wirksamkeit der Pruefungen und der zweite Befund in /push-main (#783)
+
+## [2.0.3] - 2026-09-21
+- Auswertung zaehlt die wartend beendeten Sitzungen (#779)
+- Wartende Sitzung in den Stufen der Nacht-Kette (#778)
+- Wartende Sitzung bei unsauberem Arbeitsbaum: beide Salvage-Fehlschlaege tragen den neuen Ausgang (#777)
+- Wartende Sitzung bei sauberem Arbeitsbaum: Grund, Vermerk und Feld (#776)
+- Bausteine der wartenden Sitzung: Erkennung, Grund und Vermerk (#775)
+- Nachtbetrieb-Regel: keine Session endet mit laufender eigener Arbeit (#774)
+
+## [2.0.2] - 2026-09-21
+- specs/night.md: die zwei falsch belegten Zeilen night-43 und night-44 entfernt (#766)
+- Doppelte Spec-IDs night-43 und night-44 aufgeloest (#766)
+- Abgrenzung zu mutationCommand und die Doku der Guetemessung (#765)
+- Der Anteil wird sichtbar: Protokollzeile der Nacht und vier Pruefregeln (#764)
+- checks.mjs: die Guetemessung auswerten und an der Marke messen (#763)
+- Regeltext und Schema: der guete-Block mit Muster und Marke (#762)
+- Abschluss Stufe A: Pruefregel fuer stufe und die Dokumentation (#761)
+- night.mjs: Salvage-Vorpruefung und Start-Guard an der Paketstufe (#760)
+- Die Skills nennen ihre Stufe: push-main, merge-production und die Paketstufe (#759)
+- checks.mjs: --stufe, kumulative Rangfolge und die Ankuendigung (#758)
+- Regeltext und Schema: die Stufenangabe stufe an buildChecks (#757)
+- Auswahl der Modelle auf best möglich gestllt
+- Auswahl der Modelle auf best möglich gestllt
+- Der Befund wird sichtbar: Abschlussblock im Laufprotokoll und /push-main (#752)
+- Der Config-Block aufwand: Schema, Prüfung, Oberfläche und Doku (#751)
+- specs/aufwand.md und specs/installer.md: aufwand-1, aufwand-2, installer-11 nachgezogen (#750)
+- kit/aufwand.mjs: Auswertung, Schwellen, Befund (#750)
+- specs/night.md: night-44 bis night-46 nachgezogen (#749)
+- Der Ergebnisstand traegt Zeiten, Cache-Teilung und den vollen Pruefstand (#749)
+- specs/night.md: night-43 nachgezogen (#748)
+- night.mjs misst die Werkzeugzeit am Session-Strom (#748)
+- specs/checks.md: checks-4 nachgezogen (#747)
+- checks.mjs misst die Dauer je Prüfkommando (#747)
+- Regeltext und Spec-Bereich: der Rahmen fuer die Aufwands-Auswertung (#746)
+- Lauf ohne Arbeit meldet seinen Grund am Lauf-Kopf (#744)
+- Nachtlauf meldet seinen Beginn vor dem ersten Arbeitspaket (#743)
+- Salvage bewegt das Board erst bei sauberem Arbeitsbaum und meldet drei Endzustaende (#672)
+- qwen auch aus den Paarungen entfernt
+
+## [2.0.1] - 2026-09-18
+- Dokumentation der neuen Einstellungs-Oberflaeche und Abschluss der Spec-Wirkung (#732)
+- M7 Einfache Gruppen: ein Feld je Eintrag und persoenliche Abweichung je Zeile (#731)
+- M6 Nacht-Kette: Zahlenfelder mit Einheit, blasse Vorgabewerte und die Summe der Zeitbudgets (#730)
+- M5 Spezifikation: Einschalten ohne Ausschalter, Testorte als Muster und Beispiel am Verweis-Muster (#729)
+- M4 Pruefkommandos und Bereiche: drei Laufarten, Formtreue und Folgen einer Umbenennung (#728)
+- M3 Pruefstufen: Zaehler, Rollenauswahl aus dem Katalog und Beispielbesetzung (#727)
+- M1 Reviewer und M2 Paarungen samt Folgen als eine Aenderung (#726)
+- Oberflaechen-Rahmen: Bausteine, Arbeitskopie je Teil, Fuss und Bedienelemente (#725)
+- Stufen in workflow.config nachgezogen
+- Vorschau-Endpunkt: Befunde, Aenderungsliste und abgeleitete Anzeigen ohne Schreiben (#724)
+- Zuschnitt der Einstellungen in Teile samt Rueckfall auf die Dateischreibweise (#723)
+- Pruefteil der Oberflaeche: Warnung, Rollenkatalog, Reviewer-Wahl, Vorgaben (#722)
+
+## [2.0.0] - 2026-09-18
+- Doppelte Spec-IDs des Batches auf night-33 bis night-42 aufgeloest (#736)
+- Hook-Block und Installer melden die Sitzung von selbst (#735)
+- Sitzungs-Melder fuer den interaktiven Verbrauch (#734)
+- Wegmarken beim Verschieben einer Karte (#733)
+- Nutzerdokumentation: review:fertig als Voraussetzung der Nacht-Kette (#720)
+- Nacht-Kette: Kommentar am ungeprueften Fachplan und Hinweis auf fehlendes Kennzeichen (#719)
+- Nacht-Kette: Fachplan ohne review:fertig wird uebersprungen (#718)
+- Regeltext: review:fertig als Voraussetzung der Nacht-Kette (#717)
+- Nutzerdokumentation zu Aufgabenstufen, lokalem Modell und Nacht-Kette (#715)
+- Skills schneiden mit Stufe: /issues, /task, /implement-ready und /implement-next (#714)
+- Nachtbericht unter Variante B: Stufe und Modell je umgesetztem Paket (#713)
+- Vorschau und Vorflug: Stufe und Modell vor dem Lauf sichtbar (#712)
+- Stufenweg in laufeRunde: Modellwahl je Paket, frische Einstellung, Felder im Ergebnisstand (#711)
+- Session-Start ueber ein Programm der Stufe: Kommando-Zweig in runSession (#710)
+- Stufenwahl im Nacht-Runner: Aufgabenstufe, Einstellung, Ausweichen nach oben (#709)
+- night.stufen und night.stufenRegel: Schema und Konfigurationsprüfung (#708)
+- Gui Entwürfe eingecheckt
+- Nutzerdokumentation zu Variante B: beide Koernungen des GO und die fuenfte Stufe (#698)
+- Nachtbericht und Ergebnisstand unter Variante B: Variante, Paketlisten, Entscheidungen (#697)
+- Der Umsetzungs-Lock: Kette und Umsetzungsnacht bauen nicht gleichzeitig (#696)
+- Die Stufe umsetzung: Pakete einzeln ziehen, umsetzen und zurueckstellen (#695)
+- Variantenerkennung der Nacht-Kette: varianteVon und die Weiche in der Stufenfolge (#694)
+
+## [1.53.5] - 2026-09-17
+- Test zu skills-28: Ausnahme fuer Variante B in acht Skills (#700)
+
+## [1.53.4] - 2026-09-17
+- CLAUDE.md: Quelle unter kit/, installierte Kopie unter .claude/ wird nie bearbeitet
+- Config-Felder fuer Variante B: varianteBLabel, umsetzungMin, kostenUsdB (#693)
+- Bindende Quelle: Ausnahmesatz fuer Variante B in Regeltext und acht Skills (#692)
+- Windows-CI: zwei Tests mit falscher Pfadannahme korrigiert (#689)
+
+## [1.53.3] - 2026-09-17
+- Nacht-Runner: Board-Ausgaben ueber 1 MB brechen die Kette nicht mehr ab (#699)
+- qwen aus Konfiguration entfernt
+
+## [1.53.2] - 2026-09-16
+- /issues liest uebernommene Review-Funde gegen (#687)
+- Schlussmeldung eines Vorhabens nennt zuerst Sichtbares und Fehlendes (#686)
+- Stopp-Klasse: Abweichung vom fachlichen Anlass als Punkt 6 (#685)
+- Plan-Review liest fachliche Quelle und Vorlage mit (#684)
+- Vorlage als Spur durch Fachplan, Plan und Arbeitspakete (#683)
+- /retro weist Pakete der Nacht ohne Einwand als fuenfte Kennzahl aus (#680)
+- Einstellungs-Oberflaeche als Download ueber docs.mwolff.org (#679)
+- Oberflaeche der Einstellungen in den Farben der Kupferwarte (#678)
+- Lokaler Server der Einstellungs-Oberflaeche mit Absicherung (#677)
+- Kern der Einstellungs-Oberflaeche: Pruefung, Ebenen, minimaler Schreiber (#676)
+- Schema bereinigen, Einstellungs-Referenz der Doku daraus erzeugen (#675)
+- Runner erfasst den Verbrauch je Einheit und liefert ihn ein (#669)
+- Budgets der Kette aus den Defaults im Lauf sichtbar (#659)
+
+## [1.53.1] - 2026-09-16
+- Board-Adapter liest den Aktivitaetsverlauf ueber die Kanban-Route (#670)
+- Fachartikel über Umbau workflow-kit
+- implement-next und implement-ready nennen das empfohlene Modell (#667)
+- /issues schreibt das empfohlene Modell in das Arbeitspaket (#666)
+- Nacht-Runner startet jede Session mit dem Modell ihrer Karte (#665)
+- night.modelle: Liste erlaubter Modellnamen (#664)
+- Release-Weg: ein Lauf, ein Commit (#658)
+- Wartende Session gilt dem Runner nicht mehr als gescheitert (#668)
+- Neues Konzept für workflow-kit 2.0
+- Qwen als zusätzlichen Reviewer einbinden
+- version.mjs rechnet den Bump ab dem committeten Stand (#656)
+- changelog.mjs bekommt die Option --marke mit lokalem Datum (#657)
+- checks.mjs run stempelt den Zeitpunkt in die Zusammenfassung (#655)
+- Abbruch der Review-Stufe hinterlaesst einen Vermerk am Plandokument (#654)
+- Der Ueberholt-Kommentar der Kette wird zurueckgelesen (#653)
+- /kontext blendet Vorhaben ohne Arbeitspakete aus (#651)
+- Umbenennung: beschriebenes Verhalten wird Spec-Driven Development (#465)
+- merge-production prueft den CI-Status vor dem Release-PR (#316)
+- Zeiten für Reviews erhöht
+- /kontext begrenzt die letzten Entscheidungen auf den juengsten Tag (#649)
+- /kontext gibt vom Spec-Index nur noch die Hinweiszeile aus (#648)
+- /kontext zeigt nur laufende Vorhaben und keine Arbeitspakete (#647)
+- CI gruen: Doku-Test ohne Installer-Kopie, Worktree-Test ohne CRLF-Annahme (#650)
+
+## [1.53.0] - 2026-09-14
+- chore: Spec fortgeschrieben; Vorhaben-Notizen gesichert (#639 #640 #641 #642 #643 #644 #645 #646 #620 #618)
+- Nacht-Runner stoppt vor der ersten Session bei ungueltiger settings.json (#618)
+- Nacht-Runner startet Sessions mit geschlossenem stdin (#620)
+- Doku und Prozessdatei: zwei Betriebsarten, Abschnitt Nacht-Kette, Skill-Hinweis auf --kette (#646)
+- Nacht-Runner: Nachtbericht am Fachplan, wartende Berichte, Kette nicht gestartet (#645)
+- Nacht-Runner: Kette bis zu den Paketen, Abdeckung gegen den Fachplan, ueberholte Plaene (#644)
+- Nacht-Runner: Modus --kette bis zum geprueften Plan mit Budgets, Halt und Ergebnisstand (#643)
+- Nacht-Runner: cwd-Durchreichung, Worktree-Funktionen, Strom je Session und Config-Block night.kette (#642)
+- Board-Adapter: Synthese, label-sync, reviewZustand und Pruefvorgabe entfernen, rounds und statusLabels aus der Config (#641)
+- Nacht-Runner: Review- und Erzeugungsmodus entfernen, alte Flags abweisen, Gate auf Marker kuerzen (#640)
+- issue-review setzt review:fertig als sichtbare Spur am Board (#639)
+- Änderungen der Prüfer
+- Kurzanleitung und Startseite auf sechzehn Skills (#606)
+
+## [1.52.3] - 2026-09-14
+- chore: Spec fortgeschrieben (#625–#634)
+- retro fragt nach den Zahlen: gekippte Nachtentscheidungen, Stopp-Fragen, Anforderung bis GO, GO bis Push (#634)
+- CLAUDE-workflow.md halbiert: Pruefstufen, Pruefvorgabe, Zustandslabels und Config-Beispiel raus (#633)
+- fachplan auf den Kern: Eingang aus dem Stopp-Klasse-Halt, check-form vor dem Anlegen, kein label-sync (#632)
+- issues: Eingang ohne Marker, Entscheidungen im Kontext, check-form je Paket, kein Paket-Review (#631)
+- techplan: Entscheidungen statt offener Fragen, Stopp-Klasse, check-form vor dem Anlegen (#630)
+- issue-review auf den Kern: eine Runde, Befunde als Zuarbeit, Marker als Spur (#629)
+- board.mjs: issue check-form prueft die maschinellen Formgates je Stufe (#628)
+- implement-next/-ready: Halt nur fuer die Stopp-Klasse, sonst entscheiden und protokollieren (#627)
+- Skill /task auf den Kern: ein Satz zur Bahn, entscheiden statt fragen, kein Review-Schritt (#626)
+- Regelwerk: Abschnitt Entscheiden statt fragen mit Stopp-Klasse und Entscheidungsformat (#625)
+- Doku: Umsetzungsplan Prozess-Umbau Stufe 1
+- Config: Paket-Review kein Gate mehr, Zustandslabels aus, Plan-Review mit einem Reviewer
+- Neuer Prozess
+
+## [1.52.2] - 2026-09-11
+- chore: Spec fortgeschrieben; Vorhaben-Notizen gesichert (#572, #573, #574)
+- Einstieg Bahn 3: Skill /task, Bahn-Auswahl in techplan, Doku (#574)
+- Halt bei Abwaegungsbedarf im [Task], Spur nach /fachplan (#573)
+- Nacht-Runner: eigener Rundenausgang angehalten (#572)
+
+## [1.52.1] - 2026-09-11
+- chore: Spec fortgeschrieben; Vorhaben-Notizen gesichert (#592, #593, #594, #597, #598)
+- issue-review: Rolle synthese, drei Ausgaenge, Einhaengung in Schritt 6 (#598)
+- board.mjs: Ausschlussliste in pickReviewers, roles --rolle synthese (#597)
+- Fixtures: Befundlisten je Karte ergaenzen (#596)
+- night.mjs: fuenfter Ausgang syntheseOhneBeleg vor der Marker-Pruefung (#594)
+- issue-review: Beleg-Form, Abgleich vor der Zustimmung, Abgleich-Kommentar (#593)
+- board.mjs: Kommando issue-review synthese-check (#592)
+- board.mjs: Synthese-Parser und Beleg-Abgleich (#591)
+- Fixtures: echte Synthese/Vorschlag-Paare aus dem Board sichern (#590)
+- Review des Prozesses
+
+## [1.52.0] - 2026-09-10
+- chore: Spec fortgeschrieben (561)
+- Installer-Probe: abgelegte Vorlagen bytegleich zur Repo-Vorlage (#561)
+
+## [1.51.1] - 2026-09-10
+- chore: Spec fortgeschrieben; Vorhaben-Notizen gesichert (557, 558, 560, 583, 584, 585)
+- Transport-Test auf alle zwoelf Stellen, Nachweis am Board gefuehrt (#585)
+- Die uebrigen sieben Skills und die Adapter-Hinweise auf den Datei-Weg (#584)
+- Transportregel im Register, /issue-review auf den Datei-Weg (#583)
+- Doku: Abschnitt "Mitteilungen: glauben statt nachsehen" (#563)
+- Mitteilungen des Menschen gelten ungeprueft (#560)
+- Jeder harte Stopp hinterlegt seinen Grund als Text (#558)
+- Ergebnisstand entsteht bei jedem Lauf, nicht nur mit --verbose (#557)
+
+## [1.51.0] - 2026-09-09
+- chore: Spec fortgeschrieben (#546, #547, #548)
+- Ablageort umstellen: vorhaben schreibt wartend, push-main hebt auf (#548)
+- spec.mjs vorhaben-sichern: Aufhebe-Kommando (#547)
+- Ausschluesse fuer wartende Vorhaben-Notizen (#546)
+- Vorhaben-Notiz plan-545 committen
+
+## [1.50.0] - 2026-09-08
+- chore: Spec fortgeschrieben (#518, #521, #522, #523, #526)
+- board.mjs: Formpruefung der Spec-Wirkung beim Anlegen und Schreiben (#526)
+- docs: die naechtliche Erzeugungskette dokumentieren (#525)
+- issues: ein geprueftes Plandokument aus der Vornacht als Eingang (#524)
+- techplan: Betriebsart-Schalter fuer den unbeaufsichtigten Lauf (#523)
+- night.mjs: Ergebnisstand der Erzeugungsnacht (art erzeugung) (#522)
+- night.mjs: Erzeugungsschleife Phase 2 — Pruefrunden und Label-Verbrauch (#521)
+- night.mjs: Erzeugungsschleife Phase 1 — Session, Erfolgssignal, Fortsetzen (#520)
+- night.mjs: Kandidatenauswahl mit Marker-Eintritt und Stopp-Fragen-Pruefung (#519)
+- night.mjs: Geruest des Erzeugungsmodus mit Vorflug und ideaStored-Guard (#518)
+- Vorhaben SPECNOTIZ einchecken
+- Vorhaben-Notiz plan-510 committen
+- night.mjs: Flags --erzeuge und --erzeuge-label (#517)
+- reviewZustand: fuenfter Zustand grenze mit Label review:grenze (#516)
+- Probelauf-Test plattformehrlich machen (#527)
+
+## [1.49.0] - 2026-09-08
+- Drei ungedeckte Fehlerpfade testen (#515)
+- Fehler ist der Reviewzuordnung codex behoben
+- GPT Astra eingefügt
+- GPT Astra eingefügt
+
+## [1.48.0] - 2026-09-07
+- chore: Spec fortgeschrieben (#497, #498, #499)
+- Spec von Nachtbahn 3 committet, weil umgesetzt
+- Planungs-Skill heisst techplan, alter Name bleibt Wegweiser (#514)
+- Duplications: SYNC-Marker nachziehen, CPD-Ausschluss je Paar (#507)
+- Coverage-Abschluss: Restliste zusammenfuehren, Sonar-Kommentar nachziehen (#506)
+- Coverage tools/: acht offene Zweige in vier Scripts schliessen (#505)
+- Coverage kit/checks.mjs: 16 Zeilen und 17 Bedingungen schliessen (#504)
+- Coverage install.mjs: neun Zeilen und neun Bedingungen schliessen (#503)
+- Coverage kit/board.mjs: sechs erreichbare Zweige schliessen (#502)
+- Coverage kit/night.mjs: alle erreichbaren Klasse-1-Zweige schliessen (#501)
+- Coverage kit/spec.mjs: 27 Zeilen und 38 Bedingungen schliessen (#500)
+- A9: Dateisystem-Fallback im Installer entfernen, Abbruch bleibt (#499)
+- A7-Hook in kit/night.mjs: Nachbarpfad injizierbar, Stubs testbar (#498)
+- A7-Hooks in install.mjs: Blob-Stoerung und TTY-Entscheidung injizierbar (#497)
+- S8786 und S7747: vier Regexe entschaerft, REVIEW_MARKER_ZEILE revidiert (#496)
+- S4036: Regelausschluss fuer den Kommandoaufruf ueber den PATH (#494)
+- S2871 und S6959: benannte Vergleichsfunktion, reduce mit Startwert (#493)
+- Neue installationsversion
+
+## [1.47.0] - 2026-09-07
+- chore: Spec fortgeschrieben (#480, #481, #486, #488, #489)
+- Doku: der Nachtbetrieb-Abschnitt nennt den Ergebnisstand (#490)
+- Nacht-Runner: der Review-Lauf schreibt denselben Ergebnisstand (#489)
+- Nacht-Runner: der Ergebnisstand fuehrt Einheiten, Pruefstand und den abgeschlossenen harten Stopp (#488)
+- Nacht-Runner: leseKennzahlen holt Kosten, API-Dauer und Zuege aus dem result-Ereignis (#487)
+- Nacht-Runner: Ergebnisstand als JSON, und gitClean laesst ihn durch (#486)
+- Doku: der Installer-Abschnitt zieht beide geaenderten Fragen nach (#482)
+- Installer: die Spec-Frage nennt Spec-Driven Development beim Namen (#481)
+- Installer: die Reviewer-Frage fuehrt aus dem Widerspruch heraus (#480)
+- neue Specs
+- skills-releaseweg: nur die Quelle pruefen, nicht die gitignorierte Kopie (#472)
+
+## [1.46.0] - 2026-09-04
+- chore: Spec fortgeschrieben (469, 470, 471, 472, 473, 474, 464)
+- Register und Doku: Bahn 1 und Handcommits brauchen einen gruenen Lauf (#474)
+- Auslieferung: Hook und Gate im Installer, core.hooksPath mit Vorpruefung (#473)
+- Release-Weg: jeder Commit faehrt seinen eigenen Prueflauf (#472)
+- night.mjs: fehlender und roter Pruefnachweis machen die Runde zum Fehlschlag (#471)
+- Das Commit-Gate: .githooks/gate.mjs und pre-commit (#470)
+- checks.mjs: Blob-Hashes der geprueften Dateien in die Zusammenfassung (#469)
+- Spec-Wirkung-Leitplanke laesst Dokument-Praefixe durch (#464)
+- Specs Verzeichnis angelegt
+
+## [1.45.0] - 2026-09-02
+- Doku: Beschriebenes Verhalten in dokumentation.md und README (#454)
+- Ausbaustufe 5: Das Kit schaltet sich selbst ein (#453)
+- spec.mjs: github und gitlab tragen das beschriebene Verhalten nicht (#461)
+- spec.mjs: Anlagedatum aus dem Aktivitaetsverlauf (#460)
+- push-main: Vorschau, apply und Gate in der richtigen Reihenfolge (#452)
+- kit/spec.mjs: check --anker ist das Gate vor dem Push (#451)
+- kit/spec.mjs: apply schreibt die Beschreibung fort (#450)
+- implement-Skills: Aussage-ID in den Testnamen schreiben (#449)
+- kontext-Skill: specs/INDEX.md mitladen und Veralten melden (#448)
+- plan-Skill: Lueckenliste, Code-Ausweis, Vorhaben-Notiz (#447)
+- kit/spec.mjs: vorhaben legt die Notiz zum Code-Lesen an (#446)
+- kit/spec.mjs: luecken meldet, wozu die Beschreibung schweigt (#445)
+- issues-Skill: fuenfter Abschnitt Spec-Wirkung und ID-Vergabe (#444)
+- board.mjs: Leitplanke Spec-Wirkung in issueCreate (#443)
+- kit/spec.mjs: check --paket prueft die Form der Spec-Wirkung (#442)
+- Auslieferung: spec.mjs in install.mjs und sync-blobs (#441)
+- spec: Installer-Frage mit Einbahnstrassen-Hinweis (#439)
+- board.mjs: issue get liefert created bei allen vier Trackern (#457)
+- kit/spec.mjs: Geruest, index und show (#440)
+- spec: Config-Block als Schalter im Schema (#438)
+- reviewCommand persoenlich ueberschreibbar (#435)
+- skills/review: Kommando-Reviewer starten und Ausfallpfad benennen (#434)
+- install.mjs: Oder-Regel fuer das Reviewer-Paar (#433)
+- Alte Spezifikationen gelöscht
+- Datei ins Vault verschoben (codes)
+- Schema: reviewCommand aufnehmen und die Oder-Regel verankern (#432)
+- Vorflug: Reviewer-Name statt Modellname im Befund verlangen (#409)
+
+## [1.44.0] - 2026-09-01
+- Doku: bereichsbezogene Pruefungen beschreiben (#429)
+- night.mjs: Pruef-Zusammenfassungen einsammeln und im Lauf-Bericht zeigen (#428)
+- local-check: Pruefung vor dem Push mit merge-base-Anker (#427)
+- implement-Skills: Pruefung vor dem Commit (#426)
+- Auslieferung: checks.mjs in install.mjs und sync-blobs (#425)
+- checks: run fuehrt die Auswahl aus und hinterlaesst sie (#424)
+- checks: die Auswahl als Kommando, ohne auszufuehren (#423)
+- checks: Config-Form fuer bereichsbezogene Pruefungen (#422)
+- night.mjs: der Review-Auftrag nennt die Betriebsart (#419)
+- issue-review: geschuetzt sind die Inhalte, nicht die Stufen (#418)
+- issue-review: Schritt 6 traegt beide Betriebsarten (#417)
+- issue-review: der Marker ist eine Body-Zeile, kein eigener Schreibbefehl (#415)
+- S8786: vier quadratische Ausdruecke formseitig aufloesen (#406)
+
+## [1.43.3] - 2026-08-31
+- sonar-project.properties: der Coverage-Kommentar stimmte nicht mehr (#405)
+- night.mjs: Restpuffer, wortloser Adapter, fehlendes buildChecks-Feld (#405)
+- night.mjs: die letzten erreichbaren Zweige (#405)
+- board.mjs: die letzten erreichbaren Zweige (#405)
+- night.mjs: der Verbose-Stream und die Vorflug-Fehlerarten (#405)
+- night.mjs: die Fehlerwege im echten Lauf (#405)
+- board.mjs: Toolbox, Vault-Pfade, Probelauf, Zustandslabels (#405)
+- board.mjs: lueckenhafte Antworten von gh und glab (#405)
+- board.mjs: der lokale Tracker und die CLI-Achse (#405)
+- night.mjs: die Vorbedingungen und die Label-Warnung (#405)
+- night.mjs: die Rueckfaelle der reinen Funktionen (#405)
+- install.mjs und die reinen Funktionen aus board.mjs (#405)
+- Die kleinen tools/-Dateien: Zweige geschlossen (#405)
+- board.mjs und derived-from-report: die restlichen offenen Zeilen (#405)
+- sync-blobs: die Skill-Kopien und ihr Schreibschutz (#405)
+- night.mjs: --version, Overrides und die echte Vorflug-Kommandozeile (#405)
+- migrate-issues: Fehler-, Validierungs- und Rueckfallpfade abgedeckt (#405)
+- Codex reviewer hinzugefügt
+- main() zerlegt: drei Programme statt einer Funktion (#404)
+- selectReviewCandidates und runReviewLoop unter die Schwelle (#404)
+- Messregel und die fuenf kleinen Faelle unter die Schwelle (#404)
+- Testnetz vor dem main()-Umbau: der vierte hardStop-Ausgang (#404)
+
+## [1.43.2] - 2026-08-31
+- FENCE_ZEILE: negativer Lookahead macht die Fence-Laenge eindeutig (#403)
+
+## [1.43.1] - 2026-08-31
+- refactor: die neun super-linearen Regexe entschaerfen (#403)
+- test: die Bedeutung der neun Regexe festhalten (#403)
+- String.raw an vier Stellen, void-Operator raus (#402)
+- test: die printf-Zeile des Vorflug-Prompts woertlich festhalten (#402)
+
+## [1.43.0] - 2026-08-31
+- package.json ohne version-Feld — die Kit-Version lebt in install.mjs
+- ESLint-Leitplanke gegen die Stilfunde, 36 Fundstellen abgeraeumt (#399)
+- Komplexitaet: drei Funktionen zerteilt, sechs begruendet stehen gelassen (#397)
+- Regex-Laufzeit gemessen: der Aufrufvertrag schuetzt, nicht die Form (#396)
+- Sonar-Workflow: bei rotem Quality Gate fehlschlagen (#395)
+- night.mjs: der Fallback fuer parsePruefvorgabe traegt die echte Signatur (#394)
+
+## [1.42.1] - 2026-08-30
+- probelauf: der Exit-Status schlaegt den EPIPE-Fehler (#393)
+
+## [1.42.0] - 2026-08-30
+- issue-review: ein Fund ohne Klassenangabe gilt wie gate (#392)
+
+## [1.41.0] - 2026-08-30
+- Doku: Zustandstabelle, Klassifikation, Einrichtung, Opt-in (#388)
+- Automatisches Anwenden der korrektur-Funde (#387)
+- Klassifikation der Funde: gate, alternativen, korrektur (#386)
+- Uebergaenge: label-sync an den Stellen der Skills aufrufen (#385)
+- issue-review label-sync: Pruefzustand als Label ans Board (#384)
+- kit:klaeren im Nacht-Runner nachbauen (#382)
+- reviewZustand: Pruefzustand aus Body und Kommentaren ableiten (#381)
+- Prozessweites Gate-Register in CLAUDE-workflow.md (#380)
+
+## [1.40.2] - 2026-08-29
+- Doku: Arbeitspakete und Vorhaben im Adapter-Abschnitt trennen (#379)
+- kontext-Skill: Vorhaben laden und getrennt ausgeben (#378)
+- board.mjs: Vorhaben sind keine Arbeitspakete mehr (#377)
+
+## [1.40.1] - 2026-08-29
+- toolbox-Adapter: labelIssue entsperren (#375)
+- Windows-CI: den local-Ausgabetest ueber die geparste Ausgabe vergleichen (#374)
+
+## [1.40.0] - 2026-08-28
+- Doku: der Installer ist nach dem Klonen ein Pflichtschritt
+- Was install.mjs schreibt, gehoert nicht ins Repo
+- Die CLAUDE*.md-Dateien sind Installer-Ausgabe, nicht Repo-Inhalt
+- Gate-Register: zwei Dateien, ausgeliefert wie CLAUDE-workflow.md
+
+## [1.39.0] - 2026-08-27
+- Doku: den Herkunfts-Trockenlauf beschreiben (#366)
+- Herkunfts-Bericht: Bestandspruefung und CLI ueber stdin (#365)
+- Herkunfts-Leser: naechster Vorfahr aus einem Karten-Body (#364)
+- Doku: --derived-from beschreiben und die stille Luecke benennen (#358)
+- Skills setzen --derived-from nach ihrer Stellung in der Kette (#357)
+- board.mjs: --derived-from sendet die Herkunft beim Anlegen (#356)
+- config: codex aus den Reviewer-Paaren genommen
+
+## [1.38.1] - 2026-08-14
+- Windows-CI: migrate-issues-Tests nehmen das Fake-gh, nicht das echte (#315)
+- board.mjs: toolbox.ideaStored gilt ohne Angabe als false (#313)
+- board.mjs: issue get liefert labels in allen vier Adaptern (#312)
+- night.mjs: Review ohne Body-Vorschlag ist kein Erfolg (#310)
+- night.mjs: parseDeps erkennt die Abhaengigkeits-Ueberschrift zuverlaessig (#308)
+- Dokumentation: Lebenszyklus auch fuer Plandokumente (#299)
+- kontext paths findet die Projektnotiz, statt sie zu konstruieren (#286)
+- board.mjs: Labels setzen und entfernen (#249)
+- Neue Spezifiskation zum spec driven development
+- docs: Beispiel fuer ein Arbeitspaket mit Pruefung: Verzicht
+
+## [1.38.0] - 2026-08-13
+- Dokumentation: Pruefvorgabe, Verzicht und Verfall (#307)
+- implement-Skills: Verzicht als dritter Zustand (#306)
+- issue-review: Pruefvorgabe in Auswahl, Rundenzahl und Schritt 6 (#305)
+- night.mjs: Verzicht als zweiter Freigabegrund, auch im Dry-Run (#304)
+- issue update pflegt den Bezugsstand und sperrt maschinelle Verringerung (#303)
+- roles liefert die effektive Pruefvorgabe (#302)
+
+## [1.37.2] - 2026-08-12
+- Pruefvorgabe parsen und Bezugsstand berechnen (#301)
+- Marker-Beispiele, Nacht-Ausnahme und Ablageort stufengerecht (#314)
+
+## [1.37.1] - 2026-08-12
+- docs: welche Dokumente ein issue-review erfasst
+- docs: einzelnes GitHub-Issue nachtraeglich nach kanban-kit ueberfuehren
+
+## [1.37.0] - 2026-08-11
+- issue-review: ein Kommando fuer drei Stufen sichtbar machen
+- CLAUDE-workflow.md: Vorlage und Kopie wieder deckungsgleich
+- issues: Rueckverweis auf das Plandokument (#277)
+- Dokumentation: drei Pruefstufen und das Plandokument (#284)
+- issue-review: Arbeitspaket auf eine Rolle (#282)
+
+## [1.36.6] - 2026-08-11
+- night.mjs: eine Pruefstufe pro Lauf ueber --stufe (#283)
+- issue-review: die beiden Rollen der Plan-Stufe (#281)
+- issue-review: die beiden Rollen der fachlichen Stufe (#280)
+- issue-review: Stufe am Titel erkennen, drei getrennte Marker (#279)
+- fachplan: Autor-Modell gehoert ins Story-Format (#273)
+
+## [1.36.5] - 2026-08-11
+- Tracker-Wechsel dokumentiert, GitHub als Archiv (#294)
+- Tracker auf kanban-kit umgestellt (#293)
+- Implementierungsplan für codex hinzugefügt
+- migrate-issues.mjs: direct beim Import, Spalten-Abbildung im Gate (#291)
+
+## [1.36.4] - 2026-08-11
+- board.mjs: kanban-kit erwartet direct statt ideaStored (#295)
+- migrate-issues.mjs: Export-Query und sechste Board-Spalte (#291)
+- migrate-issues.mjs: verify-Lauf als Gate (#290)
+- migrate-issues.mjs: import-Lauf mit Trockenlauf und Idempotenz (#289)
+- migrate-issues.mjs: Geruest und export-Lauf (#288)
+- plan: Plandokument als [Plan]-Issue anlegen (#275)
+- .agents und .codex ins .gitignore übernommen wie auch .claude
+
+## [1.36.3] - 2026-08-10
+- reviewStufen-Config und issue-review roles --stufe (#278)
+- Gate fuer Plandokumente: [Plan]-Titel werden nie implementiert (#276)
+- Reviewer-Vorflug in einer Session statt im Runner (#269)
+- config: codex-Reviewer mit festem Modell und hohem Reasoning-Aufwand
+- plan: verbindliches Format fuer das Plandokument (#274)
+- issue create: Body aus Datei oder stdin (#271)
+- issue-review: der Reviewer darf den Bestand lesen (#268)
+- Changelog: Ablauf umdrehen, unveroeffentlichte Commits als [Unreleased] (#265)
+
+## [1.36.2] - 2026-08-08
+- board.mjs: Text aus Datei oder stdin statt nur als Argument (#270)
+
+## [1.36.1] - 2026-08-08
+- issue-review: nachts nie fragen, auch bei Ausfall beim Start (#267)
+- Autor-Modell erzwingen statt erbitten (#266)
+
+## [1.36.0] - 2026-08-08
+- reviewer für die review session hinzugefügt
+- issue-review check: Probelauf statt reiner PATH-Suche (#262)
+- Changelog: aufeinanderfolgende Bump-Marken zusammenfassen (#245)
+- merge-production gibt das Tag-Kommando aus (#244)
+
+## [1.35.0] - 2026-08-07
+- issue-review: Synthese protokollieren (#242)
+- Autor-Modell auf Reviewer-Kurznamen aufloesen (#241)
+
+## [1.34.0] - 2026-08-07
+- Doku: logPath gilt fuer jeden geteilten Vault, nicht nur fuer Microservices
+
+## [1.33.0] - 2026-08-07
+- Installer legt jeden Skill an, nicht nur die aus einer Liste
+- Installer liefert eine Beispiel-Config aus, Vorflug gatet leere Reviewer
+
+## [1.32.0] - 2026-08-07
+- findeImPath: Pfad-Trenner folgt der Plattform, nicht dem Host (#231)
+
+## [1.31.1] - 2026-08-07
+- Doku: Nacht-Review, Backlog statt Ready, Allowlist (#236)
+- night.mjs: Review-Schleife mit dreistufigem Erfolg (#235)
+- night.mjs: --review-Modus mit Vorflug und Dry-Run (#233)
+- issue-review: Nachtbetrieb-Zweig — Marker ja, Body nein (#234)
+- night.mjs: main()-Umbau und selectReviewCandidates (#232)
+- board.mjs: Kommando 'issue update' (#237)
+- kommandoVerfuegbar: Dateisystem statt Prozessstart (#231)
+- Windows-CI: Fake-Binary-Test ueberspringen (#230)
+
+## [1.31.0] - 2026-08-06
+- Doku: neun Schritte und Werkzeuge getrennt darstellen (#228)
+- Prozesstabelle auf 1-9, acht Skills als Werkzeuge neben dem Prozess (#227)
+- issue-review: Rueckfrage bei unbekanntem Autor, Konvention praezisiert (#226)
+- issue-review: explizite pairs-Matrix und matrix-Kommando (#225)
+- Doku: Issue-Review ueber mehrere Modelle — Referenz und Buchtext (#224)
+- Nacht-Runner: ungepruefte Ready-Issues zurueckstellen (#223)
+- Autor-Modell im Issue, Schema und Prozess-Doku fuer Schritt 3.5 (#222)
+- Skill /issue-review: Schritt 3.5 zwischen /issues und dem GO (#221)
+- board.mjs: Achse 'issue-review' fuer Reviewer-Auswahl und Vorflug (#220)
+
+## [1.30.0] - 2026-08-06
+- CLI-Grammatik gegen die echten gh/glab-Hilfetexte abgleichen (#218)
+- Fake-CLIs gegen eine Kommando-Grammatik validieren (#217)
+- issues-Skill: manuelle Akzeptanzkriterien vom Session-Abschluss trennen (#215)
+- board.mjs: getRepoName liefert einheitlich owner/repo (#214)
+- sync-blobs: Dogfooding-Kopien unter .claude/skills/ abgleichen und pruefen (#213)
+- /local-check: formatFixCommand bei roten Checks einmal fahren (#212)
+- Schema, Template und Doku: Zwei-Datei-Config beschreiben (#211)
+- Skills: geteilte und lokale Config beschreiben, formatFixCommand nachtragen (#210)
+- Kit-Repo: .gitignore auf den Block umstellen, 'git add -f'-Kruecke entfernen (#209)
+- install.mjs: .gitignore-Block statt '.claude/', mit Migration (#208)
+- Zwei-Datei-Config: geteilte Team-Werte, lokale Overrides mit Allowlist (#207)
+- Doku: Multi-Repo-Setup und das Prinzip 'Eine Datei, ein Schreiber' (#206)
+- /document: juengsten Log-Eintrag desselben Projekts als Anknuepfung (#205)
+- board.mjs: 'glab issue note' statt 'issue note create' (#216)
+- /kontext: Dach- und Service-Notiz laden statt nur einer Projektnotiz (#204)
+- /document: Pfade aus 'kontext paths', Dach-Notiz nur mit Rueckfrage (#203)
+- board.mjs: Kommando 'kontext paths' fuer die Vault-Pfad-Aufloesung (#202)
+
+## [1.29.0] - 2026-08-05
+- Installer-Tests: HOME und USERPROFILE umlenken (#187)
+
+## [1.28.3] - 2026-08-05
+- install.mjs: Frage-Antwort-Weg und Re-Install testen (#187)
+
+## [1.28.2] - 2026-08-05
+- .gitattributes: LF im Working Tree erzwingen (#197)
+
+## [1.28.1] - 2026-08-05
+- changelog.mjs: Import-Guard funktioniert unter Windows (#197)
+
+## [1.28.0] - 2026-08-05
+- night.mjs faehrt buildChecks in der Shell der Plattform (#199)
+- install.mjs legt GitLab-Labels ohne Shell an (#198)
+- CI: Windows in die Test-Matrix aufnehmen (#197)
+- board.mjs setzt Kommandos ohne Shell ab (#196)
+
+## [1.27.0] - 2026-07-31
+- kit/night.mjs und tools/ auf 100 % Zeilenabdeckung (#189)
+- kit/board.mjs auf 100 % Zeilenabdeckung (#188)
+
+## [1.26.0] - 2026-07-30
+- Modell-Selbstauskunft als X-Agent-Model-Header (#193)
+- Hartes [Idee]-Gate im Nacht-Runner analog zu [Fachlich] (#192)
+- Nacht-Runner uebergibt das Issue verbindlich an die Session (#191)
+- KIT_ROOT-Test-Hook macht Subprozess-Coverage messbar (#186)
+- PATH-Aufloesung bei git/sh begruenden statt verbiegen (#183)
+
+## [1.25.0] - 2026-07-29
+- Coverage-Report an SonarCloud anbinden (#185)
+- Verbleibende acht Code Smells beseitigen (#184)
+- Timeout killt die Prozessgruppe statt nur des Kindprozesses (#182)
+- board-ui.mjs aus der SonarCloud-Analyse ausschliessen (#181)
+- GitHub-Tracker liefert Labels (#180)
+- Nacht-Runner warnt bei nirgends vorkommendem Routing-Label (#179)
+
+## [1.24.0] - 2026-07-29
+- Hauptnav der Doku-Site bekommt "Board-UI herunterladen" (#178)
+- Kommentar in blob-sync-check.yml auf den tatsächlichen Stand bringen (#177)
+- board-ui.mjs über docs.mwolff.org als Download ausliefern (#176)
+
+## [1.23.0] - 2026-07-28
+- Doku: Nachtbetrieb mit einem lokalen Modell (Ollama) neben Anthropic (#174)
+- issue get liefert Kommentare (GitHub, GitLab, kanbancompat)
+- sync-blobs.mjs frischt die .claude/kit-Kopie mit auf (#173)
+- Nacht-Runner warnt bei abweichendem Versionsstempel von board.mjs (#172)
+- sync-blobs.mjs stempelt die Kit-Version in board.mjs und night.mjs (#171)
+- board.mjs und night.mjs tragen die Kit-Version (#170)
+- Salvage: mechanisch behebbare Formatverstoesse kippen keinen Nachtlauf mehr (#169)
+- Salvage-Vorpruefung liest auch .claude/settings.local.json (#168)
+- Salvage-Vorpruefung mergt .claude/settings.json-env-Block
+- Night-Runner-Salvage: Fehlschlag durch verifizierten Zwischenstand abfangen (#167)
+- Leitplanke: im Hintergrund gestartete Pflichtchecks vor Abschluss abholen
+
+## [1.22.0] - 2026-07-27
+- Leitplanke: lang laufende Build-Checks mit explizitem Timeout (#165)
+
+## [1.21.0] - 2026-07-27
+- Changelog automatisch bei Release generieren (RELEASING.md einhaken + Doku) (#162)
+- Changelog-Generator: tools/changelog.mjs + initiales CHANGELOG.md (ab v1.16) (#161)
+
+## [1.20.0] - 2026-07-27
+- night.mjs: Routing-Label statt separatem Nachtlauf-Board (--label, Default kit:nightrun) (#159)
+- board.mjs: listIssues liefert labels (GitLab + Toolbox, GitHub-Platzhalter) (#158)
+- Nacht-Runner: Default-Modell auf claude-opus-5 (#157)
+
+## [1.19.0] - 2026-07-27
+- fachplan-Sync: Grooming im Body statt in Kommentaren, plan/Doku-Konsistenz (#155)
+
+## [1.18.1] - 2026-07-24
+- Nacht-Runner: --verbose-Flag mit Live-Verlaufsprotokoll via stream-json (#154)
+- Nachtbetrieb-Doku: Setup-Rezept in drei Schichten (Allowlist tool-weit, Sandbox, env) (#153)
+- Nacht-Runner: harter Stopp bei unkommittetem Rest nach Erfolgsrunde (#152)
+
+## [1.18.0] - 2026-07-23
+- Nacht-Runner: --help-Flag fuer night.mjs (#151)
+- Nachtbetrieb-Doku: Allowlist woertlich, read-only-Git, Ablehnungs-Verhalten korrigiert (#150)
+- Nacht-Runner: Infrastruktur-Guard — harter Stopp bei Session-Exit ungleich 0 (#149)
+
+## [1.17.0] - 2026-07-23
+- Doku: PO-Schleife mit fachlichen Issues (#147)
+- Leitplanke: fachliche Issues werden mechanisch uebersprungen (#146)
+- plan- und issues-Skill: fachliches Issue als Quelle in der PO-Schleife (#145)
+- fachplan-Skill: fachliche Issues im Story-Format (Schritt 1.5) (#144)
