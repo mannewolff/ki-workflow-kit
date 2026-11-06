@@ -200,7 +200,9 @@
   // Befehle, die Version und Änderungsprotokoll in den geprüften Stand legen. Keine Vorgabe. Schreibt Version und Änderungsprotokoll mit jeder geprüften Karte fort; setzen, wenn beide zum geprüften Stand gehören sollen.
   // "release": {
     // Die Befehlszeilen der Reihe nach, im Kit-Repo `node tools/version.mjs --patch`, `node tools/changelog.mjs --marke v<version>` und `node tools/sync-blobs.mjs`. Vorgabe: `[]`.
-    // "commands": []
+    // "commands": [],
+    // Die Befehlszeilen für den kurzen Weg von `merge production` der Reihe nach, `<stage>` für die gewählte Stufe und `<version>` für die neue Versionsnummer, im Kit-Repo `node tools/version.mjs --<stage>`, `node tools/changelog.mjs --marke v<version>` und `node tools/sync-blobs.mjs`. Vorgabe: `[]`.
+    // "publishCommands": []
   // },
 
   // Umfang des Review-Materials. Gültig: `diff`, `full`. Vorgabe: `diff`. Diff seit dem letzten Push oder ganzer Quelltext; `full` setzen für ein Review des ganzen Projekts.

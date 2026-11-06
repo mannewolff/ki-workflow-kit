@@ -177,7 +177,7 @@ const spracheJetzt = () => (namen ? namen.prozessSprache() : "de");
 // Kit-Stand, aus dem diese Datei stammt (Issue #170). Bewusst KEINE eigene
 // Versionsachse: der Wert ist die Kit-Version aus install.mjs und wird von
 // tools/sync-blobs.mjs eingestempelt. Nicht von Hand aendern.
-const KIT_VERSION = "6.0.0";
+const KIT_VERSION = "6.1.0";
 
 // Die Variablen, die der Runner seinen Sessions setzt (Issue #1282), aus dem Blatt-Modul
 // neben session.mjs. Fehlt der Nachbar, bleibt die Umgebung, wie sie ist.
@@ -489,6 +489,7 @@ export const TEXTE = Object.freeze({
     pushPruefungUngueltig: "Ungueltiger Wert {genannt} fuer pushPruefung. Erwartet: \"lokal\" oder { \"ort\": \"buildDienst\", \"zweig\": \"<name>\" }, wahlweise mit \"machine\": \"<rechner>\" aus [a-z0-9-].",
     pushPruefungZweig: "pushPruefung: Der Pruefzweig '{zweig}' ist {feld}. Der Pruefzweig muss ein eigener Zweig sein.",
     releaseKommandosUngueltig: "Ungueltiger Wert {genannt} fuer release.commands. Erwartet: eine Liste von Befehlszeilen.",
+    releasePublishKommandosUngueltig: "Ungueltiger Wert {genannt} fuer release.publishCommands. Erwartet: eine Liste von Befehlszeilen.",
     unbekannterBereichWahl: "Unbekannter Bereich '{name}'. Konfiguriert in checkAreas: {liste}.",
     keinerBereich: "keiner",
     grundAnkerUnbekannt: "voller Umfang: Anker '{ref}' laesst sich nicht aufloesen",
@@ -599,6 +600,14 @@ export const TEXTE = Object.freeze({
     abschlussMitBereich: "--finish und --area zusammen: zwei Eingrenzungen in einem Lauf. Der Bereichslauf gehoert in die Arbeit, --finish an ihr Ende.",
     unbekannteStufe: "Unbekannte Stufe '{wert}'. Erwartet: {liste}.",
     unbekanntesArgument: "Unbekanntes Argument: '{arg}'",
+    releaseOnlyOhnePro: "release-only gehört zum Pro-Teil card-check; kit/checks/release.mjs fehlt in dieser Installation.",
+    releaseOnlyOhneStufe: "--release-only verlangt --release-stage <minor|major> und --since <basis>.",
+    releaseStufeOhneReleaseOnly: "--release-stage gilt nur zusammen mit --release-only.",
+    releaseOnlyMitEingrenzung: "--release-only und {schalter} zusammen: Der Lauf faehrt den Beleg und die Stufe merge.",
+    releaseOnlyOhneBasis: "--release-only: der Anker '{ref}' ist kein Commit — ohne Basis gibt es keinen Beleg.",
+    releaseOnlyDecideArgument: "--decide nimmt nur --json dazu, nicht '{arg}'.",
+    grundReleaseBeleg: "Beleg der Release-Ableitung: Release-Schritte auf der Basis, verglichen mit dem Baum",
+    grundReleaseBelegt: "release-only: push main hat den Stand geprueft, die Release-Aenderungen belegt der Beleg",
     messungAbgebrochen: "Messung abgebrochen: {grund}",
     bereichsabgleichKopf: "Abgleich der Pruefbereiche (Hinweis, haelt nicht an):",
     teileVerteilenOhneTeil: "teileVerteilen: n muss eine ganze Zahl ab 1 sein, ist {n}",
@@ -693,6 +702,7 @@ export const TEXTE = Object.freeze({
     pushPruefungUngueltig: "Invalid value {genannt} for pushCheck. Expected: \"local\" or { \"location\": \"buildService\", \"branch\": \"<name>\" }, optionally with \"machine\": \"<computer>\" from [a-z0-9-].",
     pushPruefungZweig: "pushCheck: the check branch '{zweig}' is {feld}. The check branch must be a branch of its own.",
     releaseKommandosUngueltig: "Invalid value {genannt} for release.commands. Expected: a list of command lines.",
+    releasePublishKommandosUngueltig: "Invalid value {genannt} for release.publishCommands. Expected: a list of command lines.",
     unbekannterBereichWahl: "Unknown area '{name}'. Configured in checkAreas: {liste}.",
     keinerBereich: "none",
     grundAnkerUnbekannt: "full scope: anchor '{ref}' cannot be resolved",
@@ -801,6 +811,14 @@ export const TEXTE = Object.freeze({
     abschlussMitBereich: "--finish and --area together: two restrictions in one run. The area run belongs in the work, --finish at its end.",
     unbekannteStufe: "Unknown stage '{wert}'. Expected: {liste}.",
     unbekanntesArgument: "Unknown argument: '{arg}'",
+    releaseOnlyOhnePro: "release-only belongs to the Pro part card-check; kit/checks/release.mjs is missing in this installation.",
+    releaseOnlyOhneStufe: "--release-only needs --release-stage <minor|major> and --since <base>.",
+    releaseStufeOhneReleaseOnly: "--release-stage only together with --release-only.",
+    releaseOnlyMitEingrenzung: "--release-only and {schalter} together: the run runs the proof and the stage merge.",
+    releaseOnlyOhneBasis: "--release-only: the anchor '{ref}' is not a commit — without a base there is no proof.",
+    releaseOnlyDecideArgument: "--decide takes only --json besides, not '{arg}'.",
+    grundReleaseBeleg: "proof of the release derivation: release steps on the base, compared with the tree",
+    grundReleaseBelegt: "release-only: push main checked the state, the proof covers the release changes",
     messungAbgebrochen: "measurement aborted: {grund}",
     bereichsabgleichKopf: "Comparison of the check areas (hint, never stops):",
     teileVerteilenOhneTeil: "teileVerteilen: n must be a whole number of at least 1, is {n}",
@@ -860,11 +878,14 @@ const HILFE = `checks.mjs (claude-workflow-kit v{version}) — due checks
 
   node checks.mjs plan [--since <ref>] [--stage <stage>] [--area <name>] [--finish [n]] [--hotfix] [--part <i>/<n>] [--in <path>]
   node checks.mjs run  [--since <ref>] [--stage <stage>] [--area <name>] [--finish [n]] [--retry] [--fresh] [--hotfix] [--catch-up] [--part <i>/<n>] [--summary-file <path>] [--in <path>]
+  node checks.mjs run  --release-only --release-stage <minor|major> --since <base> [--in <path>]
   node checks.mjs run  --integration [--in <path>]
   node checks.mjs integration [--pushed <commit>] [--in <path>]
   node checks.mjs areas
   node checks.mjs areas suggest [--json]
   node checks.mjs areas compare [--json]
+  node checks.mjs release-only [--base <sha>] [--head <sha>] [--merge-ref <ref>] [--json]
+  node checks.mjs release-only --decide [--json]
 
 plan  Prints as JSON which buildChecks must run after the current work package
       and which may be skipped — every decision with its reason. Nothing is
@@ -1037,6 +1058,23 @@ areas compare
       area none of its command's tests loads is a note. Needs the config.
       Both never change the config and always end with exit code 0; --json
       prints the same data as JSON.
+release-only
+      Proves for the build service that the release commit --head (default
+      HEAD) is exactly the output of the release steps over --base (default
+      HEAD^): reads Release-Stufe: and Release-Version: from the commit, runs
+      release.publishCommands from the config of --base in a worktree and
+      compares the trees; --base must carry a green or skipped check. No
+      command comes from the commit message. With --merge-ref <ref> it proves
+      instead that the merge state has the tree of the green-checked --head.
+      Exit code 0 only when proven; --json prints belegt, grund and dateien.
+      With --decide it says whether merge production may take the short
+      path: Pro, pushPruefung.ort buildDienst, release.publishCommands set,
+      origin/<mainBranch> green by the runs of the check branches,
+      auslieferungNachholen of the strictness false, and the merge of
+      origin/<productionBranch> and origin/<mainBranch> has the tree of
+      origin/<mainBranch>. Exit code 0 only for the short path; the reason
+      names the first missing condition; --json prints kurzweg, grund and
+      gestuetztAuf { commit, zeitpunkt, adresse }.
 
   --since <ref>   Anchor against which the changes are determined (default HEAD).
                   If the anchor cannot be resolved — an empty value too —,
@@ -1120,6 +1158,15 @@ areas compare
                   The durations read like those of the 'ran:' lines. An empty
                   value or a file that cannot be written gives one warning
                   line; exit code and result of the run stay unchanged.
+  --release-only  Only for 'run', with --release-stage <minor|major> and
+                  --since <base>: the local proof before the release commit.
+                  It runs release.publishCommands of the config at <base> in a
+                  worktree with the stage, takes the version from the output of
+                  the first command and compares the tree with the working
+                  directory after 'git add -A' ('git write-tree'); the proof is
+                  one entry in 'laufen', then the checks with stage merge run.
+                  Not with --stage, --area, --finish, --hotfix, --catch-up,
+                  --integration or --part.
   --in <path>     Working directory of the run instead of the process working
                   directory: config, anchor, commands and summary apply there.
                   For the worktree of the release skills — so the call stands
@@ -2165,7 +2212,7 @@ function bauen({ basis, stufe, geaendert = [], bereiche = [], ohneZuordnung = []
  * Auswahl, auch beim leeren Paket.
  */
 function planen(args) {
-  const auswahl = auswahlPlanen(args);
+  const auswahl = args.releaseOnly === true ? releaseAuswahl(args) : auswahlPlanen(args);
   const config = ladeConfig();
   const zuschnitt = zuschnittHinweise(config, (config.buildChecks ?? []).map((c) => normalisiere(c)));
   if (zuschnitt.length > 0) auswahl.zuschnitt = zuschnitt;
@@ -2465,11 +2512,25 @@ function pushPruefung(config) {
  * unbemerkt aus.
  */
 function releaseKommandos(config) {
+  return releaseBefehlsliste(config, "commands", "releaseKommandosUngueltig");
+}
+
+/**
+ * Die Befehle aus `release.publishCommands` (Issue #2246, Plan #2242 E2): die Release-Schritte
+ * des kurzen Wegs von `merge production`, mit den Platzhaltern `<stage>` und `<version>`.
+ * `release.commands` bleibt der Pruefung je Karte (Stufe patch). Fehlt das Feld, ist die Liste
+ * leer, und der kurze Weg entfaellt (A8). Ein ungueltiger Wert ist ein Fehler wie dort.
+ */
+export function releasePublishKommandos(config) {
+  return releaseBefehlsliste(config, "publishCommands", "releasePublishKommandosUngueltig");
+}
+
+function releaseBefehlsliste(config, feld, fehlertext) {
   const release = config.release ?? {};
   const objekt = release !== null && typeof release === "object" && !Array.isArray(release);
-  const wert = objekt ? release.commands ?? [] : release;
+  const wert = objekt ? release[feld] ?? [] : release;
   if (!objekt || !Array.isArray(wert) || wert.some((zeile) => typeof zeile !== "string" || zeile.trim() === "")) {
-    fail(t("releaseKommandosUngueltig", { genannt: JSON.stringify(wert) }));
+    fail(t(fehlertext, { genannt: JSON.stringify(wert) }));
   }
   return [...wert];
 }
@@ -2838,6 +2899,39 @@ function freigabeAuswahl({ checks, basis, geaendert, bereiche, ohneZuordnung, oh
       return paketstufe(check);
     }, abschluss),
   });
+}
+
+/**
+ * Die Auswahl von `run --release-only` (Issue #2249, Plan #2242 E4): zuerst der Beleg der
+ * Release-Ableitung als eigener Eintrag in `laufen` (Feld `beleg`), danach die Pruefungen der
+ * Stufe `merge`. Die Paketstufe und `push` bleiben aus — `push main` hat den Stand geprueft, und
+ * die Release-Aenderungen belegt der Beleg. `geaendert` und damit `hashes` kommen wie bei jedem
+ * Lauf aus den Dateien seit `--since`. Ohne aufloesbare Basis gibt es keinen Beleg: Abbruch.
+ */
+function releaseAuswahl(args) {
+  const checks = (ladeConfig().buildChecks ?? []).map((c) => normalisiere(c));
+  const basis = ankerAufloesen(args.since);
+  if (basis === null) fail(t("releaseOnlyOhneBasis", { ref: args.since }));
+  const stufe = "merge";
+  const { laufen, ausgelassen } = verteilen(checks, stufe, (check) => (check.stufe === "merge"
+    ? { laeuft: true, grund: t("grundFreigabe") }
+    : { laeuft: false, grund: t("grundReleaseBelegt") }));
+  const beleg = { cmd: `release-only --release-stage ${args.releaseStufe}`, stufe, grund: t("grundReleaseBeleg"), beleg: { stufe: args.releaseStufe } };
+  const auswahl = bauen({ basis, stufe, geaendert: geaenderteDateien(basis), laufen: [beleg, ...laufen], ausgelassen });
+  auswahl.releaseOnly = { stufe: args.releaseStufe };
+  return auswahl;
+}
+
+/**
+ * Faehrt den Beleg eines Eintrags mit `beleg` (Issue #2249) im Arbeitsverzeichnis des Laufs und
+ * gibt ihn in der Form von `kommandoAusfuehren` zurueck. `KIT_RELEASE_DATE` aus der Umgebung des
+ * Laufs geht an die Release-Schritte, damit die Marke dieselbe ist wie im Release-Worktree.
+ */
+async function belegFahren(eintrag, basis, env) {
+  const release = await import("./checks/release.mjs").catch((err) => (err?.code === "ERR_MODULE_NOT_FOUND" ? null : Promise.reject(err)));
+  if (!release) return { gruen: false, ausgabe: `${t("releaseOnlyOhnePro")}\n`, haengend: false, code: 1 };
+  const ergebnis = release.releaseLokal({ repoRoot: wurzel(), basis, stufe: eintrag.beleg.stufe, datum: env.KIT_RELEASE_DATE ?? null });
+  return { gruen: ergebnis.belegt, ausgabe: `${ergebnis.grund}\n`, haengend: false, code: ergebnis.belegt ? 0 : 1 };
 }
 
 // --- Bereiche (Issue #1004) ------------------------------------------------
@@ -4352,6 +4446,8 @@ function gleicheAuswahlBasis(alt, auswahl, configHash) {
   // Ebenso das Nachholen (Issue #2107): Es faehrt mehr als ein Push-Lauf in Leicht, bei gleichem
   // Stand und gleicher Config.
   if ((alt.nachholen?.anlass ?? null) !== (auswahl.nachholen?.anlass ?? null)) return false;
+  // Ebenso der lokale Beleg (Issue #2249): Er faehrt eine andere Auswahl als die Stufe merge.
+  if ((alt.releaseOnly?.stufe ?? null) !== (auswahl.releaseOnly?.stufe ?? null)) return false;
   if (typeof alt.configHash !== "string" || alt.configHash !== configHash) return false;
   return typeof alt.zeitpunkt === "string";
 }
@@ -5100,7 +5196,8 @@ async function kommandosFahren({ auswahl, args, env, zeitpunkt, hashes, configHa
   const konfiguriert = (ladeConfig().buildChecks ?? []).map((c) => normalisiere(c));
   const ausloeserVon = (cmd) => ausloeserBestimmen(auswahl, konfiguriert.find((c) => c.cmd === cmd) ?? null);
   const gekennzeichnet = new Set(konfiguriert.filter((c) => c.gleichzeitig).map((c) => c.cmd));
-  const vorab = new Set(konfiguriert.filter((c) => c.vorab === true).map((c) => c.cmd));
+  // Der Beleg von `--release-only` laeuft vor allen Pruefungen (Issue #2249).
+  const vorab = new Set([...konfiguriert.filter((c) => c.vorab === true), ...auswahl.laufen.filter((e) => e.beleg)].map((c) => c.cmd));
   const grenze = gleichzeitigGrenze(env);
   // Der Integrationslauf endet spaetestens an seiner Obergrenze (Issue #1982, E8): Jedes
   // Kommando bekommt hoechstens die Restzeit, und wer an ihr abbricht, macht den Lauf `offen`.
@@ -5219,8 +5316,10 @@ async function kommandosFahren({ auswahl, args, env, zeitpunkt, hashes, configHa
       const restMs = Math.max(1, restzeit());
       const haengeMs = Math.min(eigeneMs, restMs);
       // Ein Teilaufruf faehrt seine Teilzeile; Grenze und Protokoll bleiben bei `cmd` (Issue #1980).
-      const { gruen, ausgabe, haengend, code } = await kommandoAusfuehren(befehlszeile(eintrag), env,
-        { grenzeMs: haengeMs, fristMs: haengenFristMs(env) });
+      // Der Beleg der Release-Ableitung ist kein Shell-Kommando (Issue #2249).
+      const { gruen, ausgabe, haengend, code } = eintrag.beleg
+        ? await belegFahren(eintrag, auswahl.basis, env)
+        : await kommandoAusfuehren(befehlszeile(eintrag), env, { grenzeMs: haengeMs, fristMs: haengenFristMs(env) });
       // Abgebrochen an der Restzeit des Integrationslaufs und nicht an der eigenen Grenze.
       if (haengend && restMs < eigeneMs) stand.obergrenze = true;
       const dauerMs = Math.round(Number(process.hrtime.bigint() - start) / 1e6);
@@ -5789,6 +5888,7 @@ function pruefeKombinationen(args) {
   pruefeIntegration(args);
   pruefeHotfix(args);
   pruefeNachholen(args);
+  pruefeReleaseOnly(args);
   if (args.abschluss !== true) return;
   if (args.stufe === "push" || args.stufe === "merge") {
     fail(t("abschlussMitStufe", { stufe: args.stufe, paket: configWert("buildChecks[].stufe", STUFEN[0]) }));
@@ -5839,6 +5939,22 @@ function pruefeNachholen(args) {
 }
 
 /**
+ * Was `--release-only` verlangt (Issue #2249, Plan #2242 E4): `--release-stage` und `--since`,
+ * denn ohne Stufe und Basis gibt es keinen Beleg, und keine andere Eingrenzung — der Lauf faehrt
+ * den Beleg und die Stufe merge, nichts sonst. `--release-stage` allein ist ein Irrtum.
+ */
+function pruefeReleaseOnly(args) {
+  if (args.releaseOnly !== true) {
+    if (args.releaseStufe !== undefined) fail(t("releaseStufeOhneReleaseOnly"));
+    return;
+  }
+  if (args.releaseStufe === undefined || args.since === undefined) fail(t("releaseOnlyOhneStufe"));
+  for (const [feld, schalter] of [["stufe", "--stage"], ["bereich", "--area"], ["abschluss", "--finish"], ["hotfix", "--hotfix"], ["nachholen", "--catch-up"], ["integration", "--integration"], ["teil", "--part"]]) {
+    if (args[feld] !== undefined) fail(t("releaseOnlyMitEingrenzung", { schalter }));
+  }
+}
+
+/**
  * Die Schalter ohne Wert, die nur bei `run` wirken: `--fresh` und `--retry` (Issue
  * #1396, E3). Bei `plan` angenommen und ohne Wirkung — kein Fehler dort, weil beide nur in
  * die sichere Richtung zeigen: mehr pruefen.
@@ -5850,7 +5966,7 @@ const NUR_RUN_SCHALTER = { "--fresh": "frisch", "--retry": "wiederholen" };
  * E5) — Anker und Umfang bestimmt er selbst. Bei `plan` zeigt er dieselbe Auswahl. Ebenso
  * `--hotfix` (Issue #2051, Plan #2038, A2): der verkuerzte Push-Lauf eines Hotfix.
  */
-const WERTLOSE_SCHALTER = { ...NUR_RUN_SCHALTER, "--integration": "integration", "--hotfix": "hotfix", "--catch-up": "nachholen" };
+const WERTLOSE_SCHALTER = { ...NUR_RUN_SCHALTER, "--integration": "integration", "--hotfix": "hotfix", "--catch-up": "nachholen", "--release-only": "releaseOnly" };
 
 /**
  * Die frueheren deutschen Namen des Befehls, der Optionen und des Stufenwerts, je Eintrag
@@ -5940,6 +6056,10 @@ function parseArgs(rest) {
       // Die Tabelle der Dauern (Issue #2189, Plan #2176, E6). Ein leerer Wert ist kein Abbruch:
       // Er zaehlt nach dem Lauf wie ein Schreibfehler.
       args.dauerTabelle = rest[i + 1] ?? "";
+      i += 1;
+    } else if (option === "--release-stage") {
+      // Die Stufe des lokalen Belegs (Issue #2249, Plan #2242 E4); geprueft im Beleg selbst.
+      args.releaseStufe = rest[i + 1] ?? "";
       i += 1;
     } else if (option === "--in") {
       // Das Arbeitsverzeichnis des Laufs (Issue #1372). Ein fehlender oder ungueltiger
@@ -6154,6 +6274,82 @@ function bereichsabgleichMelden(bereichsabgleich) {
   if (zeilen.length > 0) aufStdout(`\n${t("bereichsabgleichKopf")}\n${zeilen.join("\n")}\n`);
 }
 
+// --- release-only (Issue #2248, Plan #2242 A1 bis A4, E3) ------------------------------------
+
+/** Die Optionen von `release-only` mit ihrem Feld. */
+const RELEASE_ONLY_OPTIONEN = Object.freeze({ "--base": "basis", "--head": "kopf", "--merge-ref": "merge" });
+
+/**
+ * `release-only [--base <sha>] [--head <sha>] [--merge-ref <ref>] [--json]`: der Beleg der
+ * Release-Ableitung aus `checks/release.mjs` fuer den Build-Dienst. Exit 0 nur bei `belegt: true`.
+ * Den Code-Host loest erst die Frage nach dem Urteil auf: Ein Beleg, der schon an Stufe, Version
+ * oder Baum scheitert, fragt ihn nie. Der Teil unter `checks/` gehoert zu Pro (Achse `card-check`);
+ * fehlt er, endet der Aufruf mit einer Meldung.
+ */
+async function releaseOnly(rest) {
+  const werte = { basis: "HEAD^", kopf: "HEAD", merge: null };
+  let json = false;
+  if (rest.includes("--decide")) return kurzwegAufrufen(rest);
+  for (let i = 0; i < rest.length; i += 1) {
+    const feld = RELEASE_ONLY_OPTIONEN[rest[i]];
+    if (rest[i] === "--json") json = true;
+    else if (feld && rest[i + 1] !== undefined) werte[feld] = rest[++i];
+    else fail(t("unbekanntesArgument", { arg: rest[i] }));
+  }
+  // Fehlen ist erlaubt (Community), kaputt sein nicht: Nur ein fehlendes Modul wird zur Meldung.
+  const release = await import("./checks/release.mjs").catch((err) => (err?.code === "ERR_MODULE_NOT_FOUND" ? null : Promise.reject(err)));
+  if (!release) fail(t("releaseOnlyOhnePro"));
+  const config = ladeConfig({ ohneDateiLeer: true });
+  const host = verzoegerterHost(config);
+  const repoRoot = wurzel();
+  const ergebnis = werte.merge === null
+    ? await release.releaseAbleitung({ repoRoot, basis: werte.basis, kopf: werte.kopf, host })
+    : await release.vorschlagBeleg({ repoRoot, merge: werte.merge, kopf: werte.kopf, host });
+  if (json) aufStdout(JSON.stringify(ergebnis, null, 2) + "\n");
+  else aufStdout(`${ergebnis.grund}\n`);
+  return ergebnis.belegt ? 0 : 1;
+}
+
+/**
+ * Der Code-Host, erst bei der Frage nach dem Urteil aufgeloest: Ein Aufruf, der vorher scheitert,
+ * fragt ihn nie.
+ */
+function verzoegerterHost(config) {
+  let geloest = null;
+  return {
+    getCiStatus: async (...args) => {
+      geloest ??= (await import(new URL("./board/adapter.mjs", import.meta.url).href)).resolveCodeHost(config);
+      return geloest.getCiStatus(...args);
+    },
+  };
+}
+
+/**
+ * `release-only --decide [--json]` (Issue #2249, Plan #2242 A8, A9): ob `merge production` den
+ * kurzen Weg gehen darf. Der Skill liest nur das Ergebnis; die Bedingungen stehen in
+ * `kurzwegEntscheiden` (checks/release.mjs). Exit 0 nur bei `kurzweg: true`.
+ */
+async function kurzwegAufrufen(rest) {
+  let json = false;
+  for (const arg of rest) {
+    if (arg === "--json") json = true;
+    else if (arg !== "--decide") fail(t("releaseOnlyDecideArgument", { arg }));
+  }
+  const release = await import("./checks/release.mjs").catch((err) => (err?.code === "ERR_MODULE_NOT_FOUND" ? null : Promise.reject(err)));
+  if (!release) fail(t("releaseOnlyOhnePro"));
+  const config = ladeConfig({ ohneDateiLeer: true });
+  const repoRoot = wurzel();
+  const ausgabeModul = await import(new URL("./board/ausgabe.mjs", import.meta.url).href).catch(() => null);
+  const pro = ausgabeModul === null ? true : ausgabeModul.ausgabe({ wurzel: repoRoot }) !== "community";
+  const ergebnis = await release.kurzwegEntscheiden({ repoRoot, config, host: verzoegerterHost(config), pro });
+  if (json) aufStdout(JSON.stringify(ergebnis, null, 2) + "\n");
+  else aufStdout(`${ergebnis.grund}\n`);
+  return ergebnis.kurzweg ? 0 : 1;
+}
+
+/** Die Befehle, die ihre Argumente unveraendert an eine Funktion geben. */
+const EINFACHE_BEFEHLE = Object.freeze({ run: runAufrufen, "release-only": releaseOnly });
+
 /**
  * Rueckgabe: der Exitcode — fuer `run`, `areas suggest` und `areas compare` als Promise
  * (Issue #1070, #1718), fuer `plan` und `areas` wie bisher als Zahl.
@@ -6177,7 +6373,7 @@ function main(argv = process.argv.slice(2)) {  // NOSONAR S3800: Zahl oder Promi
     const auswahl = planen(arbeitsverzeichnisSetzen(args));
     return auswahl instanceof Promise ? auswahl.then(ausgeben) : ausgeben(auswahl);
   }
-  if (command === "run") return runAufrufen(rest);
+  if (Object.hasOwn(EINFACHE_BEFEHLE, command)) return EINFACHE_BEFEHLE[command](rest);
   if (command === "integration") {
     // Nur `--in` vorweg (Issue #1982): jedes andere Argument ist ein Irrtum.
     const stelle = rest.indexOf("--in");

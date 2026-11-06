@@ -620,6 +620,14 @@ function ciStartzeit(wert) {
 }
 
 /**
+ * Ob `name` ein Pruefzweig zu `zweig` (`pushPruefung.zweig`) ist: der Zweig selbst oder
+ * `<zweig>-*` (Issue #2247). Ein blosses Praefix wie `<zweig>en` zaehlt nicht.
+ */
+function istPruefzweig(name, zweig) {
+  return typeof name === "string" && (name === zweig || name.startsWith(`${zweig}-`));
+}
+
+/**
  * Das Gesamturteil aus den Einzeljobs: rot vor laeuft vor gruen; `uebersprungen` zaehlt wie
  * `gruen`, auch in einer Liste nur aus uebersprungenen Jobs (Issue #2230).
  *
@@ -710,16 +718,22 @@ class GitHubCodeHost {
   // `adresse` ist die Seite des Laufs (Plan #1965, E7): bei mehreren Laeufen die des roten,
   // sonst die des ersten, ohne Lauf `null`. Die Job-`id` ist die `databaseId` des Laufs —
   // `getVerursacher` liest das Protokoll laufweise (E6). Beide Felder sind additiv.
-  async getCiStatus(commit, zweig) {
-    const laeufe = zweig
+  //
+  // Mit `pruefzweige` zaehlen nur die Laeufe der Pruefzweige `<pruefzweige>` und
+  // `<pruefzweige>-*` (Issue #2247, Plan #2242 A7): Die Messung der Codeanalyse auf `main`
+  // ist Verlauf und haelt nicht an. gh filtert nicht nach Praefix, darum `headBranch` hier.
+  async getCiStatus(commit, zweig, { pruefzweige } = {}) {
+    const laeufe = zweig || pruefzweige
       ? ciJSON("gh", [
-        "run", "list", "--branch", zweig, "--commit", commit,
+        "run", "list", ...(zweig ? ["--branch", zweig] : []), "--commit", commit,
         "--json", "databaseId,workflowName,headBranch,conclusion,status,url",
       ])
       : ciJSON("gh", [
         "run", "list", "--commit", commit, "--json", "databaseId,workflowName,conclusion,status,url",
       ]);
-    const passend = (Array.isArray(laeufe) ? laeufe : []).filter((l) => !zweig || l.headBranch === zweig);
+    const passend = (Array.isArray(laeufe) ? laeufe : [])
+      .filter((l) => !zweig || l.headBranch === zweig)
+      .filter((l) => !pruefzweige || istPruefzweig(l.headBranch, pruefzweige));
     const jobs = [];
     let adresse = null;
     let roteAdresse = null;
@@ -1234,10 +1248,13 @@ class GitLabCodeHost {
   //
   // Mit `zweig` zaehlen nur die Pipelines dieses Zweigs (`--ref`, Plan #1965, E5).
   // `adresse` ist die `web_url` der Pipeline (E7), die Job-`id` die des Jobs (E6).
-  async getCiStatus(commit, zweig) {
+  // Mit `pruefzweige` zaehlen nur die Pipelines der Pruefzweige (Issue #2247, Plan #2242 A7):
+  // `--ref` filtert exakt, darum ohne ihn und mit demselben Praefixfilter wie bei GitHub.
+  async getCiStatus(commit, zweig, { pruefzweige } = {}) {
     const filter = zweig ? ["--ref", zweig] : [];
     const pipelines = ciJSON("glab", ["ci", "list", "--sha", commit, ...filter, "--output", "json"]);
-    const liste = Array.isArray(pipelines) ? pipelines : [];
+    const liste = (Array.isArray(pipelines) ? pipelines : [])
+      .filter((p) => !pruefzweige || istPruefzweig(p.ref, pruefzweige));
     if (liste.length === 0) return { status: "laeuft", adresse: null, jobs: [] };
 
     const detail = ciJSON("glab", [

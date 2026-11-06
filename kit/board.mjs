@@ -79,12 +79,14 @@
  *   node board.mjs code repo-name
  *   node board.mjs code pr --from <branch> --to <branch>
  *   node board.mjs code merge-pr --number <n> --head <sha>
- *   node board.mjs code ci-status --commit <sha> [--branch <branch>]
+ *   node board.mjs code ci-status --commit <sha> [--branch <branch>] [--check-branches]
  *       Zustand der CI fuer genau diesen Commit (Issue #316), mit --branch nur die
- *       Laeufe dieses Zweigs, samt Adresse des Laufs (Issue #1972). Dispatcht ueber
+ *       Laeufe dieses Zweigs, samt Adresse des Laufs (Issue #1972), mit --check-branches
+ *       nur die Laeufe der Pruefzweige <pushPruefung.zweig> und <pushPruefung.zweig>-*
+ *       (Issue #2247); ohne pushPruefung mit ort buildDienst ein Fehler. Dispatcht ueber
  *       resolveCodeHost — die Achse haengt am codeHost, nicht am issueTracker. Eine kurze
  *       Kennung wird im Repo zur vollen aufgeloest, eine unbekannte endet mit Exit 1 (Issue #2132).
- *   node board.mjs code ci-wait --commit <sha> --timeout-min <n> [--branch <branch>]
+ *   node board.mjs code ci-wait --commit <sha> --timeout-min <n> [--branch <branch>] [--check-branches]
  *       Wartet auf das Urteil des Build-Diensts und endet immer (Issue #2132): ergebnis
  *       gruen|rot, keine ohne Build-Dienst, "kein Lauf" nach 5 Minuten ohne sichtbaren
  *       Lauf, frist nach <n> Minuten mit dem erreichten Schritt. Kurze Kennungen loest es
@@ -202,7 +204,7 @@ import { spawnSync } from "node:child_process";
 // Kit-Stand, aus dem diese Datei stammt (Issue #170). Bewusst KEINE eigene
 // Versionsachse: der Wert ist die Kit-Version aus install.mjs und wird von
 // tools/sync-blobs.mjs eingestempelt. Nicht von Hand aendern.
-const KIT_VERSION = "6.0.0";
+const KIT_VERSION = "6.1.0";
 
 // Die Hilfe gibt es je Kommando genau einmal, englisch, in jedem Projekt (Issue #1557, Plan
 // #1548 E7). Sie antwortet, bevor ein Teil geladen ist (Plan #1199, E2).
@@ -391,7 +393,7 @@ Usage:
       Issue #2084). Output: { ok: true, number, commit } with the merge commit; a
       failed merge or a PR not merged afterwards gives { ok: false, number, grund } and
       exit 1. A codeHost without pull requests aborts like code pr.
-  node board.mjs code ci-status --commit <sha> [--branch <branch>]
+  node board.mjs code ci-status --commit <sha> [--branch <branch>] [--check-branches]
       State of the CI for exactly this commit (Issue #316):
       { status: gruen|rot|laeuft|keine, adresse, jobs: [{ name, ergebnis, gestartet, id }] }.
       'ergebnis' is gruen|rot|laeuft|uebersprungen; uebersprungen counts like gruen
@@ -403,13 +405,18 @@ Usage:
       (of the red one among several), null without a run; 'id' identifies the job's
       log at the host (Issue #1972). A short id is resolved to the full one in the
       repository; an unknown id ends with exit 1 instead of 'laeuft' (Issue #2132).
-  node board.mjs code ci-wait --commit <sha> --timeout-min <n> [--branch <branch>]
+      --check-branches counts only the runs of the check branches
+      <pushCheck.branch> and <pushCheck.branch>-* (default kit-pruefung), so a
+      measurement on main does not count (Issue #2247); without pushCheck as an
+      object with location buildService it is an error.
+  node board.mjs code ci-wait --commit <sha> --timeout-min <n> [--branch <branch>] [--check-branches]
       Waits for the verdict of the build service and always ends (Issue #2132):
       { commit, ergebnis, schritt, status, adresse, jobs, wartezeitMs }. ergebnis is
       gruen|rot, keine without a build service, 'kein Lauf' when no run is visible
       after 5 minutes, frist after <n> minutes with the step reached in schritt
       (suche|laeuft|urteil). Short ids are resolved to the full one like ci-status;
-      an unknown id ends with exit 1. KIT_CI_WAIT_FRIST_LAUF_MS and
+      an unknown id ends with exit 1. --branch and --check-branches filter like
+      in ci-status. KIT_CI_WAIT_FRIST_LAUF_MS and
       KIT_CI_WAIT_TAKT_MS shorten the deadline and the poll interval for tests.
   node board.mjs code contract-repo <name>
       Built state of the partner repo <name> from vertragsRepos (Issue #1615):
@@ -1092,9 +1099,28 @@ async function commitOption(args) {
   }
 }
 
-async function codeCiStatus(host, args) {
+/**
+ * `--check-branches` (Issue #2247, Plan #2242 A7): der Name der Pruefzweige, deren Laeufe allein
+ * zaehlen, ohne die Option `undefined`. Pruefzweige gibt es nur mit dem Build-Dienst.
+ */
+function pruefzweigeOption(config, args) {
+  if (args["check-branches"] === undefined) return undefined;
+  const pruefung = config.pushPruefung;
+  if (pruefung === null || typeof pruefung !== "object" || pruefung.ort !== "buildDienst") {
+    abbruch(t("pruefzweigeOhneBuildDienst"));
+  }
+  return pruefung.zweig || "kit-pruefung";
+}
+
+/** Der Code-Host, bei `pruefzweige` mit dem Filter auf die Pruefzweige in jedem `getCiStatus`. */
+function ciQuelle(host, pruefzweige) {
+  return pruefzweige ? { getCiStatus: (commit, zweig) => host.getCiStatus(commit, zweig, { pruefzweige }) } : host;
+}
+
+async function codeCiStatus(host, config, args) {
+  const pruefzweige = pruefzweigeOption(config, args);
   const commit = await commitOption(args);
-  out(await host.getCiStatus(commit, args.branch === undefined ? undefined : String(args.branch)));
+  out(await ciQuelle(host, pruefzweige).getCiStatus(commit, args.branch === undefined ? undefined : String(args.branch)));
 }
 
 // `code ci-wait` (Issue #2132, Kriterium 5 von #2130): 5 Minuten bis zum sichtbaren Lauf, im
@@ -1114,14 +1140,15 @@ function msAusUmgebung(name, vorgabe) {
  * 5 Minuten kein Lauf sichtbar ist, und `frist` nach `--timeout-min` — dann nennt `schritt`
  * den erreichten Schritt und `jobs` den Stand je Job.
  */
-async function codeCiWait(host, args) {
+async function codeCiWait(host, config, args) {
+  const pruefzweige = pruefzweigeOption(config, args);
   const commit = await commitOption(args);
   if (args["timeout-min"] === undefined) abbruch(t("optionErforderlich", { option: "timeout-min" }));
   const minuten = Number(args["timeout-min"]);
   if (args["timeout-min"] === true || Number.isNaN(minuten) || minuten <= 0) abbruch(t("optionOhneWert", { option: "timeout-min" }));
   const zweig = args.branch === undefined ? undefined : String(args.branch);
   const start = Date.now();
-  const ci = await warteAufLauf(host, commit, zweig, {
+  const ci = await warteAufLauf(ciQuelle(host, pruefzweige), commit, zweig, {
     takt: msAusUmgebung("KIT_CI_WAIT_TAKT_MS", CI_WAIT_TAKT_MS),
     fristLauf: Math.min(msAusUmgebung("KIT_CI_WAIT_FRIST_LAUF_MS", CI_WAIT_FRIST_LAUF_MS), minuten * 60_000),
     fristAbschluss: minuten * 60_000,
@@ -1217,8 +1244,8 @@ async function dispatchCode(command, args) {
     case "repo-name": return codeRepoName(host);
     case "pr":        return codePr(host, args);
     case "merge-pr":  return codeMergePr(host, args);
-    case "ci-status": return codeCiStatus(host, args);
-    case "ci-wait":   return codeCiWait(host, args);
+    case "ci-status": return codeCiStatus(host, config, args);
+    case "ci-wait":   return codeCiWait(host, config, args);
     case "protection": return codeSchutz(host, config, args);
     default:
       unbekannterBefehl("code", command);

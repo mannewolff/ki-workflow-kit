@@ -61,6 +61,20 @@ Der **vollständige** SHA aus `git rev-parse` geht an die Achse:
 node .claude/kit/board.mjs code ci-status --commit <sha>
 ```
 
+**Pro.** **Mit Build-Dienst zählen nur die Läufe der Prüfzweige** (Plan #2242, A7). Meldet
+`node .claude/kit/checks.mjs plan --stage push` im Feld `"pushPruefung"` ein Objekt mit
+`"ort": "buildDienst"`, fragt der Skill stattdessen:
+
+```bash
+node .claude/kit/board.mjs code ci-status --commit <sha> --check-branches
+```
+
+Das Urteil über diesen Stand fiel auf dem Prüfzweig, bevor er auf `<mainBranch>` kam. Die
+Messung der Codeanalyse auf `<mainBranch>` nach `push main` bleibt als Verlauf und hält nicht
+an. Nach dem Vorab-Halt und dem Rückkehrpunkt unten entscheidet der Skill, noch vor dem
+Worktree, ob er den Abschnitt „Der kurze Weg“ geht. In Community und ohne Build-Dienst
+entfällt der Absatz.
+
 **Gemessen wird `origin/<mainBranch>`, nicht der lokale Stand.** Bis Issue #929 stoppte der
 Skill, wenn `git rev-parse HEAD` davon abwich. Die Regel ist entfallen, weil der Release
 seit #929 in einem eigenen Worktree auf `origin/<mainBranch>` entsteht: Der Haupt-Tree wird
@@ -495,6 +509,76 @@ Grund.
 > git tag -a vX.Y.Z <hash> -m "Release vX.Y.Z" && git push origin vX.Y.Z
 > gh release create vX.Y.Z --title vX.Y.Z --notes-file <pfad>
 > ```
+
+## Der kurze Weg
+
+**Pro.** In Community entfällt dieser Abschnitt (Plan #2242, A11). Nach einem grünen
+`push main` prüft der Build-Dienst denselben Stand nicht noch einmal, wenn nur die
+Release-Änderungen dazukommen (Plan #2242, A8 bis A10). Der Skill entscheidet das nach den
+Schritten 1 bis 3, vor dem Worktree, mit einem Aufruf:
+
+```bash
+node .claude/kit/checks.mjs release-only --decide --json
+```
+
+Das Kommando prüft die Bedingungen in fester Reihenfolge: Pro, `pushCheck.location` ist
+`buildDienst`, `release.publishCommands` ist gesetzt, `origin/<mainBranch>` ist grün nach den
+Läufen der Prüfzweige (`code ci-status --check-branches`, wie in Schritt 3), `auslieferungNachholen`
+aus `config strictness` ist `false`, und der Merge-Stand von `origin/<productionBranch>` und
+`origin/<mainBranch>` hat den Baum von `origin/<mainBranch>`.
+
+- **`kurzweg: false`** — der Skill gibt den `grund` unverändert in einer Zeile aus und geht den
+  Weg oben ab Schritt 4 (A9). Exit-Code 1 ohne lesbares JSON zählt ebenso; dann ist die
+  Ausgabe des Kommandos der Grund.
+- **`kurzweg: true`** — der Skill gibt aus `gestuetztAuf` diese Zeile aus (Kriterium 4 der
+  fachlichen Quelle #2239):
+
+```
+Gestützt auf: <commit> (<zeitpunkt>) <adresse>
+```
+
+Danach fährt er diese Schritte statt der Schritte 4 bis 7 oben. Die Fortschrittszeile zählt
+sie mit; `n` ist die Zahl der Schritte dieses Wegs.
+
+1. **Worktree** wie in Schritt 4. Die Basis `<basis>` ist der volle SHA von
+   `origin/<mainBranch>` aus Schritt 3; auf ihm steht der Worktree.
+2. **Stufe.** Das Argument von `merge production` gibt sie an: `--major` heißt `major`,
+   `--minor` oder kein Argument heißt `minor`. Jedes andere Argument endet ohne Worktree mit
+   seinem Namen.
+3. **Release-Schritte.** Jeder Befehl aus `release.publishCommands` in
+   `.claude/workflow.config.json` läuft in seiner Reihenfolge über
+   `node .claude/kit/worktree.mjs in <pfad> -- <befehl>`, mit `<stage>` gleich `<stufe>`.
+   `<version>` ist die Ausgabe des ersten Befehls; sie ist `X.Y.Z` in den Schritten unten.
+   Die Liste unter dem Merge-Trigger in `RELEASING.md` fährt dieser Weg nicht.
+4. **Der Beleg.** Er wiederholt die Release-Schritte auf `<basis>` und vergleicht den Baum
+   mit dem Worktree, danach laufen die Prüfungen mit `stage: merge`:
+
+   ```bash
+   node .claude/kit/checks.mjs run --in <pfad> --release-only --release-stage <stufe> --retry --since <basis>
+   ```
+
+   Ein roter Lauf hält an wie in Schritt 6: kein Commit, kein Push, kein PR, weiter mit
+   Schritt 8; die abweichenden Dateien stehen im Grund. Nach einem Wackler gelten die
+   Rückfrage und die Reparaturkandidaten aus Schritt 6 unverändert. Das Nachholen vor der
+   Auslieferung entfällt, denn `auslieferungNachholen` ist hier `false`, und eine eigene
+   Sicherheitsprüfung fährt der Weg nicht: Das Urteil des geprüften Stands gilt, weil
+   Release-Änderungen keinen Code bringen, den sie beurteilt (A10).
+5. **Der eine Commit.** Er trägt die beiden Zeilen, aus denen der Build-Dienst den Beleg
+   wiederholt:
+
+   ```bash
+   git -C <pfad> add -A
+   git -C <pfad> commit -m "chore: vX.Y.Z" -m "Release-Stufe: <stufe>" -m "Release-Version: X.Y.Z"
+   ```
+
+   `add -A` stellt genau den Baum bereit, den der Beleg verglichen hat. Den Hash merkt sich
+   der Skill wie in Schritt 7, und die Nachweiszeile nennt diesen Lauf.
+6. **Push** über den Prüfzweig wie in Schritt 7: Der Weg über den Build-Dienst gilt hier
+   immer. Am Release-Commit fährt der Build-Dienst nur den Kurzweg, den Beleg über
+   dem grünen Eltern-Commit, und am Änderungsvorschlag nur den Vergleich der Bäume.
+
+Ab Schritt 8 geht der Lauf weiter wie oben: Rückweg und Abbau, Tag-Kommando, PR,
+Release-Kommando, Rückmeldung. Die Rückmeldung nennt zusätzlich die Zeile `Gestützt auf:`.
 
 ## Was dieser Skill nicht tut
 

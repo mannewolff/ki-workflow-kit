@@ -3,6 +3,26 @@
 
 Alle nennenswerten Änderungen an diesem Projekt. Automatisch aus der Git-Historie generiert (`tools/changelog.mjs`) — nicht von Hand pflegen. Die Einträge sind die Commit-Betreffzeilen. Folgen mehrere Versions-Bumps unmittelbar aufeinander, stehen die Änderungen unter der höchsten davon — der Version, mit der sie veröffentlicht wurden; die internen Zwischenstände dazwischen erscheinen nicht. Was seit dem letzten Versions-Commit dazugekommen ist, steht unter `[Unreleased]`.
 
+## [6.1.0] - 2026-11-06
+- Kartenprüfung grün: Zusammenführungstest ohne child_process (#2255)
+- Kartenprüfung ohne cherry-pick --empty=drop (#2254)
+- chore: release (Kartenprüfung)
+- Workflows auf die eigenen Runner auf Hostinger (#2253)
+- chore: release (Kartenprüfung)
+- merge production: der kurze Weg nach einem grünen push main (#2251)
+- Build-Dienst: Kurzweg für belegte Release-Commits und den Änderungsvorschlag (#2250)
+- Kurzer Weg: lokaler Beleg vor dem Release-Commit und release-only --decide (#2249)
+- Beleg der Release-Ableitung: checks.mjs release-only für den Build-Dienst (#2248)
+- code ci-status und ci-wait: --check-branches zählt nur Läufe der Prüfzweige (#2247)
+- Config: release.publishCommands für den kurzen Weg von merge production (#2246)
+- Codeanalyse: Quality Gate auch auf den Prüfzweigen (#2245)
+- Änderungsprotokoll: Datum der Marke aus KIT_RELEASE_DATE (#2244)
+- doctor meldet einen Push-Auslöser, der auf main oder production doppelt prüft (#2234)
+
+### Was du noch tun musst
+- Projekte mit pushCheck im Build-Dienst nehmen main und production aus dem Push-Auslöser ihrer ci.yml (etwa push: branches-ignore: [main, production]); doctor meldet einen Auslöser, der dort mit auslöst.
+- Projekte in Pro mit Build-Dienst tragen release.publishCommands ein, damit merge production nach einem grünen push main nicht noch einmal prüft.
+
 ## [6.0.0] - 2026-11-05
 - chore: release (Kartenprüfung)
 - Jobliste: übersprungener Job heißt uebersprungen, zählt weiter als bestanden (#2230)

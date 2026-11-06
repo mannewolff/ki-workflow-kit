@@ -82,6 +82,7 @@ export const EINSTELLUNGEN = Object.freeze({
   "pushCheck.machine": paar("Name dieses Rechners beim Prüfen", "Name of this computer when checking"),
   release: paar("Neue Version beim Prüfen", "New version when checking"),
   "release.commands": paar("Schritte für Version und Änderungsliste", "Steps for version and change list"),
+  "release.publishCommands": paar("Schritte für Version und Änderungsliste beim Veröffentlichen", "Steps for version and change list when publishing"),
   reviewScope: paar("Umfang der Durchsicht", "Scope of the review"),
   reviewModel: paar("KI für die Durchsicht", "AI for the review"),
   reviewCommand: paar("Anderes Werkzeug für die Durchsicht", "Other tool for the review"),

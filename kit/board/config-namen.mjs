@@ -209,6 +209,7 @@ export const SCHLUESSEL = Object.freeze({
   "vertragsRepos[].zweig": "branch",
   release: "release",
   "release.commands": "commands",
+  "release.publishCommands": "publishCommands",
   app: "app",
   "app.brand": "brand",
   "app.brand.name": "name",

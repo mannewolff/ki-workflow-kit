@@ -499,6 +499,14 @@
             "minLength": 1
           },
           "description": "Die Befehlszeilen, die Version und Änderungsprotokoll fortschreiben, in ihrer Reihenfolge. Im Kit-Repo etwa node tools/version.mjs --patch, node tools/changelog.mjs --marke v<version> und node tools/sync-blobs.mjs."
+        },
+        "publishCommands": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Die Befehlszeilen, mit denen merge production auf dem kurzen Weg Version und Änderungsprotokoll mit der gewählten Stufe fortschreibt, in ihrer Reihenfolge. <stage> steht für die Stufe (patch, minor oder major), <version> für die neue Versionsnummer aus der Ausgabe des ersten Befehls. Im Kit-Repo node tools/version.mjs --<stage>, node tools/changelog.mjs --marke v<version> und node tools/sync-blobs.mjs. Fehlt das Feld, entfällt der kurze Weg."
         }
       }
     },

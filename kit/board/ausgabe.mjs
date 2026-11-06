@@ -105,9 +105,12 @@ export const PRO_TEILE = Object.freeze({
     muster: Object.freeze([]),
   }),
   // Die Achse `card-check`: die Pruefung je fertiger Karte (Issue #2149, Plan #2145 E2 bis E5), geladen
-  // ueber `proLaden` wie `build-verdict`.
+  // ueber `proLaden` wie `build-verdict`. Dazu der Beleg der Release-Ableitung (Issue #2248, Plan #2242
+  // E3), der `releaseCommit` der Pruefung je Karte mitbenutzt.
   "card-check": Object.freeze({
-    dateien: Object.freeze(["kit/night/kartenpruefung.mjs", "kit/texte/night-kartenpruefung.mjs"]),
+    dateien: Object.freeze([
+      "kit/night/kartenpruefung.mjs", "kit/texte/night-kartenpruefung.mjs", "kit/checks/release.mjs", "kit/texte/checks-release.mjs",
+    ]),
     muster: Object.freeze([]),
   }),
   // Der Produktionsstand fuer Hotfix und Zurueckkehren in `refs/kit/produktion` (Issue #2052, Plan #2038 A3, A5).

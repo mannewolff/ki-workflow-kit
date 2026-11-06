@@ -200,7 +200,9 @@
   // Commands that put version and changelog into the checked state. No default. Advances version and changelog with every checked card; set it when both should belong to the checked state.
   // "release": {
     // The command lines in order, in the kit repo `node tools/version.mjs --patch`, `node tools/changelog.mjs --marke v<version>` and `node tools/sync-blobs.mjs`. Default: `[]`.
-    // "commands": []
+    // "commands": [],
+    // The command lines for the short path of `merge production` in order, `<stage>` for the chosen level and `<version>` for the new version number, in the kit repo `node tools/version.mjs --<stage>`, `node tools/changelog.mjs --marke v<version>` and `node tools/sync-blobs.mjs`. Default: `[]`.
+    // "publishCommands": []
   // },
 
   // Scope of the review material. Valid: `diff`, `full`. Default: `diff`. Diff since the last push or the whole source; set `full` for a review of the whole project.
